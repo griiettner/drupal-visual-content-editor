@@ -1,0 +1,22 @@
+{#
+/**
+ * @file
+ * Template for Visual Page nodes.
+ *
+ * This template renders the visual editor content region where
+ * blocks are rendered via JavaScript.
+ *
+ * Available variables:
+ * - node: The node entity.
+ * - visual_editor_content: The content region markup.
+ * - visual_editor_edit_url: URL to edit in visual editor (if user has permission).
+ */
+#}
+<article{{ attributes.addClass('node', 'node--type-visual-page') }}>
+  <div class="node__content">
+    {# Content region where blocks are rendered by JavaScript #}
+    <div class="pwc-visual-page-content" data-pwc-content-region="true" data-node-id="{{ node.id }}">
+      {# Blocks will be rendered here by JavaScript #}
+    </div>
+  </div>
+</article>

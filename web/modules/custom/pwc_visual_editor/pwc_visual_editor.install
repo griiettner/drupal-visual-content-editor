@@ -1,0 +1,176 @@
+<?php
+
+/**
+ * @file
+ * Install, update and uninstall functions for the PWC Visual Editor module.
+ */
+
+use Drupal\field\Entity\FieldStorageConfig;
+use Drupal\field\Entity\FieldConfig;
+use Drupal\node\Entity\NodeType;
+
+/**
+ * Implements hook_install().
+ */
+function pwc_visual_editor_install() {
+  // Create the Visual Page content type.
+  _pwc_visual_editor_create_content_type();
+
+  // Create the field storage.
+  _pwc_visual_editor_create_field_storage();
+
+  // Add field to Visual Page content type.
+  _pwc_visual_editor_add_field_to_bundle('visual_page');
+
+  \Drupal::messenger()->addStatus(t('PWC Visual Editor installed. You can now create Visual Pages at /visual-editor/add'));
+}
+
+/**
+ * Create the Visual Page content type.
+ */
+function _pwc_visual_editor_create_content_type() {
+  // Check if content type already exists.
+  if (NodeType::load('visual_page')) {
+    return;
+  }
+
+  // Create the content type.
+  $type = NodeType::create([
+    'type' => 'visual_page',
+    'name' => 'Visual Page',
+    'description' => 'A page designed for the PWC Visual Editor. Content is edited using the front-end visual editor.',
+    'help' => '',
+    'new_revision' => TRUE,
+    'preview_mode' => DRUPAL_DISABLED,
+    'display_submitted' => FALSE,
+  ]);
+  $type->save();
+
+  // Create body field storage if it doesn't exist (Drupal standard).
+  // We won't add it to this content type though.
+
+  \Drupal::messenger()->addStatus(t('Created Visual Page content type.'));
+}
+
+/**
+ * Create the field_page_content field storage.
+ */
+function _pwc_visual_editor_create_field_storage() {
+  if (!FieldStorageConfig::loadByName('node', 'field_page_content')) {
+    FieldStorageConfig::create([
+      'field_name' => 'field_page_content',
+      'entity_type' => 'node',
+      'type' => 'text_long',
+      'cardinality' => 1,
+      'settings' => [],
+    ])->save();
+
+    \Drupal::messenger()->addStatus(t('Created field_page_content field storage.'));
+  }
+}
+
+/**
+ * Add field_page_content to a content type bundle.
+ */
+function _pwc_visual_editor_add_field_to_bundle($bundle) {
+  // Check if the content type exists.
+  if (!NodeType::load($bundle)) {
+    return;
+  }
+
+  // Check if field already exists on this bundle.
+  if (FieldConfig::loadByName('node', $bundle, 'field_page_content')) {
+    return;
+  }
+
+  // Create the field instance.
+  FieldConfig::create([
+    'field_name' => 'field_page_content',
+    'entity_type' => 'node',
+    'bundle' => $bundle,
+    'label' => 'Page Content (Visual Editor)',
+    'description' => 'Stores the visual editor block content as JSON.',
+    'required' => FALSE,
+    'settings' => [],
+  ])->save();
+
+  \Drupal::messenger()->addStatus(t('Added field_page_content to @bundle content type.', ['@bundle' => $bundle]));
+
+  // Hide from form display (managed by visual editor).
+  $form_display = \Drupal::entityTypeManager()
+    ->getStorage('entity_form_display')
+    ->load('node.' . $bundle . '.default');
+
+  if ($form_display) {
+    $form_display->removeComponent('field_page_content');
+    $form_display->save();
+  }
+  else {
+    // Create a minimal form display.
+    \Drupal::entityTypeManager()
+      ->getStorage('entity_form_display')
+      ->create([
+        'targetEntityType' => 'node',
+        'bundle' => $bundle,
+        'mode' => 'default',
+        'status' => TRUE,
+      ])
+      ->removeComponent('field_page_content')
+      ->save();
+  }
+
+  // Hide from view display (rendered by visual editor).
+  $view_display = \Drupal::entityTypeManager()
+    ->getStorage('entity_view_display')
+    ->load('node.' . $bundle . '.default');
+
+  if ($view_display) {
+    $view_display->removeComponent('field_page_content');
+    $view_display->save();
+  }
+  else {
+    // Create a minimal view display.
+    \Drupal::entityTypeManager()
+      ->getStorage('entity_view_display')
+      ->create([
+        'targetEntityType' => 'node',
+        'bundle' => $bundle,
+        'mode' => 'default',
+        'status' => TRUE,
+      ])
+      ->removeComponent('field_page_content')
+      ->save();
+  }
+}
+
+/**
+ * Implements hook_uninstall().
+ */
+function pwc_visual_editor_uninstall() {
+  // Delete the Visual Page content type.
+  $type = NodeType::load('visual_page');
+  if ($type) {
+    // First delete all nodes of this type.
+    $nids = \Drupal::entityQuery('node')
+      ->condition('type', 'visual_page')
+      ->accessCheck(FALSE)
+      ->execute();
+
+    if ($nids) {
+      $storage = \Drupal::entityTypeManager()->getStorage('node');
+      $nodes = $storage->loadMultiple($nids);
+      $storage->delete($nodes);
+      \Drupal::messenger()->addWarning(t('Deleted @count Visual Page nodes.', ['@count' => count($nids)]));
+    }
+
+    $type->delete();
+    \Drupal::messenger()->addStatus(t('Deleted Visual Page content type.'));
+  }
+
+  // Remove field storage.
+  $field_storage = FieldStorageConfig::loadByName('node', 'field_page_content');
+  if ($field_storage) {
+    $field_storage->delete();
+    \Drupal::messenger()->addStatus(t('Removed field_page_content field storage.'));
+  }
+}

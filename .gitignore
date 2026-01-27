@@ -1,0 +1,26 @@
+# Drupal files
+web/sites/default/files/*
+!web/sites/default/files/.gitkeep
+
+# Database
+postgres_data/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Composer
+/vendor/
+
+# Environment
+.env
+
+# Claude Code
+.claude/
+.context/

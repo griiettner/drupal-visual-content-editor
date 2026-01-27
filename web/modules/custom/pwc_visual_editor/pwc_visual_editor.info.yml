@@ -1,0 +1,9 @@
+name: PWC Visual Editor
+type: module
+description: 'Front-end visual content editor with Gutenberg-inspired block editing'
+core_version_requirement: ^10 || ^11
+package: PWC
+dependencies:
+  - drupal:node
+  - drupal:user
+  - drupal:jsonapi

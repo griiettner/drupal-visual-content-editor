@@ -1,0 +1,182 @@
+<?php
+
+/**
+ * @file
+ * PWC Visual Editor module.
+ *
+ * Provides front-end visual content editing capabilities.
+ */
+
+use Drupal\Core\Routing\RouteMatchInterface;
+use Drupal\Core\Url;
+use Drupal\node\NodeInterface;
+
+/**
+ * Implements hook_help().
+ */
+function pwc_visual_editor_help($route_name, RouteMatchInterface $route_match) {
+  switch ($route_name) {
+    case 'help.page.pwc_visual_editor':
+      $output = '<h3>' . t('About') . '</h3>';
+      $output .= '<p>' . t('The PWC Visual Editor provides a front-end content editing experience similar to Webflow or WordPress Gutenberg.') . '</p>';
+      $output .= '<h4>' . t('Creating Visual Pages') . '</h4>';
+      $output .= '<p>' . t('Go to <a href="@url">/visual-editor/add</a> to create a new Visual Page.', ['@url' => '/visual-editor/add']) . '</p>';
+      return $output;
+  }
+}
+
+/**
+ * Implements hook_page_attachments().
+ */
+function pwc_visual_editor_page_attachments(array &$attachments) {
+  // Only attach on node pages
+  $route_match = \Drupal::routeMatch();
+  $node = $route_match->getParameter('node');
+
+  if (!$node instanceof NodeInterface) {
+    return;
+  }
+
+  // Only enable for visual_page content type
+  if ($node->bundle() !== 'visual_page') {
+    return;
+  }
+
+  // Load saved content
+  $content = [];
+  if ($node->hasField('field_page_content') && !$node->get('field_page_content')->isEmpty()) {
+    $json = $node->get('field_page_content')->value;
+    $content = json_decode($json, TRUE) ?: [];
+  }
+
+  // Always attach the editor library for Visual Pages (needed to render blocks)
+  $attachments['#attached']['library'][] = 'pwc_visual_editor/editor';
+
+  // Check if user can edit
+  $canEdit = \Drupal::currentUser()->hasPermission('use pwc visual editor') && $node->access('update');
+
+  // Pass settings to JavaScript
+  $attachments['#attached']['drupalSettings']['pwcVisualEditor'] = [
+    'nodeId' => $node->id(),
+    'nodeType' => $node->bundle(),
+    'canEdit' => $canEdit,
+    'content' => $content,
+    'csrfToken' => \Drupal::csrfToken()->get('rest'),
+    'saveUrl' => $canEdit ? Url::fromRoute('pwc_visual_editor.save', ['node' => $node->id()])->toString() : NULL,
+    'editUrl' => $canEdit ? Url::fromRoute('pwc_visual_editor.edit', ['node' => $node->id()])->toString() : NULL,
+    'viewMode' => TRUE,
+  ];
+
+  // Add Tailwind CSS via CDN (temporary - will be replaced with proprietary CSS)
+  $attachments['#attached']['html_head'][] = [
+    [
+      '#type' => 'html_tag',
+      '#tag' => 'script',
+      '#attributes' => [
+        'src' => 'https://cdn.tailwindcss.com',
+      ],
+    ],
+    'tailwind_cdn',
+  ];
+}
+
+/**
+ * Implements hook_theme().
+ */
+function pwc_visual_editor_theme($existing, $type, $theme, $path) {
+  return [
+    'pwc_visual_editor_wrapper' => [
+      'variables' => [
+        'content' => NULL,
+        'node_id' => NULL,
+      ],
+      'template' => 'editor-wrapper',
+    ],
+    'pwc_visual_editor_add' => [
+      'variables' => [],
+      'template' => 'visual-editor-add',
+    ],
+    'pwc_visual_editor_edit' => [
+      'variables' => [
+        'node' => NULL,
+        'content' => [],
+      ],
+      'template' => 'visual-editor-edit',
+    ],
+    'node__visual_page' => [
+      'template' => 'node--visual-page',
+      'base hook' => 'node',
+    ],
+  ];
+}
+
+/**
+ * Implements hook_preprocess_node().
+ */
+function pwc_visual_editor_preprocess_node(&$variables) {
+  $node = $variables['node'];
+
+  // Only process visual_page content type
+  if ($node->bundle() !== 'visual_page') {
+    return;
+  }
+
+  // Load content for rendering
+  $content = [];
+  if ($node->hasField('field_page_content') && !$node->get('field_page_content')->isEmpty()) {
+    $json = $node->get('field_page_content')->value;
+    $content = json_decode($json, TRUE) ?: [];
+  }
+
+  // Add content region for JavaScript to render into
+  $variables['visual_editor_content'] = [
+    '#type' => 'markup',
+    '#markup' => '<div class="pwc-visual-page-content" data-pwc-content-region="true" data-node-id="' . $node->id() . '"></div>',
+    '#allowed_tags' => ['div'],
+  ];
+
+  // Check if user has permission to edit
+  $canEdit = \Drupal::currentUser()->hasPermission('use pwc visual editor');
+
+  if ($canEdit) {
+    // Add edit link for visual pages
+    $variables['visual_editor_edit_url'] = Url::fromRoute('pwc_visual_editor.edit', ['node' => $node->id()])->toString();
+  }
+}
+
+/**
+ * Implements hook_menu_local_tasks_alter().
+ *
+ * Hide View/Edit/Delete/Revisions tabs on Visual Pages.
+ */
+function pwc_visual_editor_menu_local_tasks_alter(&$data, $route_name, \Drupal\Core\Cache\RefinableCacheableDependencyInterface &$cacheability) {
+  // Only process on node routes
+  $route_match = \Drupal::routeMatch();
+  $node = $route_match->getParameter('node');
+
+  if (!$node instanceof NodeInterface) {
+    return;
+  }
+
+  // Only hide tabs for visual_page content type
+  if ($node->bundle() !== 'visual_page') {
+    return;
+  }
+
+  // Remove all local tasks (tabs) for Visual Pages
+  $data['tabs'] = [];
+}
+
+/**
+ * Implements hook_preprocess_page().
+ *
+ * Add class to body for Visual Pages to enable CSS hiding.
+ */
+function pwc_visual_editor_preprocess_page(&$variables) {
+  $route_match = \Drupal::routeMatch();
+  $node = $route_match->getParameter('node');
+
+  if ($node instanceof NodeInterface && $node->bundle() === 'visual_page') {
+    $variables['#attached']['library'][] = 'pwc_visual_editor/visual_page';
+  }
+}

@@ -1,0 +1,190 @@
+{#
+/**
+ * @file
+ * Template for creating a new Visual Page.
+ *
+ * Starts immediately in edit mode with the visual editor.
+ */
+#}
+<div class="pwc-visual-editor-page pwc-editing" data-pwc-new-page="true">
+  <!-- Page Header -->
+  <div class="pwc-page-header bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between sticky top-0 z-40">
+    <div class="flex items-center gap-4">
+      <a href="/" class="text-gray-500 hover:text-gray-700">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+        </svg>
+      </a>
+      <input
+        type="text"
+        id="pwc-page-title"
+        class="text-xl font-semibold text-gray-900 border-none focus:outline-none focus:ring-0 bg-transparent"
+        placeholder="Enter page title..."
+        value=""
+      >
+    </div>
+    <div class="flex items-center gap-3">
+      <a href="/" class="px-4 py-2 text-sm text-gray-600 hover:text-gray-800">
+        Cancel
+      </a>
+      <button
+        type="button"
+        id="pwc-save-btn"
+        class="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+      >
+        Create Page
+      </button>
+    </div>
+  </div>
+
+  <!-- Editor Canvas -->
+  <div class="pwc-editor-canvas min-h-screen bg-gray-50 pb-20">
+    <div class="max-w-4xl mx-auto px-6 py-8">
+      <!-- Content Region -->
+      <div class="pwc-editor-wrapper bg-white rounded-lg shadow-sm border border-gray-200 p-8" data-pwc-content-region="true">
+        <!-- Block inserter will be added here -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Block Library Panel (Gutenberg-style) - opens by default in edit mode -->
+  <pwc-block-library-panel></pwc-block-library-panel>
+
+  <!-- Settings Panel -->
+  <pwc-settings-panel></pwc-settings-panel>
+
+  <!-- Block Toolbar (will be positioned dynamically) -->
+  <pwc-block-toolbar></pwc-block-toolbar>
+
+  <!-- Rich Text Toolbar -->
+  <pwc-rich-text-toolbar></pwc-rich-text-toolbar>
+</div>
+
+<script>
+  // Initialize editor in create mode
+  (function() {
+    'use strict';
+
+    /**
+     * Wait for editor services to be ready.
+     * @param {Function} callback - Callback to run when ready.
+     */
+    function waitForEditor(callback) {
+      // Check if all required services are available
+      function isReady() {
+        return window.pwcEditorState &&
+               window.pwcBlockRegistry &&
+               window.pwcBlockRegistry.getAll().length > 0;
+      }
+
+      if (isReady()) {
+        console.log('PWC Visual Editor: Services ready immediately');
+        callback();
+        return;
+      }
+
+      // Poll until ready (max 5 seconds)
+      let attempts = 0;
+      const maxAttempts = 50;
+      const interval = setInterval(function() {
+        attempts++;
+        if (isReady()) {
+          clearInterval(interval);
+          console.log('PWC Visual Editor: Services ready after', attempts * 100, 'ms');
+          callback();
+        } else if (attempts >= maxAttempts) {
+          clearInterval(interval);
+          console.error('PWC Visual Editor: Timeout waiting for services');
+          // Try to initialize anyway
+          if (window.pwcEditorState) {
+            callback();
+          }
+        }
+      }, 100);
+    }
+
+    /**
+     * Initialize the editor.
+     */
+    function initializeEditor() {
+      const settings = drupalSettings.pwcVisualEditor || {};
+
+      console.log('PWC Visual Editor: Initializing in create mode');
+      console.log('PWC Visual Editor: Available blocks:', window.pwcBlockRegistry.getAll().map(b => b.name));
+
+      // Initialize the editor state
+      window.pwcEditorState.initialize({
+        blocks: [],
+        isEditing: true,
+        isNewPage: true
+      });
+
+      // Open block library panel by default in edit mode
+      const blockLibraryPanel = document.querySelector('pwc-block-library-panel');
+
+      if (blockLibraryPanel) {
+        // Auto-open the panel in edit mode
+        blockLibraryPanel.open();
+      }
+
+      // Handle save button
+      const saveBtn = document.getElementById('pwc-save-btn');
+      const titleInput = document.getElementById('pwc-page-title');
+
+      if (saveBtn) {
+        saveBtn.addEventListener('click', async function() {
+          const title = titleInput.value.trim() || 'Untitled Page';
+          const content = window.pwcEditorState ? window.pwcEditorState.getState() : { blocks: [] };
+
+          console.log('PWC Visual Editor: Saving page with content:', content);
+
+          try {
+            saveBtn.disabled = true;
+            saveBtn.textContent = 'Creating...';
+
+            const response = await fetch(settings.createUrl, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                title: title,
+                content: content
+              })
+            });
+
+            const result = await response.json();
+
+            if (result.success) {
+              // Redirect to the edit page of the new node
+              window.location.href = result.editUrl || result.viewUrl;
+            } else {
+              alert('Failed to create page: ' + (result.error || 'Unknown error'));
+              saveBtn.disabled = false;
+              saveBtn.textContent = 'Create Page';
+            }
+          } catch (error) {
+            console.error('Error creating page:', error);
+            alert('Failed to create page. Please try again.');
+            saveBtn.disabled = false;
+            saveBtn.textContent = 'Create Page';
+          }
+        });
+      }
+
+      // Focus title input
+      if (titleInput) {
+        titleInput.focus();
+      }
+    }
+
+    // Wait for DOM and then for editor services
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', function() {
+        waitForEditor(initializeEditor);
+      });
+    } else {
+      waitForEditor(initializeEditor);
+    }
+  })();
+</script>

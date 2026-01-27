@@ -1,0 +1,59 @@
+/**
+ * Visual Page styles - Hide all Drupal admin UI elements.
+ *
+ * This ensures non-technical users see a clean, admin-free interface.
+ */
+
+/* Hide local tasks (View, Edit, Delete, Revisions tabs) */
+.node--type-visual-page .tabs,
+.node--type-visual-page .local-tasks,
+.node--type-visual-page nav.tabs,
+.page-node-type-visual-page .tabs,
+.page-node-type-visual-page .local-tasks,
+.page-node-type-visual-page nav.tabs {
+  display: none !important;
+}
+
+/* Hide contextual links (pencil icons) */
+.node--type-visual-page .contextual,
+.node--type-visual-page [data-contextual-id],
+.page-node-type-visual-page .contextual,
+.page-node-type-visual-page [data-contextual-id] {
+  display: none !important;
+}
+
+/* Hide admin toolbar for visual pages (optional - remove if you want toolbar visible) */
+/*
+.page-node-type-visual-page #toolbar-administration {
+  display: none !important;
+}
+.page-node-type-visual-page body.toolbar-fixed {
+  padding-top: 0 !important;
+}
+*/
+
+/* Hide quick edit */
+.node--type-visual-page .quickedit,
+.node--type-visual-page [data-quickedit-field-id],
+.page-node-type-visual-page .quickedit,
+.page-node-type-visual-page [data-quickedit-field-id] {
+  display: none !important;
+}
+
+/* Hide breadcrumb if not needed */
+/*
+.page-node-type-visual-page .breadcrumb {
+  display: none !important;
+}
+*/
+
+/* Hide "Submitted by" info */
+.node--type-visual-page .node__meta,
+.node--type-visual-page .submitted {
+  display: none !important;
+}
+
+/* Hide any action links */
+.page-node-type-visual-page .action-links {
+  display: none !important;
+}

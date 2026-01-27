@@ -1,0 +1,9 @@
+use pwc visual editor:
+  title: 'Use PWC Visual Editor'
+  description: 'Access the front-end visual content editor to edit page content.'
+  restrict access: false
+
+administer pwc visual editor:
+  title: 'Administer PWC Visual Editor'
+  description: 'Configure visual editor settings and manage block types.'
+  restrict access: true

@@ -1,0 +1,29 @@
+# Main editor library - loaded for users with edit permission
+editor:
+  version: 1.0
+  js:
+    js/services/editor-state.js: {}
+    js/services/api-client.js: {}
+    js/services/block-registry.js: {}
+    js/components/blocks/base-block.js: {}
+    js/components/block-toolbar.js: {}
+    js/components/settings-panel.js: {}
+    js/components/block-inserter.js: {}
+    js/components/rich-text-toolbar.js: {}
+    js/components/blocks/heading.js: {}
+    js/components/block-library-panel.js: {}
+    js/editor.js: {}
+  css:
+    theme:
+      css/editor.css: {}
+  dependencies:
+    - core/drupal
+    - core/drupalSettings
+    - core/once
+
+# Visual Page styles - hide Drupal admin UI
+visual_page:
+  version: 1.0
+  css:
+    theme:
+      css/visual-page.css: {}

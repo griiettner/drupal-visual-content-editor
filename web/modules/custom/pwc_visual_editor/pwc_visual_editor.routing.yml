@@ -1,0 +1,43 @@
+# Visual Page routes - bypasses Drupal admin editing
+pwc_visual_editor.add:
+  path: '/visual-editor/add'
+  defaults:
+    _controller: '\Drupal\pwc_visual_editor\Controller\EditorController::addPage'
+    _title: 'Create Visual Page'
+  requirements:
+    _permission: 'use pwc visual editor'
+
+pwc_visual_editor.edit:
+  path: '/visual-editor/{node}/edit'
+  defaults:
+    _controller: '\Drupal\pwc_visual_editor\Controller\EditorController::editPage'
+    _title: 'Edit Visual Page'
+  requirements:
+    _permission: 'use pwc visual editor'
+    _entity_access: 'node.update'
+  options:
+    parameters:
+      node:
+        type: entity:node
+
+# API endpoint for saving content
+pwc_visual_editor.save:
+  path: '/api/pwc-visual-editor/save/{node}'
+  defaults:
+    _controller: '\Drupal\pwc_visual_editor\Controller\EditorController::save'
+  requirements:
+    _permission: 'use pwc visual editor'
+    _entity_access: 'node.update'
+  options:
+    parameters:
+      node:
+        type: entity:node
+
+# API endpoint for creating new Visual Pages
+pwc_visual_editor.create:
+  path: '/api/pwc-visual-editor/create'
+  defaults:
+    _controller: '\Drupal\pwc_visual_editor\Controller\EditorController::createPage'
+  requirements:
+    _permission: 'use pwc visual editor'
+  methods: [POST]

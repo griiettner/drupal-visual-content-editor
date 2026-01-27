@@ -32,9 +32,32 @@
      * @param {Array} initialBlocks - Initial block data.
      */
     init(initialBlocks = []) {
-      this.blocks = initialBlocks;
+      // Filter out unknown block types
+      this.blocks = this.filterValidBlocks(initialBlocks);
       this.isDirty = false;
       this.pushHistory();
+    }
+
+    /**
+     * Filter out blocks with unknown types.
+     *
+     * @param {Array} blocks - Blocks to filter.
+     * @returns {Array} Filtered blocks with only valid types.
+     */
+    filterValidBlocks(blocks) {
+      if (!window.pwcBlockRegistry) return blocks;
+
+      return blocks.filter(block => {
+        const isValid = window.pwcBlockRegistry.get(block.type) !== null;
+        if (!isValid) {
+          console.warn(`PWC Editor State: Removing block with unknown type "${block.type}" from content`);
+        }
+        // Also filter innerBlocks recursively
+        if (isValid && block.innerBlocks) {
+          block.innerBlocks = this.filterValidBlocks(block.innerBlocks);
+        }
+        return isValid;
+      });
     }
 
     /**
@@ -43,7 +66,8 @@
      * @param {Object} options - Initialization options.
      */
     initialize(options = {}) {
-      this.blocks = options.blocks || [];
+      // Filter out unknown block types
+      this.blocks = this.filterValidBlocks(options.blocks || []);
       this.isEditing = options.isEditing || false;
       this.isNewPage = options.isNewPage || false;
       this.nodeId = options.nodeId || null;

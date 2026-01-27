@@ -64,7 +64,18 @@
     if (!contentRegion) return;
 
     const content = settings.content || {};
-    const blocks = content.blocks || [];
+    let blocks = content.blocks || [];
+
+    // Filter out unknown block types
+    if (window.pwcBlockRegistry) {
+      blocks = blocks.filter(block => {
+        const isValid = window.pwcBlockRegistry.get(block.type) !== null;
+        if (!isValid) {
+          console.warn(`PWC Visual Editor: Skipping unknown block type "${block.type}" in view mode`);
+        }
+        return isValid;
+      });
+    }
 
     if (blocks.length === 0) {
       // Empty state for view mode
@@ -73,16 +84,18 @@
     }
 
     // Render each block
+    let renderedCount = 0;
     blocks.forEach((blockData) => {
       if (window.pwcBlockRegistry) {
         const blockElement = window.pwcBlockRegistry.createBlock(blockData);
         if (blockElement) {
           contentRegion.appendChild(blockElement);
+          renderedCount++;
         }
       }
     });
 
-    console.log('PWC Visual Editor: Rendered', blocks.length, 'blocks in view mode');
+    console.log('PWC Visual Editor: Rendered', renderedCount, 'blocks in view mode');
   }
 
   /**

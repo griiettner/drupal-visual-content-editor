@@ -70,8 +70,7 @@
       console.log('PWC Block Registry: Creating block element for:', blockData);
       const blockInfo = this.get(blockData.type);
       if (!blockInfo) {
-        console.error(`PWC Block Registry: Unknown block type: ${blockData.type}`);
-        console.log('PWC Block Registry: Registered types:', Array.from(this.blocks.keys()));
+        console.warn(`PWC Block Registry: Skipping unknown block type "${blockData.type}" - this block type no longer exists`);
         return null;
       }
       console.log('PWC Block Registry: Found block info:', blockInfo.name, 'tagName:', blockInfo.tagName);

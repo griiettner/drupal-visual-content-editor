@@ -27,6 +27,8 @@
       this._isInlineEditing = false; // Flag to prevent re-render during inline editing
       this._boundClickHandler = this.handleClick.bind(this);
       this._boundKeyHandler = this.handleKeydown.bind(this);
+      this._dragFromHandle = false;
+      this._dragStarted = false; // Track if drag actually started
     }
 
     /**
@@ -228,15 +230,28 @@
 
       // Only allow drag from the handle
       this.addEventListener('dragstart', (e) => {
+        console.log('PWC Reorder: dragstart fired, _dragFromHandle =', this._dragFromHandle);
+
         // Only allow drag if it started from the drag handle
         if (!this._dragFromHandle) {
+          console.log('PWC Reorder: Preventing drag - not from handle');
           e.preventDefault();
           return;
         }
 
+        console.log('PWC Reorder: Starting drag operation for block', this.blockId);
+
+        // Mark drag as started
+        this._dragStarted = true;
+
         e.dataTransfer.setData('text/plain', this.blockId);
         e.dataTransfer.setData('application/x-pwc-block-reorder', this.blockId);
         e.dataTransfer.effectAllowed = 'move';
+
+        // Set drag image to provide visual feedback
+        if (e.dataTransfer.setDragImage) {
+          e.dataTransfer.setDragImage(this, 20, 20);
+        }
 
         // Add dragging class
         this.classList.add('pwc-block--dragging');
@@ -246,27 +261,40 @@
         this.createReorderDropZones();
       });
 
-      this.addEventListener('dragend', () => {
-        this.classList.remove('pwc-block--dragging');
-        document.body.classList.remove('pwc-dragging-block');
+      this.addEventListener('dragend', (e) => {
+        console.log('PWC Reorder: dragend fired, dropEffect =', e.dataTransfer.dropEffect, '_dragStarted =', this._dragStarted);
+
+        // Only clean up if drag actually started
+        if (this._dragStarted) {
+          this.classList.remove('pwc-block--dragging');
+          document.body.classList.remove('pwc-dragging-block');
+          this.removeReorderDropZones();
+        }
+
+        // Reset flags
         this._dragFromHandle = false;
-        this.removeReorderDropZones();
+        this._dragStarted = false;
       });
 
       // Track if drag started from handle
       dragHandle.addEventListener('mousedown', (e) => {
         e.stopPropagation();
         this._dragFromHandle = true;
+        console.log('PWC Reorder: Drag handle mousedown, _dragFromHandle = true');
       });
 
-      // Reset flag if mouse leaves handle before drag starts
-      dragHandle.addEventListener('mouseleave', () => {
-        // Small delay to allow drag to start
-        setTimeout(() => {
-          if (!this.classList.contains('pwc-block--dragging')) {
-            this._dragFromHandle = false;
-          }
-        }, 100);
+      // Reset flag on mouseup anywhere (if drag didn't start)
+      const resetDragFlag = (e) => {
+        // Only reset if we're not currently dragging
+        if (!this.classList.contains('pwc-block--dragging')) {
+          this._dragFromHandle = false;
+          console.log('PWC Reorder: Reset _dragFromHandle on mouseup');
+        }
+      };
+
+      // Add mouseup listener to document to catch mouseup anywhere
+      dragHandle.addEventListener('mousedown', () => {
+        document.addEventListener('mouseup', resetDragFlag, { once: true });
       });
     }
 

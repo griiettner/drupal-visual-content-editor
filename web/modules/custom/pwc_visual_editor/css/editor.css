@@ -85,6 +85,11 @@ body.pwc-editing button.contextual-trigger {
   background: rgba(0, 124, 186, 0.05);
 }
 
+/* Make draggable blocks work properly */
+.pwc-block[draggable="true"] {
+  -webkit-user-drag: element;
+}
+
 /* Block Hover Controls (drag handle + delete) */
 .pwc-block__controls {
   position: absolute;
@@ -128,6 +133,14 @@ body.pwc-editing button.contextual-trigger {
 
 .pwc-block__drag-handle:active {
   cursor: grabbing;
+}
+
+/* Ensure drag handle is properly draggable */
+.pwc-block__drag-handle {
+  touch-action: none;
+  -webkit-user-drag: element;
+  user-select: none;
+  -webkit-user-select: none;
 }
 
 .pwc-block__delete:hover {

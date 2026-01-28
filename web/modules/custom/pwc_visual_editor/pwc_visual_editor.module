@@ -220,6 +220,9 @@ function pwc_visual_editor_render_heading(array $attributes): string {
   if (!empty($attributes['fontWeight'])) {
     $classes[] = htmlspecialchars($attributes['fontWeight']);
   }
+  if (!empty($attributes['textAlign'])) {
+    $classes[] = htmlspecialchars($attributes['textAlign']);
+  }
   if (!empty($attributes['textColor'])) {
     $classes[] = htmlspecialchars($attributes['textColor']);
   }

@@ -142,6 +142,19 @@
           options: TAILWIND_OPTIONS.fontWeight,
         },
         {
+          name: 'textAlign',
+          type: 'alignment',
+          label: 'Alignment',
+          default: '',
+          options: [
+            { value: '', label: 'None', icon: 'align-left' },
+            { value: 'text-left', label: 'Left', icon: 'align-left' },
+            { value: 'text-center', label: 'Center', icon: 'align-center' },
+            { value: 'text-right', label: 'Right', icon: 'align-right' },
+            { value: 'text-justify', label: 'Justify', icon: 'align-justify' },
+          ],
+        },
+        {
           name: 'textColor',
           type: 'colorSwatch',
           label: 'Text Color',
@@ -188,6 +201,7 @@
         'level',
         'font-size',
         'font-weight',
+        'text-align',
         'text-color',
         'margin',
         'padding',
@@ -200,6 +214,7 @@
       const level = this.getAttribute('level') || 'h2';
       const fontSize = this.getAttribute('font-size') || '';
       const fontWeight = this.getAttribute('font-weight') || '';
+      const textAlign = this.getAttribute('text-align') || '';
       const textColor = this.getAttribute('text-color') || '';
       const margin = this.getAttribute('margin') || '';
       const padding = this.getAttribute('padding') || '';
@@ -210,6 +225,7 @@
         'pwc-heading',
         fontSize,
         fontWeight,
+        textAlign,
         textColor,
         margin,
         padding,

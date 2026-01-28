@@ -387,6 +387,67 @@
             </div>
           `;
 
+        case 'alignment':
+          const alignmentOptions = setting.options || [
+            { value: '', label: 'None', icon: 'align-left' },
+            { value: 'text-left', label: 'Left', icon: 'align-left' },
+            { value: 'text-center', label: 'Center', icon: 'align-center' },
+            { value: 'text-right', label: 'Right', icon: 'align-right' },
+            { value: 'text-justify', label: 'Justify', icon: 'align-justify' },
+          ];
+
+          const alignIcons = {
+            'align-left': `<svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="3" y1="6" x2="21" y2="6"></line>
+              <line x1="3" y1="12" x2="15" y2="12"></line>
+              <line x1="3" y1="18" x2="18" y2="18"></line>
+            </svg>`,
+            'align-center': `<svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="3" y1="6" x2="21" y2="6"></line>
+              <line x1="6" y1="12" x2="18" y2="12"></line>
+              <line x1="4" y1="18" x2="20" y2="18"></line>
+            </svg>`,
+            'align-right': `<svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="3" y1="6" x2="21" y2="6"></line>
+              <line x1="9" y1="12" x2="21" y2="12"></line>
+              <line x1="6" y1="18" x2="21" y2="18"></line>
+            </svg>`,
+            'align-justify': `<svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="3" y1="6" x2="21" y2="6"></line>
+              <line x1="3" y1="12" x2="21" y2="12"></line>
+              <line x1="3" y1="18" x2="21" y2="18"></line>
+            </svg>`,
+          };
+
+          const alignButtons = alignmentOptions.map((opt, index) => {
+            // Skip the first "None" option for display, but we'll add a clear button
+            if (index === 0) return '';
+            const isSelected = value === opt.value;
+            return `
+              <button
+                type="button"
+                class="pwc-align-btn flex-1 p-2 rounded border transition-all ${isSelected ? 'bg-blue-100 border-blue-500 text-blue-600' : 'bg-white border-gray-200 text-gray-600 hover:border-blue-400 hover:bg-blue-50'}"
+                data-value="${opt.value}"
+                data-name="${setting.name}"
+                title="${opt.label}"
+              >
+                ${alignIcons[opt.icon] || ''}
+              </button>
+            `;
+          }).join('');
+
+          return `
+            <div class="pwc-setting-field">
+              <label class="block text-sm font-medium text-gray-700 mb-2">
+                ${setting.label}
+              </label>
+              <div class="pwc-alignment-buttons flex gap-1" data-name="${setting.name}">
+                ${alignButtons}
+              </div>
+              ${setting.help ? `<p class="mt-1 text-xs text-gray-500">${setting.help}</p>` : ''}
+            </div>
+          `;
+
         case 'spacing':
           const prefix = setting.prefix || 'm';
           const spacingPresets = window.TAILWIND_OPTIONS?.spacingPresets || [
@@ -545,6 +606,34 @@
           swatch.classList.add('border-blue-500', 'ring-2', 'ring-blue-300');
 
           this.updateBlockAttribute(name, value);
+        });
+      });
+
+      // Alignment buttons
+      this.querySelectorAll('.pwc-align-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const name = btn.dataset.name;
+          const value = btn.dataset.value;
+          const container = btn.closest('.pwc-alignment-buttons');
+
+          // Check if clicking the already selected button (toggle off)
+          const isAlreadySelected = btn.classList.contains('bg-blue-100');
+
+          // Update visual selection
+          container.querySelectorAll('.pwc-align-btn').forEach(b => {
+            b.classList.remove('bg-blue-100', 'border-blue-500', 'text-blue-600');
+            b.classList.add('bg-white', 'border-gray-200', 'text-gray-600');
+          });
+
+          if (!isAlreadySelected) {
+            // Select this button
+            btn.classList.remove('bg-white', 'border-gray-200', 'text-gray-600');
+            btn.classList.add('bg-blue-100', 'border-blue-500', 'text-blue-600');
+            this.updateBlockAttribute(name, value);
+          } else {
+            // Toggle off - clear the alignment
+            this.updateBlockAttribute(name, '');
+          }
         });
       });
 

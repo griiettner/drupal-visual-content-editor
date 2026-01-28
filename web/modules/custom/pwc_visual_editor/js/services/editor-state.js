@@ -100,9 +100,6 @@
      */
     renderContentRegion() {
       const contentRegion = document.querySelector('[data-pwc-content-region]');
-      console.log('PWC Editor State: renderContentRegion called, content region found:', !!contentRegion);
-      console.log('PWC Editor State: Current blocks:', this.blocks);
-      console.log('PWC Editor State: Is editing:', this.isEditing);
       if (!contentRegion) return;
 
       // Clear existing content
@@ -326,24 +323,16 @@
      * @param {number} targetIndex - Target index to move to.
      */
     moveBlockToIndex(blockId, targetIndex) {
-      console.log('PWC State: moveBlockToIndex called', { blockId, targetIndex });
-
       const result = this.findBlockWithParent(blockId);
       if (!result) {
-        console.error('PWC State: Block not found:', blockId);
         return;
       }
 
       const { block, parent, index: currentIndex } = result;
       const targetArray = parent ? parent.innerBlocks : this.blocks;
 
-      console.log('PWC State: Block found at index', currentIndex, 'of', targetArray.length, 'blocks');
-
       // Don't move if already at target position
-      // targetIndex is where we want to insert
-      // If block is at currentIndex, inserting at currentIndex or currentIndex+1 results in no change
       if (currentIndex === targetIndex || currentIndex + 1 === targetIndex) {
-        console.log('PWC State: No move needed, already at position');
         return;
       }
 
@@ -356,16 +345,12 @@
         adjustedIndex = targetIndex - 1;
       }
 
-      console.log('PWC State: Inserting at adjusted index', adjustedIndex);
-
       // Insert at new position
       targetArray.splice(adjustedIndex, 0, block);
 
       this.isDirty = true;
       this.pushHistory();
       this.emit('blockMove', { blockId, newIndex: adjustedIndex });
-
-      console.log('PWC State: Block moved, new order:', targetArray.map(b => b.id));
     }
 
     /**
@@ -377,12 +362,9 @@
      * @param {number} targetIndex - Target position within the column.
      */
     moveBlockInLayout(blockId, layoutId, columnIndex, targetIndex) {
-      console.log('PWC State: moveBlockInLayout called', { blockId, layoutId, columnIndex, targetIndex });
-
       // Find the layout block
       const layoutBlock = this.findBlock(layoutId);
       if (!layoutBlock || !layoutBlock.innerBlocks) {
-        console.error('PWC State: Layout block not found:', layoutId);
         return;
       }
 
@@ -394,7 +376,6 @@
       // Find the block being moved
       const blockIndex = layoutBlock.innerBlocks.findIndex(b => b.id === blockId);
       if (blockIndex === -1) {
-        console.error('PWC State: Block not found in layout:', blockId);
         return;
       }
 
@@ -404,12 +385,9 @@
       // Find current position within the column
       const currentPositionInColumn = columnBlocks.findIndex(b => b.id === blockId);
 
-      console.log('PWC State: Block at column position', currentPositionInColumn, 'moving to', targetIndex);
-
       // Check if we're staying in the same column and position
       if (currentColumnIndex === columnIndex) {
         if (currentPositionInColumn === targetIndex || currentPositionInColumn + 1 === targetIndex) {
-          console.log('PWC State: No move needed, already at position');
           return;
         }
       }
@@ -419,7 +397,6 @@
       let adjustedTargetIndex = targetIndex;
       if (currentColumnIndex === columnIndex && currentPositionInColumn < targetIndex) {
         adjustedTargetIndex = targetIndex - 1;
-        console.log('PWC State: Adjusted target index from', targetIndex, 'to', adjustedTargetIndex);
       }
 
       // Remove block from innerBlocks
@@ -430,7 +407,6 @@
       block.attributes.columnIndex = columnIndex;
 
       // Calculate where to insert in the innerBlocks array
-      // We need to find the right position considering all blocks, not just column blocks
       let insertPosition = 0;
 
       // Get updated column blocks after removal
@@ -439,7 +415,7 @@
       );
 
       if (adjustedTargetIndex === 0 || updatedColumnBlocks.length === 0) {
-        // Insert at beginning of column - find first block in this column or insert at start
+        // Insert at beginning of column
         const firstInColumn = layoutBlock.innerBlocks.findIndex(b =>
           (b.attributes?.columnIndex || 0) === columnIndex
         );
@@ -456,16 +432,12 @@
         insertPosition = layoutBlock.innerBlocks.findIndex(b => b.id === blockBeforeTarget.id) + 1;
       }
 
-      console.log('PWC State: Inserting at position', insertPosition, 'in innerBlocks array');
-
       // Insert at calculated position
       layoutBlock.innerBlocks.splice(insertPosition, 0, block);
 
       this.isDirty = true;
       this.pushHistory();
       this.emit('blockMove', { blockId, layoutId, columnIndex, newIndex: adjustedTargetIndex });
-
-      console.log('PWC State: Block moved in layout, new innerBlocks:', layoutBlock.innerBlocks.map(b => b.id));
     }
 
     /**

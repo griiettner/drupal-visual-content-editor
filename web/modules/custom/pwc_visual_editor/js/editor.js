@@ -24,7 +24,6 @@
         // Just set up keyboard shortcuts
         if (editorSettings.startInEditMode) {
           setupGlobalKeyboardShortcuts();
-          console.log('PWC Visual Editor initialized in direct edit mode');
           return;
         }
 
@@ -95,7 +94,6 @@
       }
     });
 
-    console.log('PWC Visual Editor: Rendered', renderedCount, 'blocks in view mode');
   }
 
   /**
@@ -172,7 +170,7 @@
       // Set up auto-save
       this.setupAutoSave();
 
-      console.log('PWC Visual Editor initialized');
+      // PWC Visual Editor initialized
     }
 
     /**
@@ -309,7 +307,7 @@
 
       // Use content already loaded in drupalSettings (no API call needed)
       const content = this.settings.content || { blocks: [] };
-      console.log('PWC Editor: Entering edit mode with content:', content);
+      // Entering edit mode
       window.pwcEditorState.init(content.blocks || []);
 
       // Enter edit mode
@@ -440,7 +438,7 @@
         if (window.pwcEditorState.isEditing && window.pwcEditorState.isDirty) {
           const content = window.pwcEditorState.serialize();
           window.pwcApiClient.saveToLocalStorage(content);
-          console.log('Auto-saved to localStorage');
+          // Auto-saved to localStorage
         }
       }, 30000);
     }

@@ -237,6 +237,6 @@
     window.pwcBlockRegistry.register(HeadingBlock);
   }
 
-  console.log('PWC Heading Block: Registered');
+  // PWC Heading Block registered
 
 })(Drupal);

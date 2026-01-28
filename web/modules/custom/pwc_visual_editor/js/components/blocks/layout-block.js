@@ -9,7 +9,7 @@
 (function (Drupal) {
   'use strict';
 
-  console.log('PWC Layout Block: Script loading...');
+  // PWC Layout Block loaded
 
   // BaseBlock should be available since it's loaded first in libraries.yml
   const BaseBlock = window.PwcBaseBlock;
@@ -136,19 +136,13 @@
       this.addEventListener('dragstart', (e) => {
         // Don't interfere with child block drags - only handle drags on this layout itself
         if (e.target !== this && !e.target.classList.contains('pwc-layout-handle')) {
-          console.log('PWC Layout: Ignoring drag from child element', e.target.tagName);
           return; // Let the event continue to propagate, don't prevent it
         }
 
-        console.log('PWC Layout: Block dragstart, _dragFromLayoutHandle =', this._dragFromLayoutHandle);
-
         if (!this._dragFromLayoutHandle) {
-          console.log('PWC Layout: Preventing drag - not from layout handle');
           e.preventDefault();
           return;
         }
-
-        console.log('PWC Layout: Starting drag for block', this.blockId);
 
         e.dataTransfer.setData('text/plain', this.blockId);
         e.dataTransfer.setData('application/x-pwc-block-reorder', this.blockId);
@@ -161,7 +155,7 @@
             e.dataTransfer.setDragImage(layoutBlock, 50, 20);
           }
         } catch (err) {
-          console.log('PWC Layout: Could not set drag image');
+          // Ignore drag image errors
         }
 
         this.classList.add('pwc-block--dragging');
@@ -173,7 +167,6 @@
 
       // Drag end
       this.addEventListener('dragend', (e) => {
-        console.log('PWC Layout: Block dragend');
         this.classList.remove('pwc-block--dragging');
         document.body.classList.remove('pwc-reordering');
         this.removeReorderDropZones();
@@ -292,18 +285,14 @@
       const deleteBtn = this.querySelector('.pwc-layout-delete');
 
       if (!handle) {
-        console.log('PWC Layout: Handle not found');
         return;
       }
-
-      console.log('PWC Layout: Setting up controls for', this.blockId);
 
       // Remove draggable from handle - the BLOCK is draggable, not the handle
       handle.removeAttribute('draggable');
 
       // Handle mousedown sets the flag to allow drag
       handle.addEventListener('mousedown', (e) => {
-        console.log('PWC Layout: Handle mousedown - enabling drag');
         e.stopPropagation();
         this._dragFromLayoutHandle = true;
 
@@ -311,7 +300,6 @@
         const resetFlag = () => {
           if (!this.classList.contains('pwc-block--dragging')) {
             this._dragFromLayoutHandle = false;
-            console.log('PWC Layout: Reset drag flag on mouseup');
           }
         };
         document.addEventListener('mouseup', resetFlag, { once: true });
@@ -336,11 +324,8 @@
     createReorderDropZones() {
       const contentRegion = document.querySelector('[data-pwc-content-region]');
       if (!contentRegion) {
-        console.log('PWC Layout: Content region not found');
         return;
       }
-
-      console.log('PWC Layout: Creating reorder drop zones');
 
       // Add drop-active class to content region
       contentRegion.classList.add('pwc-drop-active');
@@ -350,8 +335,6 @@
         el.tagName && el.tagName.toLowerCase().startsWith('pwc-')
       );
       const currentIndex = blocks.indexOf(this);
-
-      console.log('PWC Layout: Found', blocks.length, 'blocks, this layout at index', currentIndex);
 
       // Create drop zone at beginning if not already first
       if (currentIndex > 0 && blocks.length > 0) {
@@ -401,8 +384,6 @@
         const dropZone = e.target.closest('.pwc-drop-zone--reorder');
         if (!dropZone) return; // Not over a drop zone
 
-        console.log('PWC Layout: Drag handler detected drop zone', e.type, dropZone.dataset.insertIndex);
-
         e.preventDefault();
         e.stopPropagation();
         e.stopImmediatePropagation();
@@ -415,7 +396,6 @@
           });
         } else if (e.type === 'drop') {
           const newIndex = parseInt(dropZone.dataset.insertIndex, 10);
-          console.log('PWC Layout: Dropping layout at index', newIndex);
           window.pwcEditorState.moveBlockToIndex(blockId, newIndex);
 
           // Clean up
@@ -431,12 +411,10 @@
      */
     setupReorderDropZoneListeners() {
       const zones = document.querySelectorAll('.pwc-drop-zone--reorder');
-      console.log('PWC Layout: Setting up', zones.length, 'drop zones');
 
       zones.forEach(zone => {
         // Use capture phase for reliability
         const dragoverHandler = (e) => {
-          console.log('PWC Layout: Zone dragover', zone.dataset.insertIndex);
           e.preventDefault();
           e.stopPropagation();
           e.stopImmediatePropagation();
@@ -451,7 +429,6 @@
         };
 
         const dropHandler = (e) => {
-          console.log('PWC Layout: Zone drop', zone.dataset.insertIndex);
           e.preventDefault();
           e.stopPropagation();
           e.stopImmediatePropagation();
@@ -488,7 +465,6 @@
       }
 
       document.querySelectorAll('.pwc-drop-zone--reorder').forEach(zone => zone.remove());
-      console.log('PWC Layout: Drop zones removed');
     }
 
     getColumnBlocks(columnIndex) {
@@ -502,12 +478,27 @@
     }
 
     renderInnerBlocks() {
+      // Try to get inner blocks from editor state first, then fall back to element data
+      let innerBlocks = null;
+
+      // Method 1: Get from editor state
       const blockData = window.pwcEditorState?.findBlock(this.blockId);
-      if (!blockData || !blockData.innerBlocks) return;
+      if (blockData && blockData.innerBlocks) {
+        innerBlocks = blockData.innerBlocks;
+      }
+
+      // Method 2: Fall back to element's _innerBlocksData (set during createBlock)
+      if (!innerBlocks && this._innerBlocksData) {
+        innerBlocks = this._innerBlocksData;
+      }
+
+      if (!innerBlocks || innerBlocks.length === 0) {
+        return;
+      }
 
       // Group blocks by column
       const blocksByColumn = {};
-      blockData.innerBlocks.forEach(innerBlockData => {
+      innerBlocks.forEach(innerBlockData => {
         const columnIndex = innerBlockData.attributes?.columnIndex || 0;
         if (!blocksByColumn[columnIndex]) {
           blocksByColumn[columnIndex] = [];
@@ -614,8 +605,6 @@
           const layoutVariation = e.dataTransfer.getData('layout-variation');
 
           if (blockType) {
-            console.log('PWC Layout: Dropped block type:', blockType, 'into column:', columnIndex);
-
             // Create block data
             let blockData;
             if (blockType === 'layout' && layoutVariation) {
@@ -682,9 +671,6 @@
   // Register with block registry
   if (window.pwcBlockRegistry) {
     window.pwcBlockRegistry.register(LayoutBlock);
-    console.log('PWC Layout Block: Registered successfully');
-  } else {
-    console.error('PWC Layout Block: Block registry not available');
   }
 
   // Expose class

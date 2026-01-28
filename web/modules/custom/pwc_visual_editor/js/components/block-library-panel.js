@@ -8,8 +8,6 @@
 (function (Drupal) {
   'use strict';
 
-  console.log('PWC Block Library Panel: Script loading...');
-
   /**
    * Block categories configuration.
    * Maps registered block names to categories.
@@ -85,19 +83,16 @@
     }
 
     connectedCallback() {
-      console.log('PWC Block Library Panel: connectedCallback called');
 
       // Store global reference for easy access
       window.pwcBlockLibraryPanel = this;
 
       // Move to body to ensure proper fixed positioning (avoid parent transform issues)
       if (this.parentElement !== document.body) {
-        console.log('PWC Block Library Panel: Moving to body for proper positioning');
         document.body.appendChild(this);
         return; // connectedCallback will be called again when appended to body
       }
 
-      console.log('PWC Block Library Panel: Element is in body, rendering...');
       this.render();
       this.setupEventListeners();
     }
@@ -170,7 +165,6 @@
 
     renderBlockList() {
       const registeredBlocks = window.pwcBlockRegistry ? window.pwcBlockRegistry.getAll() : [];
-      console.log('PWC Block Library: Registered blocks:', registeredBlocks.map(b => b.name));
 
       let html = '';
 
@@ -179,16 +173,13 @@
         if (category.special && category.id === 'layout') {
           // Check if layout block is registered
           const layoutBlock = registeredBlocks.find(b => b.name === 'layout');
-          console.log('PWC Block Library: Checking for layout block:', layoutBlock);
           const matchesSearch = !this.searchQuery ||
             'layout'.includes(this.searchQuery.toLowerCase()) ||
             'columns'.includes(this.searchQuery.toLowerCase());
 
           if (layoutBlock && matchesSearch) {
-            console.log('PWC Block Library: Rendering layout category');
             html += this.renderLayoutCategory();
           } else {
-            console.log('PWC Block Library: Layout block NOT found in registry');
           }
           return;
         }
@@ -597,8 +588,6 @@
     }
 
     open() {
-      console.log('PWC Block Library Panel: Opening panel');
-      console.log('PWC Block Library Panel: Available blocks:', window.pwcBlockRegistry ? window.pwcBlockRegistry.getAll().map(b => b.name) : 'Registry not available');
       this.isOpen = true;
       document.body.classList.add('pwc-block-library-open');
       this.render();
@@ -620,7 +609,6 @@
     }
 
     toggle() {
-      console.log('PWC Block Library Panel: Toggle called, isOpen:', this.isOpen);
       if (this.isOpen) {
         this.close();
       } else {
@@ -631,7 +619,6 @@
 
   // Register custom element
   customElements.define('pwc-block-library-panel', BlockLibraryPanel);
-  console.log('PWC Block Library Panel: Custom element registered');
 
   // Expose to window for external access
   window.PwcBlockLibraryPanel = BlockLibraryPanel;

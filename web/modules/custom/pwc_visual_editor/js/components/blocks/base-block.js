@@ -191,21 +191,15 @@
      * Add hover controls to block (drag handle + delete).
      */
     addHoverControls() {
-      console.log('PWC BaseBlock: addHoverControls called for', this.tagName, this.blockId);
-
       // Only add controls in edit mode
       if (!window.pwcEditorState || !window.pwcEditorState.isEditing) {
-        console.log('PWC BaseBlock: Not in edit mode, skipping controls');
         return;
       }
 
       // Check if controls already exist
       if (this.querySelector('.pwc-block__controls')) {
-        console.log('PWC BaseBlock: Controls already exist, skipping');
         return;
       }
-
-      console.log('PWC BaseBlock: Creating controls for', this.blockId);
 
       const controls = document.createElement('div');
       controls.className = 'pwc-block__controls';
@@ -224,7 +218,6 @@
 
       // Insert controls at the beginning of the block
       this.insertBefore(controls, this.firstChild);
-      console.log('PWC BaseBlock: Controls inserted, drag handle exists:', !!controls.querySelector('.pwc-block__drag-handle'));
 
       // Set up delete handler
       const deleteBtn = controls.querySelector('.pwc-block__delete');
@@ -245,16 +238,11 @@
 
         // Only allow drag from the handle
         this.addEventListener('dragstart', (e) => {
-          console.log('PWC Reorder: dragstart fired, _dragFromHandle =', this._dragFromHandle);
-
           // Only allow drag if it started from the drag handle
           if (!this._dragFromHandle) {
-            console.log('PWC Reorder: Preventing drag - not from handle');
             e.preventDefault();
             return;
           }
-
-          console.log('PWC Reorder: Starting drag operation for block', this.blockId);
 
           // Mark drag as started
           this._dragStarted = true;
@@ -273,31 +261,12 @@
           document.body.classList.add('pwc-dragging-block');
 
           // Create drop zones for reordering
-          // Use setTimeout to ensure drop zones are in DOM before events fire
           setTimeout(() => {
             this.createReorderDropZones();
-
-            // Add a document-level debug listener
-            this._debugDragoverHandler = (evt) => {
-              const target = evt.target;
-              const isDropZone = target.classList && target.classList.contains('pwc-drop-zone--reorder');
-              if (isDropZone) {
-                console.log('PWC Debug: dragover on drop zone!', target.dataset.insertIndex);
-              }
-            };
-            document.addEventListener('dragover', this._debugDragoverHandler, true);
           }, 0);
         });
 
-        this.addEventListener('dragend', (e) => {
-          console.log('PWC Reorder: dragend fired, dropEffect =', e.dataTransfer.dropEffect, '_dragStarted =', this._dragStarted);
-
-          // Clean up debug listener
-          if (this._debugDragoverHandler) {
-            document.removeEventListener('dragover', this._debugDragoverHandler, true);
-            this._debugDragoverHandler = null;
-          }
-
+        this.addEventListener('dragend', () => {
           // Only clean up if drag actually started
           if (this._dragStarted) {
             this.classList.remove('pwc-block--dragging');
@@ -315,7 +284,6 @@
       dragHandle.addEventListener('mousedown', (e) => {
         e.stopPropagation();
         this._dragFromHandle = true;
-        console.log('PWC Reorder: Drag handle mousedown, _dragFromHandle = true');
       });
 
       // Reset flag on mouseup anywhere (if drag didn't start)
@@ -323,7 +291,6 @@
         // Only reset if we're not currently dragging
         if (!this.classList.contains('pwc-block--dragging')) {
           this._dragFromHandle = false;
-          console.log('PWC Reorder: Reset _dragFromHandle on mouseup');
         }
       };
 
@@ -371,22 +338,12 @@
       const { layoutId, columnIndex, columnElement } = parentInfo;
       if (!columnElement) return;
 
-      console.log('PWC Reorder: Creating column drop zones for layout', layoutId, 'column', columnIndex);
-
       // Add drop zone class to column
       columnElement.classList.add('pwc-drop-active');
 
-      // Get all blocks in this column (exclude the one being dragged)
-      const allBlocks = Array.from(columnElement.querySelectorAll(':scope > .pwc-block'));
-      const currentIndex = allBlocks.indexOf(this);
-
-      console.log('PWC Reorder: Block at index', currentIndex, 'of', allBlocks.length, 'in column');
-      console.log('PWC Reorder: Blocks found:', allBlocks.map(b => b.tagName + '#' + b.getAttribute('block-id')));
-      console.log('PWC Reorder: This block:', this.tagName + '#' + this.blockId);
-      console.log('PWC Reorder: Column element:', columnElement.className);
-
-      // Store blocks reference for use in drop zones
-      const blocks = allBlocks;
+      // Get all blocks in this column
+      const blocks = Array.from(columnElement.querySelectorAll(':scope > .pwc-block'));
+      const currentIndex = blocks.indexOf(this);
 
       // Add a delegated event handler on the column content for drag events
       this._columnDragHandler = this._createColumnDragHandler(columnElement, layoutId, columnIndex);
@@ -441,8 +398,6 @@
       const blocks = Array.from(contentRegion.querySelectorAll(':scope > .pwc-block'));
       const currentIndex = blocks.indexOf(this);
 
-      console.log('PWC Reorder: Creating drop zones, currentIndex:', currentIndex, 'total blocks:', blocks.length);
-
       // Create drop zone at beginning (position 0) if we're not already first
       if (currentIndex > 0) {
         this.createDropZone(contentRegion, 0, blocks[0], 'before');
@@ -480,9 +435,7 @@
       return function(e) {
         // Check if we're over a drop zone
         const dropZone = e.target.closest('.pwc-drop-zone--reorder');
-        if (!dropZone) return; // Not over a drop zone, let normal handling occur
-
-        console.log('PWC Reorder: Content region handler detected drop zone', e.type, dropZone.dataset.insertIndex);
+        if (!dropZone) return; // Not over a drop zone
 
         e.preventDefault();
         e.stopPropagation();
@@ -496,7 +449,6 @@
           });
         } else if (e.type === 'drop') {
           const newIndex = parseInt(dropZone.dataset.insertIndex, 10);
-          console.log('PWC Reorder: Dropping at index', newIndex);
           window.pwcEditorState.moveBlockToIndex(blockId, newIndex);
 
           // Clean up
@@ -532,8 +484,6 @@
         // Insert after = insert before the next sibling
         parent.insertBefore(dropZone, referenceElement.nextSibling);
       }
-
-      console.log('PWC Reorder: Created drop zone at index', insertIndex, layoutId ? `(layout: ${layoutId}, column: ${columnIndex})` : '', 'parent:', parent.className);
     }
 
     /**
@@ -545,14 +495,9 @@
       const blockId = this.blockId;
       const self = this;
 
-      console.log('PWC Reorder: Setting up listeners for', dropZones.length, 'drop zones');
-
-      dropZones.forEach((zone, idx) => {
-        console.log('PWC Reorder: Adding listeners to drop zone', idx, 'at index', zone.dataset.insertIndex);
-
+      dropZones.forEach((zone) => {
         // Use capture phase (true) to ensure we receive events before parents
         const dragoverHandler = (e) => {
-          console.log('PWC Reorder: Dragover on drop zone', zone.dataset.insertIndex);
           e.preventDefault();
           e.stopPropagation();
           e.stopImmediatePropagation();
@@ -568,7 +513,6 @@
         };
 
         const dropHandler = (e) => {
-          console.log('PWC Reorder: Drop on zone at index', zone.dataset.insertIndex);
           e.preventDefault();
           e.stopPropagation();
           e.stopImmediatePropagation();
@@ -579,11 +523,9 @@
 
           if (layoutId) {
             // Reordering within a layout column
-            console.log('PWC Reorder: Drop in layout', layoutId, 'column', columnIndex, 'at index', newIndex);
             window.pwcEditorState.moveBlockInLayout(blockId, layoutId, columnIndex, newIndex);
           } else {
             // Top-level reordering
-            console.log('PWC Reorder: Drop detected, moving block', blockId, 'to index', newIndex);
             window.pwcEditorState.moveBlockToIndex(blockId, newIndex);
           }
 
@@ -615,9 +557,7 @@
       return function(e) {
         // Check if we're over a drop zone
         const dropZone = e.target.closest('.pwc-drop-zone--reorder');
-        if (!dropZone) return; // Not over a drop zone, let normal handling occur
-
-        console.log('PWC Reorder: Column handler detected drop zone', e.type, dropZone.dataset.insertIndex);
+        if (!dropZone) return; // Not over a drop zone
 
         e.preventDefault();
         e.stopPropagation();
@@ -631,7 +571,6 @@
           });
         } else if (e.type === 'drop') {
           const newIndex = parseInt(dropZone.dataset.insertIndex, 10);
-          console.log('PWC Reorder: Dropping in layout', layoutId, 'column', columnIndex, 'at index', newIndex);
           window.pwcEditorState.moveBlockInLayout(blockId, layoutId, columnIndex, newIndex);
 
           // Clean up
@@ -673,7 +612,6 @@
       });
 
       document.querySelectorAll('.pwc-drop-zone--reorder').forEach(zone => zone.remove());
-      console.log('PWC Reorder: Drop zones removed');
     }
 
     /**

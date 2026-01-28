@@ -110,18 +110,15 @@
     setupEventListeners() {
       // Add Block button - opens block library panel
       this.querySelector('.pwc-settings-panel__add-block').addEventListener('click', () => {
-        console.log('Clicked Add Block');
 
         // Try global reference first, then query, then create if needed
         let blockLibraryPanel = window.pwcBlockLibraryPanel || document.querySelector('pwc-block-library-panel');
 
         if (!blockLibraryPanel) {
-          console.log('Block library panel not found, creating one...');
           blockLibraryPanel = document.createElement('pwc-block-library-panel');
           document.body.appendChild(blockLibraryPanel);
         }
 
-        console.log('blockLibraryPanel: ', blockLibraryPanel);
         if (blockLibraryPanel) {
           blockLibraryPanel.toggle();
         }
@@ -487,7 +484,6 @@
         }, 2000);
 
       } catch (error) {
-        console.error('Save failed:', error);
         // Show error X
         saveBtn.innerHTML = `
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

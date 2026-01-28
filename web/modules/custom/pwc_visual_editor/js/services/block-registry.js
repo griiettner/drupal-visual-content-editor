@@ -28,8 +28,6 @@
         return;
       }
 
-      console.log('PWC Block Registry: Registering block type:', name);
-
       this.blocks.set(name, {
         name: name,
         title: blockClass.blockTitle || name,
@@ -67,13 +65,11 @@
      * @returns {HTMLElement|null} Block element or null.
      */
     createBlock(blockData) {
-      console.log('PWC Block Registry: Creating block element for:', blockData);
       const blockInfo = this.get(blockData.type);
       if (!blockInfo) {
-        console.warn(`PWC Block Registry: Skipping unknown block type "${blockData.type}" - this block type no longer exists`);
+        console.warn(`PWC Block Registry: Unknown block type "${blockData.type}"`);
         return null;
       }
-      console.log('PWC Block Registry: Found block info:', blockInfo.name, 'tagName:', blockInfo.tagName);
 
       const element = document.createElement(blockInfo.tagName);
       element.setAttribute('block-id', blockData.id);

@@ -386,7 +386,7 @@
         return;
       }
 
-      // Get blocks in the target column
+      // Get blocks in the target column (before any modifications)
       const columnBlocks = layoutBlock.innerBlocks.filter(b =>
         (b.attributes?.columnIndex || 0) === columnIndex
       );
@@ -414,6 +414,14 @@
         }
       }
 
+      // Adjust target index if moving forward within the same column
+      // Because removing the block shifts all subsequent positions down by 1
+      let adjustedTargetIndex = targetIndex;
+      if (currentColumnIndex === columnIndex && currentPositionInColumn < targetIndex) {
+        adjustedTargetIndex = targetIndex - 1;
+        console.log('PWC State: Adjusted target index from', targetIndex, 'to', adjustedTargetIndex);
+      }
+
       // Remove block from innerBlocks
       layoutBlock.innerBlocks.splice(blockIndex, 1);
 
@@ -425,37 +433,37 @@
       // We need to find the right position considering all blocks, not just column blocks
       let insertPosition = 0;
 
-      if (targetIndex === 0) {
+      // Get updated column blocks after removal
+      const updatedColumnBlocks = layoutBlock.innerBlocks.filter(b =>
+        (b.attributes?.columnIndex || 0) === columnIndex
+      );
+
+      if (adjustedTargetIndex === 0 || updatedColumnBlocks.length === 0) {
         // Insert at beginning of column - find first block in this column or insert at start
         const firstInColumn = layoutBlock.innerBlocks.findIndex(b =>
           (b.attributes?.columnIndex || 0) === columnIndex
         );
         insertPosition = firstInColumn === -1 ? layoutBlock.innerBlocks.length : firstInColumn;
-      } else {
-        // Insert after the block at targetIndex - 1 in this column
-        const updatedColumnBlocks = layoutBlock.innerBlocks.filter(b =>
+      } else if (adjustedTargetIndex >= updatedColumnBlocks.length) {
+        // Insert at end of column
+        const lastInColumn = [...layoutBlock.innerBlocks].reverse().findIndex(b =>
           (b.attributes?.columnIndex || 0) === columnIndex
         );
-
-        if (targetIndex >= updatedColumnBlocks.length) {
-          // Insert at end of column
-          const lastInColumn = [...layoutBlock.innerBlocks].reverse().findIndex(b =>
-            (b.attributes?.columnIndex || 0) === columnIndex
-          );
-          insertPosition = lastInColumn === -1 ? layoutBlock.innerBlocks.length : layoutBlock.innerBlocks.length - lastInColumn;
-        } else {
-          // Insert after specific block
-          const blockBeforeTarget = updatedColumnBlocks[targetIndex - 1];
-          insertPosition = layoutBlock.innerBlocks.findIndex(b => b.id === blockBeforeTarget.id) + 1;
-        }
+        insertPosition = lastInColumn === -1 ? layoutBlock.innerBlocks.length : layoutBlock.innerBlocks.length - lastInColumn;
+      } else {
+        // Insert after the block at adjustedTargetIndex - 1 in this column
+        const blockBeforeTarget = updatedColumnBlocks[adjustedTargetIndex - 1];
+        insertPosition = layoutBlock.innerBlocks.findIndex(b => b.id === blockBeforeTarget.id) + 1;
       }
+
+      console.log('PWC State: Inserting at position', insertPosition, 'in innerBlocks array');
 
       // Insert at calculated position
       layoutBlock.innerBlocks.splice(insertPosition, 0, block);
 
       this.isDirty = true;
       this.pushHistory();
-      this.emit('blockMove', { blockId, layoutId, columnIndex, newIndex: targetIndex });
+      this.emit('blockMove', { blockId, layoutId, columnIndex, newIndex: adjustedTargetIndex });
 
       console.log('PWC State: Block moved in layout, new innerBlocks:', layoutBlock.innerBlocks.map(b => b.id));
     }

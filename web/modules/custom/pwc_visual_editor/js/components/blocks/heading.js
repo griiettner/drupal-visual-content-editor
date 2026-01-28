@@ -9,6 +9,57 @@
   'use strict';
 
   /**
+   * Tailwind color palette for color swatch.
+   * Each color has hex value for display and Tailwind class for usage.
+   */
+  const TAILWIND_COLORS = [
+    // Row 1: Grays
+    { value: '', hex: 'transparent', label: 'None' },
+    { value: 'text-white', hex: '#ffffff', label: 'White' },
+    { value: 'text-black', hex: '#000000', label: 'Black' },
+    { value: 'text-slate-500', hex: '#64748b', label: 'Slate' },
+    { value: 'text-gray-500', hex: '#6b7280', label: 'Gray' },
+    { value: 'text-zinc-500', hex: '#71717a', label: 'Zinc' },
+    { value: 'text-neutral-500', hex: '#737373', label: 'Neutral' },
+    { value: 'text-stone-500', hex: '#78716c', label: 'Stone' },
+    // Row 2: Warm colors
+    { value: 'text-red-500', hex: '#ef4444', label: 'Red' },
+    { value: 'text-orange-500', hex: '#f97316', label: 'Orange' },
+    { value: 'text-amber-500', hex: '#f59e0b', label: 'Amber' },
+    { value: 'text-yellow-500', hex: '#eab308', label: 'Yellow' },
+    { value: 'text-lime-500', hex: '#84cc16', label: 'Lime' },
+    { value: 'text-green-500', hex: '#22c55e', label: 'Green' },
+    { value: 'text-emerald-500', hex: '#10b981', label: 'Emerald' },
+    { value: 'text-teal-500', hex: '#14b8a6', label: 'Teal' },
+    // Row 3: Cool colors
+    { value: 'text-cyan-500', hex: '#06b6d4', label: 'Cyan' },
+    { value: 'text-sky-500', hex: '#0ea5e9', label: 'Sky' },
+    { value: 'text-blue-500', hex: '#3b82f6', label: 'Blue' },
+    { value: 'text-indigo-500', hex: '#6366f1', label: 'Indigo' },
+    { value: 'text-violet-500', hex: '#8b5cf6', label: 'Violet' },
+    { value: 'text-purple-500', hex: '#a855f7', label: 'Purple' },
+    { value: 'text-fuchsia-500', hex: '#d946ef', label: 'Fuchsia' },
+    { value: 'text-pink-500', hex: '#ec4899', label: 'Pink' },
+    { value: 'text-rose-500', hex: '#f43f5e', label: 'Rose' },
+  ];
+
+  /**
+   * Tailwind spacing presets (matching Tailwind scale).
+   */
+  const TAILWIND_SPACING_PRESETS = [
+    { value: '0', label: '0', px: '0px' },
+    { value: '1', label: '1', px: '4px' },
+    { value: '2', label: '2', px: '8px' },
+    { value: '3', label: '3', px: '12px' },
+    { value: '4', label: '4', px: '16px' },
+    { value: '6', label: '6', px: '24px' },
+    { value: '8', label: '8', px: '32px' },
+    { value: '12', label: '12', px: '48px' },
+    { value: '16', label: '16', px: '64px' },
+    { value: 'auto', label: 'auto', px: 'auto' },
+  ];
+
+  /**
    * Tailwind utility class options for the settings panel.
    */
   const TAILWIND_OPTIONS = {
@@ -40,60 +91,12 @@
       { value: 'font-extrabold', label: 'Extra Bold (800)' },
       { value: 'font-black', label: 'Black (900)' },
     ],
-    textColor: [
-      { value: '', label: 'Default' },
-      { value: 'text-black', label: 'Black' },
-      { value: 'text-white', label: 'White' },
-      { value: 'text-gray-500', label: 'Gray 500' },
-      { value: 'text-gray-600', label: 'Gray 600' },
-      { value: 'text-gray-700', label: 'Gray 700' },
-      { value: 'text-gray-800', label: 'Gray 800' },
-      { value: 'text-gray-900', label: 'Gray 900' },
-      { value: 'text-red-500', label: 'Red 500' },
-      { value: 'text-red-600', label: 'Red 600' },
-      { value: 'text-blue-500', label: 'Blue 500' },
-      { value: 'text-blue-600', label: 'Blue 600' },
-      { value: 'text-green-500', label: 'Green 500' },
-      { value: 'text-green-600', label: 'Green 600' },
-      { value: 'text-yellow-500', label: 'Yellow 500' },
-      { value: 'text-purple-500', label: 'Purple 500' },
-      { value: 'text-pink-500', label: 'Pink 500' },
-    ],
-    margin: [
-      { value: '', label: 'Default' },
-      { value: 'm-0', label: 'None (m-0)' },
-      { value: 'm-1', label: '0.25rem (m-1)' },
-      { value: 'm-2', label: '0.5rem (m-2)' },
-      { value: 'm-4', label: '1rem (m-4)' },
-      { value: 'm-6', label: '1.5rem (m-6)' },
-      { value: 'm-8', label: '2rem (m-8)' },
-      { value: 'my-2', label: 'Vertical 0.5rem (my-2)' },
-      { value: 'my-4', label: 'Vertical 1rem (my-4)' },
-      { value: 'my-6', label: 'Vertical 1.5rem (my-6)' },
-      { value: 'my-8', label: 'Vertical 2rem (my-8)' },
-      { value: 'mb-2', label: 'Bottom 0.5rem (mb-2)' },
-      { value: 'mb-4', label: 'Bottom 1rem (mb-4)' },
-      { value: 'mb-6', label: 'Bottom 1.5rem (mb-6)' },
-      { value: 'mb-8', label: 'Bottom 2rem (mb-8)' },
-      { value: 'mt-2', label: 'Top 0.5rem (mt-2)' },
-      { value: 'mt-4', label: 'Top 1rem (mt-4)' },
-      { value: 'mt-6', label: 'Top 1.5rem (mt-6)' },
-      { value: 'mt-8', label: 'Top 2rem (mt-8)' },
-    ],
-    padding: [
-      { value: '', label: 'Default' },
-      { value: 'p-0', label: 'None (p-0)' },
-      { value: 'p-1', label: '0.25rem (p-1)' },
-      { value: 'p-2', label: '0.5rem (p-2)' },
-      { value: 'p-4', label: '1rem (p-4)' },
-      { value: 'p-6', label: '1.5rem (p-6)' },
-      { value: 'p-8', label: '2rem (p-8)' },
-      { value: 'py-2', label: 'Vertical 0.5rem (py-2)' },
-      { value: 'py-4', label: 'Vertical 1rem (py-4)' },
-      { value: 'px-2', label: 'Horizontal 0.5rem (px-2)' },
-      { value: 'px-4', label: 'Horizontal 1rem (px-4)' },
-    ],
+    colors: TAILWIND_COLORS,
+    spacingPresets: TAILWIND_SPACING_PRESETS,
   };
+
+  // Export for settings panel
+  window.TAILWIND_OPTIONS = TAILWIND_OPTIONS;
 
   class HeadingBlock extends window.PwcBaseBlock {
     static get blockName() { return 'heading'; }
@@ -140,24 +143,24 @@
         },
         {
           name: 'textColor',
-          type: 'select',
+          type: 'colorSwatch',
           label: 'Text Color',
           default: '',
-          options: TAILWIND_OPTIONS.textColor,
+          colors: TAILWIND_COLORS,
         },
         {
           name: 'margin',
-          type: 'select',
+          type: 'spacing',
           label: 'Margin',
           default: '',
-          options: TAILWIND_OPTIONS.margin,
+          prefix: 'm',
         },
         {
           name: 'padding',
-          type: 'select',
+          type: 'spacing',
           label: 'Padding',
           default: '',
-          options: TAILWIND_OPTIONS.padding,
+          prefix: 'p',
         },
         {
           name: 'customClasses',
@@ -214,12 +217,16 @@
       ].filter(Boolean).join(' ');
 
       const isEditing = window.pwcEditorState && window.pwcEditorState.isEditing;
+      const hasContent = content && content.trim() && content !== 'Heading';
+
+      // Only add placeholder attribute when editing and content is empty/default
+      const placeholderAttr = isEditing && !hasContent ? 'data-placeholder="Enter heading..."' : '';
 
       this.innerHTML = `
         <${level}
           class="${classes}"
           ${isEditing ? `contenteditable="true" data-editable="content"` : ''}
-          data-placeholder="Enter heading..."
+          ${placeholderAttr}
         >${content}</${level}>
       `;
 
@@ -236,7 +243,5 @@
   if (window.pwcBlockRegistry) {
     window.pwcBlockRegistry.register(HeadingBlock);
   }
-
-  // PWC Heading Block registered
 
 })(Drupal);

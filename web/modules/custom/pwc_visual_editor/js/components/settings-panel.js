@@ -357,6 +357,130 @@
             </div>
           `;
 
+        case 'colorSwatch':
+          const colors = setting.colors || window.TAILWIND_OPTIONS?.colors || [];
+          const colorSwatches = colors.map(color => {
+            const isSelected = value === color.value;
+            const isTransparent = color.hex === 'transparent';
+            const bgStyle = isTransparent ? 'background: linear-gradient(45deg, #ccc 25%, transparent 25%), linear-gradient(-45deg, #ccc 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #ccc 75%), linear-gradient(-45deg, transparent 75%, #ccc 75%); background-size: 8px 8px; background-position: 0 0, 0 4px, 4px -4px, -4px 0px;' : `background-color: ${color.hex}`;
+            return `
+              <button
+                type="button"
+                class="pwc-color-swatch w-6 h-6 rounded border-2 ${isSelected ? 'border-blue-500 ring-2 ring-blue-300' : 'border-gray-300 hover:border-gray-400'}"
+                style="${bgStyle}"
+                data-value="${color.value}"
+                data-name="${setting.name}"
+                title="${color.label}"
+              ></button>
+            `;
+          }).join('');
+
+          return `
+            <div class="pwc-setting-field">
+              <label class="block text-sm font-medium text-gray-700 mb-2">
+                ${setting.label}
+              </label>
+              <div class="pwc-color-swatch-grid grid grid-cols-8 gap-1" data-name="${setting.name}">
+                ${colorSwatches}
+              </div>
+              ${setting.help ? `<p class="mt-1 text-xs text-gray-500">${setting.help}</p>` : ''}
+            </div>
+          `;
+
+        case 'spacing':
+          const prefix = setting.prefix || 'm';
+          const spacingPresets = window.TAILWIND_OPTIONS?.spacingPresets || [
+            { value: '0', label: '0', px: '0px' },
+            { value: '1', label: '1', px: '4px' },
+            { value: '2', label: '2', px: '8px' },
+            { value: '3', label: '3', px: '12px' },
+            { value: '4', label: '4', px: '16px' },
+            { value: '6', label: '6', px: '24px' },
+            { value: '8', label: '8', px: '32px' },
+            { value: '12', label: '12', px: '48px' },
+            { value: '16', label: '16', px: '64px' },
+            { value: 'auto', label: 'auto', px: 'auto' },
+          ];
+
+          // Parse current value to determine values for each side
+          const spacingState = this.parseSpacingValue(value, prefix);
+
+          // Side button icons - box with highlighted edge
+          const sideIcons = {
+            all: `<svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="4" y="4" width="16" height="16" rx="1" fill="currentColor" fill-opacity="0.15"/>
+            </svg>`,
+            t: `<svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <rect x="4" y="4" width="16" height="16" rx="1"/>
+              <line x1="4" y1="4" x2="20" y2="4" stroke-width="3"/>
+            </svg>`,
+            r: `<svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <rect x="4" y="4" width="16" height="16" rx="1"/>
+              <line x1="20" y1="4" x2="20" y2="20" stroke-width="3"/>
+            </svg>`,
+            b: `<svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <rect x="4" y="4" width="16" height="16" rx="1"/>
+              <line x1="4" y1="20" x2="20" y2="20" stroke-width="3"/>
+            </svg>`,
+            l: `<svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <rect x="4" y="4" width="16" height="16" rx="1"/>
+              <line x1="4" y1="4" x2="4" y2="20" stroke-width="3"/>
+            </svg>`,
+          };
+
+          // Get display value for each side
+          const getDisplayValue = (side) => {
+            const val = spacingState[side];
+            if (!val) return '';
+            const preset = spacingPresets.find(p => p.value === val);
+            return preset ? preset.px : val;
+          };
+
+          return `
+            <div class="pwc-setting-field pwc-spacing-field" data-name="${setting.name}" data-prefix="${prefix}">
+              <label class="block text-sm font-medium text-gray-700 mb-2">
+                ${setting.label}
+              </label>
+
+              <!-- Side selector buttons -->
+              <div class="pwc-spacing-sides flex gap-1 p-1 bg-gray-100 rounded-lg">
+                <button type="button" class="pwc-spacing-side-btn flex-1 flex flex-col items-center gap-0.5 p-2 rounded transition-all ${spacingState.all ? 'bg-blue-100 text-blue-600' : 'hover:bg-gray-200 text-gray-600'}" data-side="all" title="All sides">
+                  ${sideIcons.all}
+                  <span class="text-[10px] font-medium">${getDisplayValue('all') || 'All'}</span>
+                </button>
+                <button type="button" class="pwc-spacing-side-btn flex-1 flex flex-col items-center gap-0.5 p-2 rounded transition-all ${spacingState.t ? 'bg-blue-100 text-blue-600' : 'hover:bg-gray-200 text-gray-600'}" data-side="t" title="Top">
+                  ${sideIcons.t}
+                  <span class="text-[10px] font-medium">${getDisplayValue('t') || 'Top'}</span>
+                </button>
+                <button type="button" class="pwc-spacing-side-btn flex-1 flex flex-col items-center gap-0.5 p-2 rounded transition-all ${spacingState.r ? 'bg-blue-100 text-blue-600' : 'hover:bg-gray-200 text-gray-600'}" data-side="r" title="Right">
+                  ${sideIcons.r}
+                  <span class="text-[10px] font-medium">${getDisplayValue('r') || 'Right'}</span>
+                </button>
+                <button type="button" class="pwc-spacing-side-btn flex-1 flex flex-col items-center gap-0.5 p-2 rounded transition-all ${spacingState.b ? 'bg-blue-100 text-blue-600' : 'hover:bg-gray-200 text-gray-600'}" data-side="b" title="Bottom">
+                  ${sideIcons.b}
+                  <span class="text-[10px] font-medium">${getDisplayValue('b') || 'Btm'}</span>
+                </button>
+                <button type="button" class="pwc-spacing-side-btn flex-1 flex flex-col items-center gap-0.5 p-2 rounded transition-all ${spacingState.l ? 'bg-blue-100 text-blue-600' : 'hover:bg-gray-200 text-gray-600'}" data-side="l" title="Left">
+                  ${sideIcons.l}
+                  <span class="text-[10px] font-medium">${getDisplayValue('l') || 'Left'}</span>
+                </button>
+              </div>
+
+              <!-- Size selector dropdown (hidden by default) -->
+              <div class="pwc-spacing-sizes hidden mt-2 p-2 bg-white border border-gray-200 rounded-lg shadow-sm">
+                <div class="pwc-spacing-presets flex flex-wrap gap-1">
+                  ${spacingPresets.map(preset => `
+                    <button type="button" class="pwc-spacing-preset px-2 py-1.5 text-xs font-medium rounded border bg-white border-gray-200 hover:border-blue-400 hover:bg-blue-50 transition-all" data-value="${preset.value}">
+                      ${preset.px}
+                    </button>
+                  `).join('')}
+                </div>
+              </div>
+
+              ${setting.help ? `<p class="mt-2 text-xs text-gray-500">${setting.help}</p>` : ''}
+            </div>
+          `;
+
         default:
           return `
             <div class="pwc-setting-field">
@@ -375,14 +499,14 @@
     setupFieldListeners() {
       // Text and textarea inputs
       this.querySelectorAll('input[type="text"], textarea, select').forEach(input => {
-        input.addEventListener('input', (e) => {
+        input.addEventListener('input', () => {
           this.updateBlockAttribute(input.name, input.value);
         });
       });
 
       // Color inputs
       this.querySelectorAll('input[type="color"]').forEach(input => {
-        input.addEventListener('input', (e) => {
+        input.addEventListener('input', () => {
           const textInput = this.querySelector(`#${input.id}-text`);
           if (textInput) textInput.value = input.value;
           this.updateBlockAttribute(input.name, input.value);
@@ -391,7 +515,7 @@
 
       // Toggle buttons
       this.querySelectorAll('.pwc-toggle').forEach(toggle => {
-        toggle.addEventListener('click', (e) => {
+        toggle.addEventListener('click', () => {
           const isChecked = toggle.getAttribute('data-checked') === 'true';
           const newValue = !isChecked;
 
@@ -404,6 +528,246 @@
           this.updateBlockAttribute(toggle.getAttribute('name'), newValue);
         });
       });
+
+      // Color swatch buttons
+      this.querySelectorAll('.pwc-color-swatch').forEach(swatch => {
+        swatch.addEventListener('click', () => {
+          const name = swatch.dataset.name;
+          const value = swatch.dataset.value;
+          const grid = swatch.closest('.pwc-color-swatch-grid');
+
+          // Update visual selection
+          grid.querySelectorAll('.pwc-color-swatch').forEach(s => {
+            s.classList.remove('border-blue-500', 'ring-2', 'ring-blue-300');
+            s.classList.add('border-gray-300');
+          });
+          swatch.classList.remove('border-gray-300');
+          swatch.classList.add('border-blue-500', 'ring-2', 'ring-blue-300');
+
+          this.updateBlockAttribute(name, value);
+        });
+      });
+
+      // Spacing side buttons - toggle size selector
+      this.querySelectorAll('.pwc-spacing-side-btn').forEach(sideBtn => {
+        sideBtn.addEventListener('click', () => {
+          const field = sideBtn.closest('.pwc-spacing-field');
+          const sizesPanel = field.querySelector('.pwc-spacing-sizes');
+          const side = sideBtn.dataset.side;
+
+          // Check if this side is already active
+          const isActive = sideBtn.classList.contains('pwc-spacing-side-btn--active');
+
+          // Close any open size panels and deactivate buttons
+          field.querySelectorAll('.pwc-spacing-side-btn').forEach(btn => {
+            btn.classList.remove('pwc-spacing-side-btn--active', 'bg-white', 'shadow-sm');
+          });
+
+          if (isActive) {
+            // Hide the panel if clicking the same button
+            sizesPanel.classList.add('hidden');
+            sizesPanel.removeAttribute('data-active-side');
+          } else {
+            // Show the panel and mark this button as active
+            sideBtn.classList.add('pwc-spacing-side-btn--active', 'bg-white', 'shadow-sm');
+            sizesPanel.classList.remove('hidden');
+            sizesPanel.setAttribute('data-active-side', side);
+
+            // Highlight the currently selected value for this side
+            const currentValue = this.getSpacingSideValue(field, side);
+            sizesPanel.querySelectorAll('.pwc-spacing-preset').forEach(preset => {
+              preset.classList.remove('bg-blue-100', 'border-blue-500', 'text-blue-700');
+              if (preset.dataset.value === currentValue) {
+                preset.classList.add('bg-blue-100', 'border-blue-500', 'text-blue-700');
+              }
+            });
+          }
+        });
+      });
+
+      // Spacing preset buttons - set value for active side
+      this.querySelectorAll('.pwc-spacing-preset').forEach(preset => {
+        preset.addEventListener('click', () => {
+          const field = preset.closest('.pwc-spacing-field');
+          const sizesPanel = field.querySelector('.pwc-spacing-sizes');
+          const activeSide = sizesPanel.getAttribute('data-active-side');
+          const value = preset.dataset.value;
+
+          if (!activeSide) return;
+
+          // Update visual selection
+          sizesPanel.querySelectorAll('.pwc-spacing-preset').forEach(p => {
+            p.classList.remove('bg-blue-100', 'border-blue-500', 'text-blue-700');
+          });
+          preset.classList.add('bg-blue-100', 'border-blue-500', 'text-blue-700');
+
+          // Update the side button to show the new value
+          const sideBtn = field.querySelector(`.pwc-spacing-side-btn[data-side="${activeSide}"]`);
+          if (sideBtn) {
+            const presets = window.TAILWIND_OPTIONS?.spacingPresets || [];
+            const presetInfo = presets.find(p => p.value === value);
+            const displayValue = presetInfo ? presetInfo.px : value;
+            sideBtn.querySelector('span').textContent = displayValue;
+
+            // Update button styling to show it has a value
+            if (value) {
+              sideBtn.classList.add('bg-blue-100', 'text-blue-600');
+              sideBtn.classList.remove('text-gray-600');
+            } else {
+              sideBtn.classList.remove('bg-blue-100', 'text-blue-600');
+              sideBtn.classList.add('text-gray-600');
+            }
+          }
+
+          // Update the block attribute
+          this.setSpacingSideValue(field, activeSide, value);
+        });
+      });
+    }
+
+    /**
+     * Get the current spacing value for a specific side.
+     *
+     * @param {HTMLElement} field - The spacing field container.
+     * @param {string} side - The side (all, t, r, b, l).
+     * @returns {string} The current value.
+     */
+    getSpacingSideValue(field, side) {
+      const name = field.dataset.name;
+      const prefix = field.dataset.prefix;
+
+      if (!this.currentBlock) return '';
+
+      const attrName = this.camelToKebab(name);
+      const currentValue = this.currentBlock.getAttribute(attrName) || '';
+      const state = this.parseSpacingValue(currentValue, prefix);
+
+      return state[side] || '';
+    }
+
+    /**
+     * Set the spacing value for a specific side.
+     *
+     * @param {HTMLElement} field - The spacing field container.
+     * @param {string} side - The side (all, t, r, b, l).
+     * @param {string} value - The new value.
+     */
+    setSpacingSideValue(field, side, value) {
+      const name = field.dataset.name;
+      const prefix = field.dataset.prefix;
+
+      if (!this.currentBlock) return;
+
+      const attrName = this.camelToKebab(name);
+      const currentValue = this.currentBlock.getAttribute(attrName) || '';
+      const state = this.parseSpacingValue(currentValue, prefix);
+
+      // If setting "all", clear individual sides
+      if (side === 'all') {
+        state.all = value;
+        state.t = '';
+        state.r = '';
+        state.b = '';
+        state.l = '';
+
+        // Update all side button displays
+        const presets = window.TAILWIND_OPTIONS?.spacingPresets || [];
+        const presetInfo = presets.find(p => p.value === value);
+        const displayValue = presetInfo ? presetInfo.px : value;
+
+        field.querySelectorAll('.pwc-spacing-side-btn').forEach(btn => {
+          const btnSide = btn.dataset.side;
+          if (btnSide === 'all') {
+            btn.querySelector('span').textContent = displayValue || 'All';
+          } else {
+            btn.querySelector('span').textContent = btnSide === 't' ? 'Top' : btnSide === 'r' ? 'Right' : btnSide === 'b' ? 'Btm' : 'Left';
+            btn.classList.remove('bg-blue-100', 'text-blue-600');
+            btn.classList.add('text-gray-600');
+          }
+        });
+      } else {
+        // Setting individual side - clear "all" value
+        state.all = '';
+        state[side] = value;
+
+        // Update "all" button display
+        const allBtn = field.querySelector('.pwc-spacing-side-btn[data-side="all"]');
+        if (allBtn) {
+          allBtn.querySelector('span').textContent = 'All';
+          allBtn.classList.remove('bg-blue-100', 'text-blue-600');
+          allBtn.classList.add('text-gray-600');
+        }
+      }
+
+      // Build the new class string
+      const classes = [];
+      if (state.all) {
+        classes.push(`${prefix}-${state.all}`);
+      } else {
+        if (state.t) classes.push(`${prefix}t-${state.t}`);
+        if (state.r) classes.push(`${prefix}r-${state.r}`);
+        if (state.b) classes.push(`${prefix}b-${state.b}`);
+        if (state.l) classes.push(`${prefix}l-${state.l}`);
+      }
+
+      this.updateBlockAttribute(name, classes.join(' '));
+    }
+
+    /**
+     * Parse a spacing value string into component parts.
+     *
+     * @param {string} value - Spacing value like "m-4" or "mt-2 mb-4".
+     * @param {string} prefix - Prefix like 'm' or 'p'.
+     * @returns {Object} Parsed state with mode and values.
+     */
+    parseSpacingValue(value, prefix) {
+      const state = {
+        mode: 'all',
+        all: '',
+        x: '',
+        y: '',
+        t: '',
+        r: '',
+        b: '',
+        l: '',
+      };
+
+      if (!value) return state;
+
+      const classes = value.split(' ').filter(Boolean);
+
+      // Check for individual sides
+      const hasTop = classes.some(c => c.startsWith(`${prefix}t-`));
+      const hasRight = classes.some(c => c.startsWith(`${prefix}r-`));
+      const hasBottom = classes.some(c => c.startsWith(`${prefix}b-`));
+      const hasLeft = classes.some(c => c.startsWith(`${prefix}l-`));
+      const hasX = classes.some(c => c.startsWith(`${prefix}x-`));
+      const hasY = classes.some(c => c.startsWith(`${prefix}y-`));
+      const hasAll = classes.some(c => c.match(new RegExp(`^${prefix}-`)));
+
+      if (hasTop || hasRight || hasBottom || hasLeft) {
+        state.mode = 'individual';
+        classes.forEach(c => {
+          if (c.startsWith(`${prefix}t-`)) state.t = c.replace(`${prefix}t-`, '');
+          if (c.startsWith(`${prefix}r-`)) state.r = c.replace(`${prefix}r-`, '');
+          if (c.startsWith(`${prefix}b-`)) state.b = c.replace(`${prefix}b-`, '');
+          if (c.startsWith(`${prefix}l-`)) state.l = c.replace(`${prefix}l-`, '');
+        });
+      } else if (hasX || hasY) {
+        state.mode = 'axis';
+        classes.forEach(c => {
+          if (c.startsWith(`${prefix}x-`)) state.x = c.replace(`${prefix}x-`, '');
+          if (c.startsWith(`${prefix}y-`)) state.y = c.replace(`${prefix}y-`, '');
+        });
+      } else if (hasAll) {
+        state.mode = 'all';
+        classes.forEach(c => {
+          const match = c.match(new RegExp(`^${prefix}-(.+)$`));
+          if (match) state.all = match[1];
+        });
+      }
+
+      return state;
     }
 
     /**

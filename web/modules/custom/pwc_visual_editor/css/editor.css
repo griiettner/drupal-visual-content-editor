@@ -1610,6 +1610,146 @@ body.pwc-block-library-open .pwc-block-library-toggle:hover {
    Print Styles
    ========================================================================== */
 
+/* ==========================================================================
+   Color Swatch Field
+   ========================================================================== */
+
+.pwc-color-swatch-grid {
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  gap: 4px;
+}
+
+.pwc-color-swatch {
+  width: 24px;
+  height: 24px;
+  border-radius: 4px;
+  border: 2px solid #d1d5db;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  padding: 0;
+}
+
+.pwc-color-swatch:hover {
+  transform: scale(1.1);
+  border-color: #9ca3af;
+}
+
+.pwc-color-swatch:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.5);
+}
+
+/* ==========================================================================
+   Spacing Field
+   ========================================================================== */
+
+.pwc-spacing-field {
+  background: #f9fafb;
+  border-radius: 8px;
+  padding: 12px;
+  border: 1px solid #e5e7eb;
+}
+
+/* Side selector buttons row */
+.pwc-spacing-sides {
+  display: flex;
+  gap: 2px;
+  padding: 4px;
+  background: #e5e7eb;
+  border-radius: 8px;
+}
+
+.pwc-spacing-side-btn {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 8px 4px;
+  border: none;
+  background: transparent;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  color: #6b7280;
+}
+
+.pwc-spacing-side-btn:hover {
+  background: rgba(255, 255, 255, 0.5);
+}
+
+.pwc-spacing-side-btn--active,
+.pwc-spacing-side-btn.bg-white {
+  background: #fff !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.pwc-spacing-side-btn.bg-blue-100 {
+  background: #dbeafe !important;
+  color: #2563eb !important;
+}
+
+.pwc-spacing-side-btn svg {
+  width: 20px;
+  height: 20px;
+}
+
+.pwc-spacing-side-btn span {
+  font-size: 10px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+/* Size selector dropdown */
+.pwc-spacing-sizes {
+  margin-top: 8px;
+  padding: 8px;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.pwc-spacing-sizes.hidden {
+  display: none;
+}
+
+.pwc-spacing-presets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.pwc-spacing-preset {
+  min-width: 40px;
+  padding: 6px 8px;
+  font-size: 11px;
+  font-weight: 500;
+  border-radius: 6px;
+  border: 1px solid #e5e7eb;
+  background: #fff;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  text-align: center;
+}
+
+.pwc-spacing-preset:hover {
+  border-color: #3b82f6;
+  background: #eff6ff;
+  color: #2563eb;
+}
+
+.pwc-spacing-preset.bg-blue-100 {
+  background: #dbeafe !important;
+  border-color: #3b82f6 !important;
+  color: #1d4ed8 !important;
+}
+
+/* ==========================================================================
+   Print Styles
+   ========================================================================== */
+
 @media print {
   .pwc-edit-button,
   pwc-block-toolbar,

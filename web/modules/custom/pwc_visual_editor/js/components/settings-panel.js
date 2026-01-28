@@ -132,9 +132,20 @@
         await this.saveContent();
       });
 
-      // Close button - minimizes panel (stays in edit mode)
+      // Close button - exits edit mode and returns to content view
       this.querySelector('.pwc-settings-panel__close').addEventListener('click', () => {
-        this.minimize();
+        // Check if there are unsaved changes
+        if (window.pwcEditorState.isDirty) {
+          if (confirm('You have unsaved changes. Do you want to save before exiting?')) {
+            this.saveContent().then(() => {
+              window.pwcEditorState.exitEditMode();
+              window.pwcEditorState.renderContentRegion();
+            });
+            return;
+          }
+        }
+        window.pwcEditorState.exitEditMode();
+        window.pwcEditorState.renderContentRegion();
       });
     }
 

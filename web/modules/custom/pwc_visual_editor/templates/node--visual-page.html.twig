@@ -3,20 +3,29 @@
  * @file
  * Template for Visual Page nodes.
  *
- * This template renders the visual editor content region where
- * blocks are rendered via JavaScript.
+ * This template renders visual editor content in two modes:
+ * - Admin mode (can_edit = true): Empty div for JavaScript to render into
+ * - View mode (can_edit = false): Server-side rendered HTML content
  *
  * Available variables:
  * - node: The node entity.
- * - visual_editor_content: The content region markup.
+ * - can_edit: Whether the current user can edit this page.
+ * - rendered_blocks: Pre-rendered HTML blocks (only for view mode).
  * - visual_editor_edit_url: URL to edit in visual editor (if user has permission).
  */
 #}
 <article{{ attributes.addClass('node', 'node--type-visual-page') }}>
   <div class="node__content">
-    {# Content region where blocks are rendered by JavaScript #}
-    <div class="pwc-visual-page-content" data-pwc-content-region="true" data-node-id="{{ node.id }}">
-      {# Blocks will be rendered here by JavaScript #}
-    </div>
+    {% if can_edit %}
+      {# Admin mode: JavaScript will render the blocks #}
+      <div class="pwc-visual-page-content" data-pwc-content-region="true" data-node-id="{{ node.id }}">
+        {# Blocks will be rendered here by JavaScript for editors #}
+      </div>
+    {% else %}
+      {# View mode: Server-side rendered content #}
+      <div class="pwc-visual-page-content pwc-visual-page-content--ssr">
+        {{ rendered_blocks|raw }}
+      </div>
+    {% endif %}
   </div>
 </article>

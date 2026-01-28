@@ -430,8 +430,12 @@ pwc-block-inserter {
   min-height: 60px;
 }
 
-/* Empty column state in edit mode */
+/* Empty column state - only show in edit mode */
 .pwc-layout-column__empty {
+  display: none;
+}
+
+.pwc-editing .pwc-layout-column__empty {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -447,6 +451,15 @@ pwc-block-inserter {
 .pwc-layout-column__empty-text {
   font-size: 12px;
   color: #9ca3af;
+}
+
+/* Hide empty layout blocks completely when not editing */
+.pwc-layout-block:not(:has(.pwc-block)) {
+  display: none;
+}
+
+.pwc-editing .pwc-layout-block:not(:has(.pwc-block)) {
+  display: flex;
 }
 
 /* Drag over state for columns */

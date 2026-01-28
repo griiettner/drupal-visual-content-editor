@@ -42,32 +42,10 @@ function pwc_visual_editor_page_attachments(array &$attachments) {
     return;
   }
 
-  // Load saved content
-  $content = [];
-  if ($node->hasField('field_page_content') && !$node->get('field_page_content')->isEmpty()) {
-    $json = $node->get('field_page_content')->value;
-    $content = json_decode($json, TRUE) ?: [];
-  }
-
-  // Always attach the editor library for Visual Pages (needed to render blocks)
-  $attachments['#attached']['library'][] = 'pwc_visual_editor/editor';
-
   // Check if user can edit
   $canEdit = \Drupal::currentUser()->hasPermission('use pwc visual editor') && $node->access('update');
 
-  // Pass settings to JavaScript
-  $attachments['#attached']['drupalSettings']['pwcVisualEditor'] = [
-    'nodeId' => $node->id(),
-    'nodeType' => $node->bundle(),
-    'canEdit' => $canEdit,
-    'content' => $content,
-    'csrfToken' => \Drupal::csrfToken()->get('rest'),
-    'saveUrl' => $canEdit ? Url::fromRoute('pwc_visual_editor.save', ['node' => $node->id()])->toString() : NULL,
-    'editUrl' => $canEdit ? Url::fromRoute('pwc_visual_editor.edit', ['node' => $node->id()])->toString() : NULL,
-    'viewMode' => TRUE,
-  ];
-
-  // Add Tailwind CSS via CDN (temporary - will be replaced with proprietary CSS)
+  // Add Tailwind CSS via CDN for all visual pages (temporary - will be replaced with compiled CSS)
   $attachments['#attached']['html_head'][] = [
     [
       '#type' => 'html_tag',
@@ -78,6 +56,31 @@ function pwc_visual_editor_page_attachments(array &$attachments) {
     ],
     'tailwind_cdn',
   ];
+
+  // Only attach editor library and settings if user can edit
+  if ($canEdit) {
+    // Load saved content for JS
+    $content = [];
+    if ($node->hasField('field_page_content') && !$node->get('field_page_content')->isEmpty()) {
+      $json = $node->get('field_page_content')->value;
+      $content = json_decode($json, TRUE) ?: [];
+    }
+
+    // Attach the editor library
+    $attachments['#attached']['library'][] = 'pwc_visual_editor/editor';
+
+    // Pass settings to JavaScript
+    $attachments['#attached']['drupalSettings']['pwcVisualEditor'] = [
+      'nodeId' => $node->id(),
+      'nodeType' => $node->bundle(),
+      'canEdit' => $canEdit,
+      'content' => $content,
+      'csrfToken' => \Drupal::csrfToken()->get('rest'),
+      'saveUrl' => Url::fromRoute('pwc_visual_editor.save', ['node' => $node->id()])->toString(),
+      'editUrl' => Url::fromRoute('pwc_visual_editor.edit', ['node' => $node->id()])->toString(),
+      'viewMode' => TRUE,
+    ];
+  }
 }
 
 /**
@@ -128,20 +131,228 @@ function pwc_visual_editor_preprocess_node(&$variables) {
     $content = json_decode($json, TRUE) ?: [];
   }
 
-  // Add content region for JavaScript to render into
-  $variables['visual_editor_content'] = [
-    '#type' => 'markup',
-    '#markup' => '<div class="pwc-visual-page-content" data-pwc-content-region="true" data-node-id="' . $node->id() . '"></div>',
-    '#allowed_tags' => ['div'],
-  ];
-
   // Check if user has permission to edit
-  $canEdit = \Drupal::currentUser()->hasPermission('use pwc visual editor');
+  $canEdit = \Drupal::currentUser()->hasPermission('use pwc visual editor') && $node->access('update');
+  $variables['can_edit'] = $canEdit;
 
   if ($canEdit) {
-    // Add edit link for visual pages
+    // Admin mode: empty div for JavaScript to render into
+    $variables['rendered_blocks'] = NULL;
     $variables['visual_editor_edit_url'] = Url::fromRoute('pwc_visual_editor.edit', ['node' => $node->id()])->toString();
   }
+  else {
+    // View mode: Server-side render the blocks as HTML
+    $blocks = $content['blocks'] ?? [];
+    $variables['rendered_blocks'] = pwc_visual_editor_render_blocks($blocks);
+  }
+}
+
+/**
+ * Render blocks as HTML for server-side rendering.
+ *
+ * @param array $blocks
+ *   Array of block data.
+ *
+ * @return string
+ *   Rendered HTML string.
+ */
+function pwc_visual_editor_render_blocks(array $blocks): string {
+  $html = '';
+
+  foreach ($blocks as $block) {
+    $html .= pwc_visual_editor_render_block($block);
+  }
+
+  return $html;
+}
+
+/**
+ * Render a single block as HTML.
+ *
+ * @param array $block
+ *   Block data with type, id, attributes, and optional innerBlocks.
+ *
+ * @return string
+ *   Rendered HTML string.
+ */
+function pwc_visual_editor_render_block(array $block): string {
+  $type = $block['type'] ?? '';
+  $attributes = $block['attributes'] ?? [];
+  $innerBlocks = $block['innerBlocks'] ?? [];
+
+  switch ($type) {
+    case 'heading':
+      return pwc_visual_editor_render_heading($attributes);
+
+    case 'layout':
+      return pwc_visual_editor_render_layout($attributes, $innerBlocks);
+
+    default:
+      // Unknown block type - render as comment for debugging
+      return '<!-- Unknown block type: ' . htmlspecialchars($type) . ' -->';
+  }
+}
+
+/**
+ * Render a heading block.
+ *
+ * @param array $attributes
+ *   Block attributes.
+ *
+ * @return string
+ *   Rendered HTML.
+ */
+function pwc_visual_editor_render_heading(array $attributes): string {
+  $content = htmlspecialchars($attributes['content'] ?? 'Heading');
+  $level = $attributes['level'] ?? 'h2';
+
+  // Validate heading level
+  if (!in_array($level, ['h1', 'h2', 'h3', 'h4', 'h5', 'h6'])) {
+    $level = 'h2';
+  }
+
+  // Build class list from Tailwind utilities
+  $classes = ['pwc-heading'];
+
+  if (!empty($attributes['fontSize'])) {
+    $classes[] = htmlspecialchars($attributes['fontSize']);
+  }
+  if (!empty($attributes['fontWeight'])) {
+    $classes[] = htmlspecialchars($attributes['fontWeight']);
+  }
+  if (!empty($attributes['textColor'])) {
+    $classes[] = htmlspecialchars($attributes['textColor']);
+  }
+  if (!empty($attributes['margin'])) {
+    $classes[] = htmlspecialchars($attributes['margin']);
+  }
+  if (!empty($attributes['padding'])) {
+    $classes[] = htmlspecialchars($attributes['padding']);
+  }
+  if (!empty($attributes['customClasses'])) {
+    $classes[] = htmlspecialchars($attributes['customClasses']);
+  }
+
+  $classString = implode(' ', array_filter($classes));
+
+  return "<{$level} class=\"{$classString}\">{$content}</{$level}>\n";
+}
+
+/**
+ * Render a layout block with columns.
+ *
+ * @param array $attributes
+ *   Block attributes.
+ * @param array $innerBlocks
+ *   Inner blocks (flat array with columnIndex attribute).
+ *
+ * @return string
+ *   Rendered HTML.
+ */
+function pwc_visual_editor_render_layout(array $attributes, array $innerBlocks): string {
+  // Skip rendering empty layout blocks in SSR
+  if (empty($innerBlocks)) {
+    return '';
+  }
+
+  $columns = (int) ($attributes['columns'] ?? 2);
+  $gap = $attributes['gap'] ?? '4';
+  $layout = $attributes['layout'] ?? 'equal';
+
+  // Build layout classes
+  $layoutClasses = ['pwc-layout-block', 'flex', 'flex-wrap'];
+  $layoutClasses[] = 'gap-' . htmlspecialchars($gap);
+
+  // Add custom classes if any
+  if (!empty($attributes['customClasses'])) {
+    $layoutClasses[] = htmlspecialchars($attributes['customClasses']);
+  }
+
+  $layoutClassString = implode(' ', $layoutClasses);
+
+  // Group inner blocks by columnIndex
+  $blocksByColumn = [];
+  for ($i = 0; $i < $columns; $i++) {
+    $blocksByColumn[$i] = [];
+  }
+
+  foreach ($innerBlocks as $block) {
+    $columnIndex = (int) ($block['attributes']['columnIndex'] ?? 0);
+    // Ensure column index is within bounds
+    if ($columnIndex >= $columns) {
+      $columnIndex = 0;
+    }
+    $blocksByColumn[$columnIndex][] = $block;
+  }
+
+  $html = "<div class=\"{$layoutClassString}\">\n";
+
+  // Render each column
+  for ($columnIndex = 0; $columnIndex < $columns; $columnIndex++) {
+    // Column width classes based on layout
+    $widthClass = pwc_visual_editor_get_column_width_class($layout, $columnIndex, $columns);
+
+    $columnClasses = ['pwc-layout-column', $widthClass];
+    $columnClassString = implode(' ', array_filter($columnClasses));
+
+    $html .= "  <div class=\"{$columnClassString}\">\n";
+    $html .= "    <div class=\"pwc-layout-column__content\">\n";
+
+    // Render blocks inside this column
+    foreach ($blocksByColumn[$columnIndex] as $innerBlock) {
+      $html .= '      ' . pwc_visual_editor_render_block($innerBlock);
+    }
+
+    $html .= "    </div>\n";
+    $html .= "  </div>\n";
+  }
+
+  $html .= "</div>\n";
+
+  return $html;
+}
+
+/**
+ * Get Tailwind width class for a column based on layout.
+ *
+ * @param string $layout
+ *   Layout type (equal, 1-2, 2-1, 1-2-1, etc.).
+ * @param int $index
+ *   Column index.
+ * @param int $totalColumns
+ *   Total number of columns.
+ *
+ * @return string
+ *   Tailwind width class.
+ */
+function pwc_visual_editor_get_column_width_class(string $layout, int $index, int $totalColumns): string {
+  // Layout patterns and their column width distributions
+  $layouts = [
+    'equal' => [], // Will calculate based on totalColumns
+    '1-2' => ['w-1/3', 'w-2/3'],
+    '2-1' => ['w-2/3', 'w-1/3'],
+    '1-2-1' => ['w-1/4', 'w-1/2', 'w-1/4'],
+    '1-3' => ['w-1/4', 'w-3/4'],
+    '3-1' => ['w-3/4', 'w-1/4'],
+  ];
+
+  if ($layout === 'equal' || !isset($layouts[$layout])) {
+    // Equal distribution
+    switch ($totalColumns) {
+      case 1:
+        return 'w-full';
+      case 2:
+        return 'w-1/2';
+      case 3:
+        return 'w-1/3';
+      case 4:
+        return 'w-1/4';
+      default:
+        return 'w-full';
+    }
+  }
+
+  return $layouts[$layout][$index] ?? 'w-full';
 }
 
 /**

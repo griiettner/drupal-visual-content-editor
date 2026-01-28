@@ -64,7 +64,7 @@ body.pwc-editing button.contextual-trigger {
 
 .pwc-block {
   position: relative;
-  transition: box-shadow 0.15s ease, border-color 0.15s ease;
+  transition: box-shadow 0.15s ease, border-color 0.15s ease, margin 0.15s ease;
 }
 
 .pwc-editing .pwc-block {
@@ -80,6 +80,9 @@ body.pwc-editing button.contextual-trigger {
   outline: 2px solid #007cba !important;
   outline-offset: 4px;
   box-shadow: 0 0 0 4px rgba(0, 124, 186, 0.1);
+  /* Add vertical margin to push blocks above/below away when selected */
+  margin-top: 12px;
+  margin-bottom: 12px;
 }
 
 /* Block being dragged for reordering */
@@ -475,36 +478,9 @@ pwc-block-inserter {
   background: #dbeafe;
 }
 
-/* Add button at bottom of column */
+/* Add button at bottom of column - hidden, use block library instead */
 .pwc-layout-column__add-btn {
-  width: 100%;
-  height: 32px;
-  margin-top: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: transparent;
-  border: 2px dashed #e5e7eb;
-  border-radius: 6px;
-  cursor: pointer;
-  transition: all 0.15s ease;
-  color: #9ca3af;
-  opacity: 0;
-}
-
-.pwc-layout-column:hover .pwc-layout-column__add-btn {
-  opacity: 1;
-}
-
-.pwc-layout-column__add-btn:hover {
-  background: #eff6ff;
-  border-color: #3b82f6;
-  color: #3b82f6;
-}
-
-.pwc-layout-column__add-btn svg {
-  width: 18px;
-  height: 18px;
+  display: none;
 }
 
 /* Layout block selected state */
@@ -1396,15 +1372,25 @@ body.pwc-dragging-block * {
   position: relative;
 }
 
-/* Base drop zone - always visible blue line with plus icon */
+/* Base drop zone - hidden by default, only visible during drag */
 .pwc-drop-zone {
   position: relative;
-  height: 24px;
-  margin: 8px 0;
-  display: flex;
+  height: 0;
+  margin: 0;
+  display: none;
   align-items: center;
   justify-content: center;
   transition: all 0.2s ease;
+  overflow: hidden;
+  opacity: 0;
+}
+
+/* Only show drop zones when actively dragging a block */
+body.pwc-dragging-block .pwc-drop-zone {
+  display: flex;
+  height: 24px;
+  margin: 8px 0;
+  opacity: 1;
 }
 
 /* The blue line */

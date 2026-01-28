@@ -170,7 +170,28 @@
       // Set up auto-save
       this.setupAutoSave();
 
+      // Listen for edit mode changes to manage edit trigger
+      this.setupEditModeListener();
+
       // PWC Visual Editor initialized
+    }
+
+    /**
+     * Set up listener for edit mode changes.
+     */
+    setupEditModeListener() {
+      window.pwcEditorState.on('editModeChange', (data) => {
+        if (data.isEditing) {
+          // Entering edit mode - remove edit trigger
+          this.removeEditTrigger();
+        } else {
+          // Exiting edit mode - re-create edit trigger after a short delay
+          // to ensure content has been re-rendered
+          setTimeout(() => {
+            this.createEditTrigger();
+          }, 100);
+        }
+      });
     }
 
     /**
@@ -186,7 +207,16 @@
      * Create hover edit trigger on content region.
      */
     createEditTrigger() {
-      if (this.editTriggerCreated || !this.contentRegion) return;
+      if (!this.contentRegion) return;
+
+      // Check if trigger already exists in DOM (might have been removed by innerHTML clearing)
+      if (this.editTriggerCreated && this.editTrigger && this.contentRegion.contains(this.editTrigger)) {
+        return; // Trigger already exists
+      }
+
+      // Reset state if trigger was removed
+      this.editTriggerCreated = false;
+      this.editTrigger = null;
 
       // Create the edit trigger overlay
       this.editTrigger = document.createElement('div');

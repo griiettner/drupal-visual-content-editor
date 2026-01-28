@@ -81,10 +81,10 @@
           name: 'listPosition',
           type: 'select',
           label: 'Marker Position',
-          default: 'list-inside',
+          default: 'list-outside',
           options: [
-            { value: 'list-inside', label: 'Inside' },
-            { value: 'list-outside', label: 'Outside' },
+            { value: 'list-outside', label: 'Outside (aligned)' },
+            { value: 'list-inside', label: 'Inside (wraps under)' },
           ],
         },
         {
@@ -227,7 +227,7 @@
     updateStyles() {
       const listType = this.getAttribute('list-type') || 'ul';
       const listStyle = this.getAttribute('list-style') || (listType === 'ul' ? 'list-disc' : 'list-decimal');
-      const listPosition = this.getAttribute('list-position') || 'list-inside';
+      const listPosition = this.getAttribute('list-position') || 'list-outside';
       const fontSize = this.getAttribute('font-size') || '';
       const fontWeight = this.getAttribute('font-weight') || '';
       const lineHeight = this.getAttribute('line-height') || '';
@@ -268,7 +268,7 @@
       let content = this.getAttribute('content') || '<li>List item</li>';
       const listType = this.getAttribute('list-type') || 'ul';
       const listStyle = this.getAttribute('list-style') || (listType === 'ul' ? 'list-disc' : 'list-decimal');
-      const listPosition = this.getAttribute('list-position') || 'list-inside';
+      const listPosition = this.getAttribute('list-position') || 'list-outside';
       const fontSize = this.getAttribute('font-size') || '';
       const fontWeight = this.getAttribute('font-weight') || '';
       const lineHeight = this.getAttribute('line-height') || '';
@@ -360,7 +360,14 @@
       editableList.addEventListener('keydown', (e) => {
         if (e.key === 'Enter') {
           e.preventDefault();
-          this.handleEnterKey();
+          if (e.shiftKey) {
+            // Shift+Enter: Insert <br> for multiline list item
+            this.insertLineBreak();
+          } else {
+            // Enter: Create new list item
+            this.handleEnterKey();
+          }
+          this.syncContent(editableList);
         } else if (e.key === 'Backspace') {
           this.handleBackspaceKey(e);
         }
@@ -391,6 +398,28 @@
       editableList.addEventListener('blur', () => {
         this._isInlineEditing = false;
       });
+    }
+
+    /**
+     * Insert a line break (<br>) at cursor position.
+     * Used for Shift+Enter to create multiline list items.
+     */
+    insertLineBreak() {
+      const selection = window.getSelection();
+      if (!selection.rangeCount) return;
+
+      const range = selection.getRangeAt(0);
+      range.deleteContents();
+
+      // Create and insert <br>
+      const br = document.createElement('br');
+      range.insertNode(br);
+
+      // Move cursor after the <br>
+      range.setStartAfter(br);
+      range.setEndAfter(br);
+      selection.removeAllRanges();
+      selection.addRange(range);
     }
 
     /**

@@ -500,7 +500,7 @@ function pwc_visual_editor_render_list(array $attributes): string {
   }
 
   // List position
-  $listPosition = $attributes['listPosition'] ?? 'list-inside';
+  $listPosition = $attributes['listPosition'] ?? 'list-outside';
   if (!empty($listPosition)) {
     $listClasses[] = htmlspecialchars($listPosition);
   }

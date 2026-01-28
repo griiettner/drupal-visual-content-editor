@@ -1932,6 +1932,11 @@ body.pwc-block-library-open .pwc-block-library-toggle:hover {
   position: relative;
 }
 
+/* Proper padding for list-outside so markers aren't cut off */
+.pwc-list__items.list-outside {
+  padding-left: 1.5em;
+}
+
 .pwc-list__item {
   position: relative;
 }

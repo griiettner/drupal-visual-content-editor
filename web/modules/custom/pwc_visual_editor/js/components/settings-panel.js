@@ -14,6 +14,8 @@
       this.currentBlock = null;
       this._unsubscribeSelection = null;
       this._unsubscribeEditMode = null;
+      this._isMinimized = false;
+      this._reopenButton = null;
     }
 
     connectedCallback() {
@@ -26,6 +28,10 @@
           const block = document.querySelector(`[block-id="${data.blockId}"]`);
           if (block) {
             this.showBlockSettings(block);
+            // Re-open panel if it was minimized and a block is selected
+            if (this._isMinimized && window.pwcEditorState.isEditing) {
+              this.show();
+            }
           }
         } else {
           this.showDefaultContent();
@@ -37,6 +43,9 @@
         if (data.isEditing) {
           this.show();
         } else {
+          // Exiting edit mode - clean up completely
+          this._isMinimized = false;
+          this.hideReopenButton();
           this.hide();
         }
       });
@@ -45,6 +54,7 @@
     disconnectedCallback() {
       if (this._unsubscribeSelection) this._unsubscribeSelection();
       if (this._unsubscribeEditMode) this._unsubscribeEditMode();
+      this.hideReopenButton();
     }
 
     render() {
@@ -122,10 +132,55 @@
         await this.saveContent();
       });
 
-      // Close button - exits edit mode
+      // Close button - minimizes panel (stays in edit mode)
       this.querySelector('.pwc-settings-panel__close').addEventListener('click', () => {
-        window.pwcEditorState.exitEditMode();
+        this.minimize();
       });
+    }
+
+    /**
+     * Minimize the panel (hide but stay in edit mode).
+     */
+    minimize() {
+      this._isMinimized = true;
+      this.querySelector('.pwc-settings-panel').classList.add('translate-x-full');
+      document.body.classList.add('pwc-settings-minimized');
+
+      // Show the re-open button
+      this.showReopenButton();
+    }
+
+    /**
+     * Show the floating re-open button.
+     */
+    showReopenButton() {
+      if (this._reopenButton) return;
+
+      this._reopenButton = document.createElement('button');
+      this._reopenButton.className = 'pwc-reopen-panel fixed right-4 top-4 z-50 p-3 bg-white border border-gray-200 rounded-lg shadow-lg hover:bg-gray-50 transition-all';
+      this._reopenButton.title = 'Open Settings Panel';
+      this._reopenButton.innerHTML = `
+        <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+        </svg>
+      `;
+
+      this._reopenButton.addEventListener('click', () => {
+        this.show();
+      });
+
+      document.body.appendChild(this._reopenButton);
+    }
+
+    /**
+     * Hide the re-open button.
+     */
+    hideReopenButton() {
+      if (this._reopenButton) {
+        this._reopenButton.remove();
+        this._reopenButton = null;
+      }
     }
 
     /**
@@ -442,11 +497,17 @@
     }
 
     show() {
+      this._isMinimized = false;
       this.style.display = 'block';
       this.querySelector('.pwc-settings-panel').classList.remove('translate-x-full');
+      document.body.classList.remove('pwc-settings-minimized');
+      this.hideReopenButton();
     }
 
     hide() {
+      this._isMinimized = false;
+      this.hideReopenButton();
+      document.body.classList.remove('pwc-settings-minimized');
       this.querySelector('.pwc-settings-panel')?.classList.add('translate-x-full');
       setTimeout(() => {
         this.style.display = 'none';

@@ -16,6 +16,12 @@
    */
   const BLOCK_CATEGORIES = [
     {
+      id: 'layout',
+      label: 'Layout',
+      blocks: ['layout'],
+      special: true  // Uses special rendering
+    },
+    {
       id: 'text',
       label: 'Text',
       blocks: ['paragraph', 'heading', 'list', 'quote', 'code', 'preformatted', 'pullquote', 'verse']
@@ -26,15 +32,23 @@
       blocks: ['image', 'gallery', 'video', 'audio']
     },
     {
-      id: 'layout',
-      label: 'Layout',
-      blocks: ['columns', 'group', 'spacer', 'separator']
-    },
-    {
       id: 'widgets',
       label: 'Widgets',
-      blocks: ['button', 'table', 'classic']
+      blocks: ['button', 'table', 'classic', 'columns', 'group', 'spacer', 'separator']
     }
+  ];
+
+  /**
+   * Layout variations configuration.
+   * Uses flex-grow ratios for consistent sizing.
+   */
+  const LAYOUT_VARIATIONS = [
+    { id: '100', label: '100', columns: [1] },
+    { id: '50-50', label: '50 / 50', columns: [1, 1] },
+    { id: '30-70', label: '30 / 70', columns: [3, 7] },
+    { id: '70-30', label: '70 / 30', columns: [7, 3] },
+    { id: '33-33-33', label: '33 / 33 / 33', columns: [1, 1, 1] },
+    { id: '25-50-25', label: '25 / 50 / 25', columns: [1, 2, 1] },
   ];
 
   class BlockLibraryPanel extends HTMLElement {
@@ -53,10 +67,12 @@
      *
      * @param {number} index - Index to insert at (-1 for end).
      * @param {string|null} parentId - Parent block ID for nested insertion.
+     * @param {number|null} columnIndex - Column index for layout blocks.
      */
-    setInsertPosition(index, parentId = null) {
+    setInsertPosition(index, parentId = null, columnIndex = null) {
       this.insertIndex = index;
       this.parentBlockId = parentId;
+      this.columnIndex = columnIndex;
     }
 
     /**
@@ -65,6 +81,7 @@
     resetInsertPosition() {
       this.insertIndex = -1;
       this.parentBlockId = null;
+      this.columnIndex = null;
     }
 
     connectedCallback() {
@@ -158,6 +175,24 @@
       let html = '';
 
       BLOCK_CATEGORIES.forEach(category => {
+        // Special handling for layout category
+        if (category.special && category.id === 'layout') {
+          // Check if layout block is registered
+          const layoutBlock = registeredBlocks.find(b => b.name === 'layout');
+          console.log('PWC Block Library: Checking for layout block:', layoutBlock);
+          const matchesSearch = !this.searchQuery ||
+            'layout'.includes(this.searchQuery.toLowerCase()) ||
+            'columns'.includes(this.searchQuery.toLowerCase());
+
+          if (layoutBlock && matchesSearch) {
+            console.log('PWC Block Library: Rendering layout category');
+            html += this.renderLayoutCategory();
+          } else {
+            console.log('PWC Block Library: Layout block NOT found in registry');
+          }
+          return;
+        }
+
         // Filter blocks that are actually registered and match search
         const categoryBlocks = registeredBlocks.filter(block => {
           const inCategory = category.blocks.includes(block.name);
@@ -167,11 +202,11 @@
           return inCategory && matchesSearch;
         });
 
-        // Also include registered blocks not in any category (in first category)
+        // Also include registered blocks not in any category (in text category)
         if (category.id === 'text') {
           registeredBlocks.forEach(block => {
             const inAnyCategory = BLOCK_CATEGORIES.some(cat => cat.blocks.includes(block.name));
-            if (!inAnyCategory) {
+            if (!inAnyCategory && block.name !== 'layout') {
               const matchesSearch = !this.searchQuery ||
                 block.title.toLowerCase().includes(this.searchQuery.toLowerCase());
               if (matchesSearch && !categoryBlocks.find(b => b.name === block.name)) {
@@ -198,6 +233,41 @@
       }
 
       return html;
+    }
+
+    /**
+     * Render the layout category with visual variation previews.
+     */
+    renderLayoutCategory() {
+      const variationsHtml = LAYOUT_VARIATIONS.map(variation => {
+        // Build column preview bars
+        const columnsHtml = variation.columns.map(flex => {
+          return `<div class="pwc-layout-variation__column" style="flex:${flex} 0 0;"></div>`;
+        }).join('');
+
+        return `
+          <div class="pwc-layout-variation"
+               data-block-type="layout"
+               data-layout-variation="${variation.id}"
+               draggable="true"
+               title="Insert ${variation.label} layout">
+            <div class="pwc-layout-variation__preview">
+              ${columnsHtml}
+            </div>
+            <span class="pwc-layout-variation__label">${variation.label}</span>
+          </div>
+        `;
+      }).join('');
+
+      return `
+        <div class="pwc-block-library__category" style="margin-bottom:20px;">
+          <div class="pwc-block-library__category-label" style="font-size:11px;font-weight:600;color:#9ca3af;letter-spacing:0.05em;margin-bottom:8px;">LAYOUT</div>
+          <p style="font-size:12px;color:#6b7280;margin:0 0 12px 0;">Select a column layout</p>
+          <div class="pwc-layout-variations-grid">
+            ${variationsHtml}
+          </div>
+        </div>
+      `;
     }
 
     renderBlockItem(block) {
@@ -238,6 +308,7 @@
         'gallery': `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 4v12H8V4h12m0-2H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-8.5 9.67l1.69 2.26 2.48-3.1L19 15H9zM2 6v14c0 1.1.9 2 2 2h14v-2H4V6H2z"/></svg>`,
         'video': `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M21 3H3c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h18c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H3V5h18v14zM10 8v8l6-4z"/></svg>`,
         'audio': `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/></svg>`,
+        'layout': `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M4 5v14h16V5H4zm6 12H6V7h4v10zm8 0h-4V7h4v10z"/></svg>`,
         'columns': `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M4 5v14h16V5H4zm6 12H6V7h4v10zm8 0h-4V7h4v10z"/></svg>`,
         'group': `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V5h14v14z"/></svg>`,
         'spacer': `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 11h10V9L21 12l-4 3v-2H7v2L3 12l4-3z"/></svg>`,
@@ -309,11 +380,47 @@
         });
       });
 
+      // Layout variation items
+      this.setupLayoutVariationListeners();
+
       // Close on escape
       document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape' && this.isOpen) {
           this.close();
         }
+      });
+    }
+
+    /**
+     * Setup event listeners for layout variation items.
+     */
+    setupLayoutVariationListeners() {
+      const layoutItems = this.querySelectorAll('.pwc-layout-variation');
+      layoutItems.forEach(item => {
+        item.addEventListener('dragstart', (e) => {
+          this.draggedBlockType = 'layout';
+          this.draggedLayoutVariation = item.dataset.layoutVariation;
+          e.dataTransfer.setData('text/plain', 'layout');
+          e.dataTransfer.setData('layout-variation', item.dataset.layoutVariation);
+          e.dataTransfer.effectAllowed = 'copy';
+          item.style.opacity = '0.5';
+
+          document.body.classList.add('pwc-dragging-block');
+          this.createDropZones();
+        });
+
+        item.addEventListener('dragend', () => {
+          item.style.opacity = '';
+          document.body.classList.remove('pwc-dragging-block');
+          this.removeDropZones();
+          this.draggedBlockType = null;
+          this.draggedLayoutVariation = null;
+        });
+
+        // Click to insert
+        item.addEventListener('click', () => {
+          this.insertLayoutBlock(item.dataset.layoutVariation);
+        });
       });
     }
 
@@ -369,10 +476,16 @@
         zone.addEventListener('drop', (e) => {
           e.preventDefault();
           const blockType = e.dataTransfer.getData('text/plain') || this.draggedBlockType;
+          const layoutVariation = e.dataTransfer.getData('layout-variation') || this.draggedLayoutVariation;
           const insertIndex = parseInt(zone.dataset.insertIndex, 10);
 
           if (blockType) {
-            this.insertBlock(blockType, insertIndex);
+            // Handle layout block with variation
+            if (blockType === 'layout' && layoutVariation) {
+              this.insertLayoutBlock(layoutVariation, insertIndex);
+            } else {
+              this.insertBlock(blockType, insertIndex);
+            }
           }
 
           zone.classList.remove('pwc-drop-zone--active');
@@ -393,6 +506,49 @@
       const blockData = window.pwcBlockRegistry.createBlockData(blockType);
 
       if (blockData) {
+        // Handle insertion into a layout column
+        if (this.parentBlockId && this.columnIndex !== null) {
+          blockData.attributes = blockData.attributes || {};
+          blockData.attributes.columnIndex = this.columnIndex;
+
+          const parentBlock = window.pwcEditorState.findBlock(this.parentBlockId);
+          if (parentBlock) {
+            parentBlock.innerBlocks = parentBlock.innerBlocks || [];
+            parentBlock.innerBlocks.push(blockData);
+            window.pwcEditorState.isDirty = true;
+            window.pwcEditorState.pushHistory();
+            window.pwcEditorState.emit('blockAdd', { block: blockData, parentId: this.parentBlockId });
+          }
+        } else {
+          // Use provided index, or fall back to panel's insertIndex, or -1 for end
+          const insertAt = index !== null ? index : this.insertIndex;
+          window.pwcEditorState.addBlock(blockData, insertAt, this.parentBlockId);
+        }
+
+        // Select the new block
+        setTimeout(() => {
+          window.pwcEditorState.selectBlock(blockData.id);
+        }, 50);
+
+        // Close the panel after inserting
+        this.close();
+      }
+    }
+
+    /**
+     * Insert a layout block with a specific variation.
+     */
+    insertLayoutBlock(variation, index = null) {
+      const blockData = window.pwcBlockRegistry.createBlockData('layout');
+
+      if (blockData) {
+        // Set the layout variation
+        blockData.attributes = blockData.attributes || {};
+        blockData.attributes.layout = variation;
+
+        // Initialize innerBlocks for the layout
+        blockData.innerBlocks = [];
+
         // Use provided index, or fall back to panel's insertIndex, or -1 for end
         const insertAt = index !== null ? index : this.insertIndex;
         window.pwcEditorState.addBlock(blockData, insertAt, this.parentBlockId);
@@ -434,6 +590,9 @@
             this.insertBlock(item.dataset.blockType);
           });
         });
+
+        // Re-setup layout variation listeners
+        this.setupLayoutVariationListeners();
       }
     }
 

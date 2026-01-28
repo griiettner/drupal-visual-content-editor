@@ -11,6 +11,7 @@ editor:
     js/components/block-inserter.js: {}
     js/components/rich-text-toolbar.js: {}
     js/components/blocks/heading.js: {}
+    js/components/blocks/layout-block.js: {}
     js/components/block-library-panel.js: {}
     js/editor.js: {}
   css:

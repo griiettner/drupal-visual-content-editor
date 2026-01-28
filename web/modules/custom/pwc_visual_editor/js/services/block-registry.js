@@ -135,7 +135,7 @@
       };
 
       // Initialize innerBlocks for container types
-      if (type === 'section-container') {
+      if (type === 'section-container' || type === 'layout') {
         blockData.innerBlocks = [];
       }
 

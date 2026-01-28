@@ -18,6 +18,11 @@ body.pwc-editing:not(.pwc-block-library-open) {
   margin-left: 0;
 }
 
+/* When settings panel is minimized */
+body.pwc-editing.pwc-settings-minimized {
+  margin-right: 0;
+}
+
 @media (max-width: 1024px) {
   body.pwc-editing {
     margin-left: 0;
@@ -360,11 +365,350 @@ body.pwc-block-library-open .pwc-settings-panel__add-block:hover {
 }
 
 /* ==========================================================================
+   Settings Panel Re-open Button
+   ========================================================================== */
+
+.pwc-reopen-panel {
+  animation: pwc-slide-in-right 0.2s ease-out;
+}
+
+@keyframes pwc-slide-in-right {
+  from {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* ==========================================================================
    Block Inserter (hidden - using block library panel instead)
    ========================================================================== */
 
 pwc-block-inserter {
   display: none !important;
+}
+
+/* ==========================================================================
+   Layout Block
+   ========================================================================== */
+
+.pwc-layout-block {
+  display: flex;
+  flex-wrap: wrap;
+  width: 100%;
+  min-height: 60px;
+}
+
+.pwc-layout-column {
+  display: flex;
+  flex-direction: column;
+  min-height: 60px;
+}
+
+.pwc-layout-column__content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 60px;
+}
+
+/* Layout column styling */
+.pwc-layout-column {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
+.pwc-layout-column__content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-height: 60px;
+}
+
+/* Empty column state in edit mode */
+.pwc-layout-column__empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 80px;
+  padding: 16px;
+  border: 2px dashed #d1d5db;
+  border-radius: 8px;
+  background: #f9fafb;
+  transition: all 0.15s ease;
+}
+
+.pwc-layout-column__empty-text {
+  font-size: 12px;
+  color: #9ca3af;
+}
+
+/* Drag over state for columns */
+.pwc-layout-column--drag-over {
+  background: #eff6ff;
+  outline: 2px dashed #3b82f6;
+  outline-offset: -2px;
+  border-radius: 8px;
+}
+
+.pwc-layout-column--drag-over .pwc-layout-column__empty {
+  border-color: #3b82f6;
+  background: #dbeafe;
+}
+
+/* Add button at bottom of column */
+.pwc-layout-column__add-btn {
+  width: 100%;
+  height: 32px;
+  margin-top: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: 2px dashed #e5e7eb;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  color: #9ca3af;
+  opacity: 0;
+}
+
+.pwc-layout-column:hover .pwc-layout-column__add-btn {
+  opacity: 1;
+}
+
+.pwc-layout-column__add-btn:hover {
+  background: #eff6ff;
+  border-color: #3b82f6;
+  color: #3b82f6;
+}
+
+.pwc-layout-column__add-btn svg {
+  width: 18px;
+  height: 18px;
+}
+
+/* Layout block selected state */
+pwc-layout.pwc-block--selected > .pwc-layout-block {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Hide default controls for layout blocks (we use custom handle) */
+pwc-layout > .pwc-block__controls {
+  display: none !important;
+}
+
+/* Ensure layout blocks have relative positioning */
+pwc-layout {
+  position: relative;
+  display: block;
+}
+
+/* Layout controls container (drag handle + delete button) */
+.pwc-layout-controls {
+  position: absolute;
+  right: -40px;
+  top: 0;
+  bottom: 0;
+  width: 36px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.15s ease, visibility 0.15s ease;
+  z-index: 100;
+}
+
+/* Show controls on layout hover */
+pwc-layout:hover .pwc-layout-controls,
+pwc-layout.pwc-block--selected .pwc-layout-controls {
+  opacity: 1;
+  visibility: visible;
+}
+
+/* Layout drag handle */
+.pwc-layout-handle {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  cursor: grab;
+  color: #6b7280;
+  transition: all 0.15s ease;
+  /* Make draggable */
+  -webkit-user-drag: element;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: none;
+}
+
+.pwc-layout-handle:hover {
+  background: #f3f4f6;
+  color: #374151;
+  border-color: #3b82f6;
+}
+
+.pwc-layout-handle:active {
+  cursor: grabbing;
+  background: #e0e7ff;
+}
+
+.pwc-layout-handle svg {
+  width: 18px;
+  height: 18px;
+  pointer-events: none; /* Prevent SVG from capturing drag events */
+}
+
+/* Layout delete button */
+.pwc-layout-delete {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  cursor: pointer;
+  color: #6b7280;
+  transition: all 0.15s ease;
+}
+
+.pwc-layout-delete:hover {
+  background: #fee2e2;
+  border-color: #fecaca;
+  color: #dc2626;
+}
+
+.pwc-layout-delete svg {
+  width: 18px;
+  height: 18px;
+}
+
+/* Reorder drop zones - using correct class name */
+.pwc-drop-zone--reorder {
+  height: 30px !important;
+  margin: 8px 0 !important;
+  background: #dbeafe !important;
+  border: 3px dashed #3b82f6 !important;
+  border-radius: 6px !important;
+  transition: all 0.15s ease;
+  display: block !important;
+  position: relative !important;
+  z-index: 9999 !important;
+  pointer-events: auto !important;
+}
+
+.pwc-drop-zone--reorder.pwc-drop-zone--active {
+  height: 50px !important;
+  background: #3b82f6 !important;
+  border-style: solid !important;
+  margin: 12px 0 !important;
+}
+
+/* Layout being dragged */
+pwc-layout.pwc-block--dragging {
+  opacity: 0.4;
+  outline: 2px dashed #3b82f6;
+}
+
+/* During reordering - drop zones always receive pointer events */
+body.pwc-reordering .pwc-drop-zone--reorder,
+body.pwc-dragging-block .pwc-drop-zone--reorder {
+  pointer-events: auto !important;
+  position: relative;
+  z-index: 1000;
+}
+
+/* Keep layout controls interactive during drag */
+body.pwc-reordering .pwc-layout-controls,
+body.pwc-dragging-block .pwc-layout-controls {
+  pointer-events: auto;
+}
+
+/* Ensure column content allows drop zones to work */
+body.pwc-dragging-block .pwc-layout-column__content {
+  pointer-events: auto;
+}
+
+/* Layout variations preview in block library */
+.pwc-layout-variation {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 12px 8px;
+  border: 2px solid #e5e7eb;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  background: #fff;
+}
+
+.pwc-layout-variation:hover {
+  border-color: #3b82f6;
+  background: #f0f9ff;
+}
+
+.pwc-layout-variation__preview {
+  display: flex;
+  width: 48px;
+  height: 36px;
+  gap: 2px;
+  margin-bottom: 6px;
+}
+
+.pwc-layout-variation__column {
+  background: #3b82f6;
+  border-radius: 2px;
+  opacity: 0.6;
+}
+
+.pwc-layout-variation:hover .pwc-layout-variation__column {
+  opacity: 1;
+}
+
+.pwc-layout-variation__label {
+  font-size: 11px;
+  color: #6b7280;
+  font-weight: 500;
+}
+
+.pwc-layout-variation:hover .pwc-layout-variation__label {
+  color: #3b82f6;
+}
+
+/* Layout variations grid in block library */
+.pwc-layout-variations-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  padding: 12px;
+}
+
+/* Responsive columns */
+@media (max-width: 768px) {
+  .pwc-layout-block {
+    flex-direction: column;
+  }
+
+  .pwc-layout-column {
+    flex: 1 0 0 !important;
+  }
 }
 
 /* ==========================================================================

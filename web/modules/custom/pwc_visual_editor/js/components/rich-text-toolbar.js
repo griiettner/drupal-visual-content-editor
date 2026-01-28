@@ -186,15 +186,24 @@
      * Update active states of formatting buttons.
      */
     updateActiveStates() {
-      const commands = ['bold', 'italic'];
+      const selection = window.getSelection();
+      if (!selection || selection.rangeCount === 0) return;
 
-      commands.forEach(cmd => {
-        const btn = this.querySelector(`[data-command="${cmd}"]`);
-        if (btn) {
-          const isActive = document.queryCommandState(cmd);
-          btn.classList.toggle('bg-gray-700', isActive);
-        }
-      });
+      const range = selection.getRangeAt(0);
+
+      // Check for bold (<strong> or <b>)
+      const boldBtn = this.querySelector('[data-command="bold"]');
+      if (boldBtn) {
+        const isActive = this.getParentTag(range, 'strong') || this.getParentTag(range, 'b');
+        boldBtn.classList.toggle('bg-gray-700', !!isActive);
+      }
+
+      // Check for italic (<em> or <i>)
+      const italicBtn = this.querySelector('[data-command="italic"]');
+      if (italicBtn) {
+        const isActive = this.getParentTag(range, 'em') || this.getParentTag(range, 'i');
+        italicBtn.classList.toggle('bg-gray-700', !!isActive);
+      }
     }
 
     /**
@@ -204,17 +213,152 @@
      */
     executeCommand(command) {
       switch (command) {
+        case 'bold':
+          this.wrapSelection('strong');
+          break;
+        case 'italic':
+          this.wrapSelection('em');
+          break;
         case 'link':
           this.insertLink();
           break;
         case 'unlink':
           document.execCommand('unlink', false, null);
           break;
+        case 'removeFormat':
+          this.removeFormatting();
+          break;
         default:
           document.execCommand(command, false, null);
       }
 
       this.updateActiveStates();
+    }
+
+    /**
+     * Wrap selection with a semantic tag.
+     *
+     * @param {string} tagName - Tag name (e.g., 'strong', 'em').
+     */
+    wrapSelection(tagName) {
+      const selection = window.getSelection();
+      if (!selection || selection.isCollapsed || selection.rangeCount === 0) return;
+
+      const range = selection.getRangeAt(0);
+
+      // Check if already wrapped with this tag
+      const parentTag = this.getParentTag(range, tagName);
+
+      if (parentTag) {
+        // Unwrap - remove the tag
+        this.unwrapTag(parentTag);
+      } else {
+        // Wrap selection with the tag
+        const wrapper = document.createElement(tagName);
+        try {
+          range.surroundContents(wrapper);
+        } catch (e) {
+          // If surroundContents fails (partial selection), use alternative method
+          const contents = range.extractContents();
+          wrapper.appendChild(contents);
+          range.insertNode(wrapper);
+        }
+
+        // Restore selection
+        selection.removeAllRanges();
+        const newRange = document.createRange();
+        newRange.selectNodeContents(wrapper);
+        selection.addRange(newRange);
+      }
+
+      // Trigger content update
+      this.notifyContentChange();
+    }
+
+    /**
+     * Get parent element with specific tag name.
+     *
+     * @param {Range} range - Selection range.
+     * @param {string} tagName - Tag name to find.
+     * @returns {HTMLElement|null}
+     */
+    getParentTag(range, tagName) {
+      let node = range.commonAncestorContainer;
+
+      // If text node, get parent
+      if (node.nodeType === Node.TEXT_NODE) {
+        node = node.parentElement;
+      }
+
+      // Walk up to find the tag
+      while (node && node.nodeType === Node.ELEMENT_NODE) {
+        if (node.tagName.toLowerCase() === tagName.toLowerCase()) {
+          return node;
+        }
+        // Stop at contenteditable boundary
+        if (node.hasAttribute('contenteditable')) {
+          break;
+        }
+        node = node.parentElement;
+      }
+
+      return null;
+    }
+
+    /**
+     * Unwrap a tag, keeping its contents.
+     *
+     * @param {HTMLElement} element - Element to unwrap.
+     */
+    unwrapTag(element) {
+      const parent = element.parentNode;
+      while (element.firstChild) {
+        parent.insertBefore(element.firstChild, element);
+      }
+      parent.removeChild(element);
+    }
+
+    /**
+     * Remove all formatting from selection.
+     */
+    removeFormatting() {
+      const selection = window.getSelection();
+      if (!selection || selection.isCollapsed || selection.rangeCount === 0) return;
+
+      const range = selection.getRangeAt(0);
+      const text = range.toString();
+
+      // Delete the selected content and insert plain text
+      range.deleteContents();
+      const textNode = document.createTextNode(text);
+      range.insertNode(textNode);
+
+      // Restore selection
+      selection.removeAllRanges();
+      const newRange = document.createRange();
+      newRange.selectNodeContents(textNode);
+      selection.addRange(newRange);
+
+      this.notifyContentChange();
+    }
+
+    /**
+     * Notify that content has changed for state tracking.
+     */
+    notifyContentChange() {
+      // Find the contenteditable parent and trigger an input event
+      const selection = window.getSelection();
+      if (selection && selection.rangeCount > 0) {
+        const range = selection.getRangeAt(0);
+        let node = range.commonAncestorContainer;
+        if (node.nodeType === Node.TEXT_NODE) {
+          node = node.parentElement;
+        }
+        const editable = node.closest('[contenteditable="true"]');
+        if (editable) {
+          editable.dispatchEvent(new Event('input', { bubbles: true }));
+        }
+      }
     }
 
     /**

@@ -148,6 +148,146 @@ function pwc_visual_editor_preprocess_node(&$variables) {
 }
 
 /**
+ * Sanitize inline HTML content, allowing only safe formatting tags.
+ *
+ * @param string $content
+ *   Raw content that may contain HTML.
+ *
+ * @return string
+ *   Sanitized HTML with only allowed tags.
+ */
+function pwc_visual_editor_sanitize_inline_html(string $content): string {
+  // List of allowed inline formatting tags
+  $allowed_tags = '<strong><em><b><i><a><span><br><sub><sup><mark><code>';
+
+  // Strip all tags except allowed ones
+  $content = strip_tags($content, $allowed_tags);
+
+  // Sanitize attributes on allowed tags (especially important for <a> tags)
+  // Use DOMDocument for more thorough sanitization
+  if (strpos($content, '<') !== FALSE) {
+    $content = pwc_visual_editor_sanitize_tag_attributes($content);
+  }
+
+  return $content;
+}
+
+/**
+ * Sanitize attributes on HTML tags to prevent XSS.
+ *
+ * @param string $html
+ *   HTML content with allowed tags.
+ *
+ * @return string
+ *   HTML with sanitized attributes.
+ */
+function pwc_visual_editor_sanitize_tag_attributes(string $html): string {
+  // Wrap in a root element to ensure valid parsing
+  $wrapped = '<div>' . $html . '</div>';
+
+  $dom = new \DOMDocument();
+  // Suppress warnings for malformed HTML
+  @$dom->loadHTML('<?xml encoding="UTF-8">' . $wrapped, LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD);
+
+  // Allowed attributes per tag
+  $allowed_attributes = [
+    'a' => ['href', 'title', 'target', 'rel'],
+    'span' => ['class'],
+    'strong' => [],
+    'em' => [],
+    'b' => [],
+    'i' => [],
+    'br' => [],
+    'sub' => [],
+    'sup' => [],
+    'mark' => [],
+    'code' => ['class'],
+  ];
+
+  // Dangerous attribute patterns (event handlers, javascript:, etc.)
+  $dangerous_patterns = [
+    '/^on/i',  // onclick, onerror, etc.
+    '/^javascript:/i',
+    '/^vbscript:/i',
+    '/^data:/i',
+  ];
+
+  // Process all elements
+  $xpath = new \DOMXPath($dom);
+  $elements = $xpath->query('//*');
+
+  foreach ($elements as $element) {
+    if (!$element instanceof \DOMElement) {
+      continue;
+    }
+
+    $tagName = strtolower($element->tagName);
+
+    // Skip the wrapper div
+    if ($tagName === 'div' || $tagName === 'body' || $tagName === 'html') {
+      continue;
+    }
+
+    // Get allowed attributes for this tag
+    $tagAllowed = $allowed_attributes[$tagName] ?? [];
+
+    // Remove disallowed attributes
+    $attributesToRemove = [];
+    foreach ($element->attributes as $attr) {
+      $attrName = strtolower($attr->name);
+      $attrValue = $attr->value;
+
+      // Check if attribute is allowed
+      if (!in_array($attrName, $tagAllowed)) {
+        $attributesToRemove[] = $attr->name;
+        continue;
+      }
+
+      // Check for dangerous patterns in value
+      foreach ($dangerous_patterns as $pattern) {
+        if (preg_match($pattern, $attrValue)) {
+          $attributesToRemove[] = $attr->name;
+          break;
+        }
+      }
+
+      // Special handling for href - only allow safe protocols
+      if ($attrName === 'href') {
+        $parsed = parse_url($attrValue);
+        $scheme = strtolower($parsed['scheme'] ?? '');
+        if ($scheme && !in_array($scheme, ['http', 'https', 'mailto', 'tel'])) {
+          $attributesToRemove[] = $attr->name;
+        }
+      }
+    }
+
+    // Remove the disallowed attributes
+    foreach ($attributesToRemove as $attrName) {
+      $element->removeAttribute($attrName);
+    }
+
+    // Add rel="noopener noreferrer" to external links
+    if ($tagName === 'a' && $element->hasAttribute('href')) {
+      $href = $element->getAttribute('href');
+      if (strpos($href, 'http') === 0) {
+        $element->setAttribute('rel', 'noopener noreferrer');
+      }
+    }
+  }
+
+  // Extract the content without the wrapper
+  $result = '';
+  $wrapper = $dom->getElementsByTagName('div')->item(0);
+  if ($wrapper) {
+    foreach ($wrapper->childNodes as $child) {
+      $result .= $dom->saveHTML($child);
+    }
+  }
+
+  return $result ?: $html;
+}
+
+/**
  * Render blocks as HTML for server-side rendering.
  *
  * @param array $blocks
@@ -203,7 +343,8 @@ function pwc_visual_editor_render_block(array $block): string {
  *   Rendered HTML.
  */
 function pwc_visual_editor_render_heading(array $attributes): string {
-  $content = htmlspecialchars($attributes['content'] ?? 'Heading');
+  // Allow safe inline formatting tags, sanitize the rest
+  $content = pwc_visual_editor_sanitize_inline_html($attributes['content'] ?? 'Heading');
   $level = $attributes['level'] ?? 'h2';
 
   // Validate heading level

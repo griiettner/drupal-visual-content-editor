@@ -22,7 +22,7 @@
   class LayoutBlock extends BaseBlock {
     // Static getters for block registry
     static get blockName() { return 'layout'; }
-    static get blockTitle() { return 'Layout'; }
+    static get blockTitle() { return 'Container'; }
     static get blockIcon() { return '▦'; }
     static get blockDescription() { return 'Create column-based layouts to organize content'; }
     static get blockCategory() { return 'layout'; }
@@ -62,41 +62,100 @@
       return [
         {
           name: 'layout',
-          type: 'select',
+          type: 'layoutPicker',
           label: 'Layout',
           options: [
-            { value: '100', label: '100% (Full Width)' },
-            { value: '50-50', label: '50 / 50' },
-            { value: '30-70', label: '30 / 70' },
-            { value: '70-30', label: '70 / 30' },
-            { value: '33-33-33', label: '33 / 33 / 33' },
-            { value: '25-50-25', label: '25 / 50 / 25' },
+            { value: '100', label: 'Full', columns: [1] },
+            { value: '50-50', label: '50/50', columns: [1, 1] },
+            { value: '30-70', label: '30/70', columns: [3, 7] },
+            { value: '70-30', label: '70/30', columns: [7, 3] },
+            { value: '33-33-33', label: '3 Col', columns: [1, 1, 1] },
+            { value: '25-50-25', label: 'Sidebar', columns: [1, 2, 1] },
           ],
           default: '100',
         },
         {
           name: 'gap',
-          type: 'select',
+          type: 'gapPicker',
           label: 'Column Gap',
           options: [
-            { value: 'none', label: 'None' },
-            { value: 'small', label: 'Small (8px)' },
-            { value: 'medium', label: 'Medium (16px)' },
-            { value: 'large', label: 'Large (24px)' },
+            { value: 'none', label: '0', px: '0px' },
+            { value: 'small', label: 'S', px: '8px' },
+            { value: 'medium', label: 'M', px: '16px' },
+            { value: 'large', label: 'L', px: '24px' },
           ],
           default: 'medium',
         },
         {
           name: 'verticalAlign',
-          type: 'select',
+          type: 'verticalAlignPicker',
           label: 'Vertical Alignment',
           options: [
-            { value: 'top', label: 'Top' },
-            { value: 'center', label: 'Center' },
-            { value: 'bottom', label: 'Bottom' },
-            { value: 'stretch', label: 'Stretch' },
+            { value: 'top', label: 'Top', icon: 'align-top' },
+            { value: 'center', label: 'Center', icon: 'align-middle' },
+            { value: 'bottom', label: 'Bottom', icon: 'align-bottom' },
+            { value: 'stretch', label: 'Stretch', icon: 'align-stretch' },
           ],
           default: 'top',
+        },
+        {
+          name: 'margin',
+          type: 'spacing',
+          label: 'Margin',
+          default: '',
+          prefix: 'm',
+        },
+        {
+          name: 'padding',
+          type: 'spacing',
+          label: 'Padding',
+          default: '',
+          prefix: 'p',
+        },
+        {
+          name: 'backgroundColor',
+          type: 'colorSwatch',
+          label: 'Background Color',
+          default: '',
+          colors: window.TAILWIND_OPTIONS?.colors || [],
+          colorType: 'bg',
+        },
+        {
+          name: 'borderWidth',
+          type: 'borderWidthPicker',
+          label: 'Border Width',
+          options: [
+            { value: '', label: '0', px: '0px' },
+            { value: 'border', label: '1', px: '1px' },
+            { value: 'border-2', label: '2', px: '2px' },
+            { value: 'border-4', label: '4', px: '4px' },
+            { value: 'border-8', label: '8', px: '8px' },
+          ],
+          default: '',
+        },
+        {
+          name: 'borderColor',
+          type: 'colorSwatch',
+          label: 'Border Color',
+          default: '',
+          colors: window.TAILWIND_OPTIONS?.colors || [],
+          colorType: 'border',
+        },
+        {
+          name: 'borderRadius',
+          type: 'radiusPicker',
+          label: 'Border Radius',
+          options: [
+            { value: '', label: 'None', preview: '0' },
+            { value: 'rounded-sm', label: 'S', preview: '2px' },
+            { value: 'rounded', label: 'M', preview: '4px' },
+            { value: 'rounded-md', label: 'MD', preview: '6px' },
+            { value: 'rounded-lg', label: 'LG', preview: '8px' },
+            { value: 'rounded-xl', label: 'XL', preview: '12px' },
+            { value: 'rounded-2xl', label: '2XL', preview: '16px' },
+            { value: 'rounded-full', label: 'Full', preview: '9999px' },
+          ],
+          default: '',
         },
       ];
     }
@@ -187,7 +246,31 @@
     }
 
     static get observedAttributes() {
-      return ['layout', 'gap', 'vertical-align', 'block-id', 'block-type'];
+      return ['layout', 'gap', 'vertical-align', 'margin', 'padding', 'background-color', 'border-width', 'border-color', 'border-radius', 'block-id', 'block-type'];
+    }
+
+    get margin() {
+      return this.getAttribute('margin') || '';
+    }
+
+    get padding() {
+      return this.getAttribute('padding') || '';
+    }
+
+    get backgroundColor() {
+      return this.getAttribute('background-color') || '';
+    }
+
+    get borderWidth() {
+      return this.getAttribute('border-width') || '';
+    }
+
+    get borderColor() {
+      return this.getAttribute('border-color') || '';
+    }
+
+    get borderRadius() {
+      return this.getAttribute('border-radius') || '';
     }
 
     /**
@@ -245,8 +328,20 @@
         `;
       }).join('');
 
+      // Build class list with spacing and styling
+      const layoutClasses = [
+        'pwc-layout-block',
+        `pwc-layout-block--${this.layout}`,
+        this.margin,
+        this.padding,
+        this.backgroundColor,
+        this.borderWidth,
+        this.borderColor,
+        this.borderRadius,
+      ].filter(Boolean).join(' ');
+
       this.innerHTML = `
-        <div class="pwc-layout-block pwc-layout-block--${this.layout}"
+        <div class="${layoutClasses}"
              style="gap: ${gapValue}; align-items: ${alignValue};">
           ${columnsHtml}
         </div>
@@ -310,9 +405,7 @@
         deleteBtn.addEventListener('click', (e) => {
           e.stopPropagation();
           e.preventDefault();
-          if (confirm('Delete this layout and all its contents?')) {
-            window.pwcEditorState.removeBlock(this.blockId);
-          }
+          this.showDeleteConfirmation('Are you sure you want to delete this container and all its contents? This action cannot be undone.');
         });
       }
     }

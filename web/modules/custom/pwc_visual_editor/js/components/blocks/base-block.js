@@ -616,9 +616,12 @@
 
     /**
      * Show delete confirmation modal.
+     *
+     * @param {string} customMessage - Optional custom message for the modal body.
      */
-    showDeleteConfirmation() {
+    showDeleteConfirmation(customMessage = null) {
       const blockTitle = this.constructor.blockTitle || 'Block';
+      const message = customMessage || 'Are you sure you want to delete this block? This action cannot be undone.';
 
       // Create modal overlay
       const overlay = document.createElement('div');
@@ -634,7 +637,7 @@
             <h3 class="pwc-delete-modal__title">Delete ${blockTitle}</h3>
           </div>
           <div class="pwc-delete-modal__body">
-            <p class="pwc-delete-modal__message">Are you sure you want to delete this block? This action cannot be undone.</p>
+            <p class="pwc-delete-modal__message">${message}</p>
           </div>
           <div class="pwc-delete-modal__footer">
             <button class="pwc-delete-modal__btn pwc-delete-modal__btn--cancel" type="button">Cancel</button>

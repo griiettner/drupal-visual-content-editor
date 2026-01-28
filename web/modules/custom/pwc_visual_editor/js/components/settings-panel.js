@@ -359,8 +359,14 @@
 
         case 'colorSwatch':
           const colors = setting.colors || window.TAILWIND_OPTIONS?.colors || [];
+          const colorType = setting.colorType || 'text'; // 'text', 'bg', or 'border'
           const colorSwatches = colors.map(color => {
-            const isSelected = value === color.value;
+            // Transform color value based on colorType (e.g., text-red-500 -> bg-red-500)
+            let colorValue = color.value;
+            if (colorValue && colorType !== 'text') {
+              colorValue = colorValue.replace(/^text-/, `${colorType}-`);
+            }
+            const isSelected = value === colorValue;
             const isTransparent = color.hex === 'transparent';
             const bgStyle = isTransparent ? 'background: linear-gradient(45deg, #ccc 25%, transparent 25%), linear-gradient(-45deg, #ccc 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #ccc 75%), linear-gradient(-45deg, transparent 75%, #ccc 75%); background-size: 8px 8px; background-position: 0 0, 0 4px, 4px -4px, -4px 0px;' : `background-color: ${color.hex}`;
             return `
@@ -368,7 +374,7 @@
                 type="button"
                 class="pwc-color-swatch w-6 h-6 rounded border-2 ${isSelected ? 'border-blue-500 ring-2 ring-blue-300' : 'border-gray-300 hover:border-gray-400'}"
                 style="${bgStyle}"
-                data-value="${color.value}"
+                data-value="${colorValue}"
                 data-name="${setting.name}"
                 title="${color.label}"
               ></button>
@@ -382,6 +388,189 @@
               </label>
               <div class="pwc-color-swatch-grid grid grid-cols-8 gap-1" data-name="${setting.name}">
                 ${colorSwatches}
+              </div>
+              ${setting.help ? `<p class="mt-1 text-xs text-gray-500">${setting.help}</p>` : ''}
+            </div>
+          `;
+
+        case 'radiusPicker':
+          const radiusOptions = setting.options || [];
+          const radiusButtons = radiusOptions.map(opt => {
+            const isSelected = value === opt.value;
+            return `
+              <button
+                type="button"
+                class="pwc-radius-picker-btn flex flex-col items-center justify-center p-2 rounded-lg border-2 transition-all ${isSelected ? 'bg-blue-50 border-blue-500 text-blue-600' : 'bg-white border-gray-200 text-gray-500 hover:border-blue-300 hover:bg-blue-50'}"
+                data-value="${opt.value}"
+                data-name="${setting.name}"
+                title="${opt.preview}"
+              >
+                <div class="w-6 h-6 border-2 border-current ${opt.value || 'rounded-none'}" style="border-radius: ${opt.value ? '' : '0'}"></div>
+                <span class="text-[10px] font-medium mt-1">${opt.label}</span>
+              </button>
+            `;
+          }).join('');
+
+          return `
+            <div class="pwc-setting-field">
+              <label class="block text-sm font-medium text-gray-700 mb-2">
+                ${setting.label}
+              </label>
+              <div class="pwc-radius-picker grid grid-cols-4 gap-2" data-name="${setting.name}">
+                ${radiusButtons}
+              </div>
+              ${setting.help ? `<p class="mt-1 text-xs text-gray-500">${setting.help}</p>` : ''}
+            </div>
+          `;
+
+        case 'borderWidthPicker':
+          const borderWidthOptions = setting.options || [];
+          const borderWidthButtons = borderWidthOptions.map(opt => {
+            const isSelected = value === opt.value;
+            return `
+              <button
+                type="button"
+                class="pwc-border-width-picker-btn flex flex-col items-center justify-center p-2 rounded-lg border-2 transition-all ${isSelected ? 'bg-blue-50 border-blue-500 text-blue-600' : 'bg-white border-gray-200 text-gray-500 hover:border-blue-300 hover:bg-blue-50'}"
+                data-value="${opt.value}"
+                data-name="${setting.name}"
+                title="${opt.px}"
+              >
+                <span class="text-sm font-semibold">${opt.label}</span>
+                <span class="text-[10px] text-gray-400">${opt.px}</span>
+              </button>
+            `;
+          }).join('');
+
+          return `
+            <div class="pwc-setting-field">
+              <label class="block text-sm font-medium text-gray-700 mb-2">
+                ${setting.label}
+              </label>
+              <div class="pwc-border-width-picker grid grid-cols-5 gap-2" data-name="${setting.name}">
+                ${borderWidthButtons}
+              </div>
+              ${setting.help ? `<p class="mt-1 text-xs text-gray-500">${setting.help}</p>` : ''}
+            </div>
+          `;
+
+        case 'layoutPicker':
+          const layoutOptions = setting.options || [];
+          const layoutButtons = layoutOptions.map(opt => {
+            const isSelected = value === opt.value;
+            // Generate SVG preview of column layout
+            const totalFlex = opt.columns.reduce((a, b) => a + b, 0);
+            const columnRects = opt.columns.map((flex, idx) => {
+              const width = (flex / totalFlex) * 44;
+              const x = opt.columns.slice(0, idx).reduce((a, b) => a + (b / totalFlex) * 44, 2);
+              return `<rect x="${x}" y="4" width="${width - 2}" height="24" rx="2" fill="currentColor" fill-opacity="${isSelected ? '1' : '0.4'}"/>`;
+            }).join('');
+
+            return `
+              <button
+                type="button"
+                class="pwc-layout-picker-btn flex flex-col items-center gap-1 p-2 rounded-lg border-2 transition-all ${isSelected ? 'bg-blue-50 border-blue-500 text-blue-600' : 'bg-white border-gray-200 text-gray-500 hover:border-blue-300 hover:bg-blue-50'}"
+                data-value="${opt.value}"
+                data-name="${setting.name}"
+                title="${opt.label}"
+              >
+                <svg class="w-12 h-8" viewBox="0 0 48 32">
+                  ${columnRects}
+                </svg>
+                <span class="text-[10px] font-medium">${opt.label}</span>
+              </button>
+            `;
+          }).join('');
+
+          return `
+            <div class="pwc-setting-field">
+              <label class="block text-sm font-medium text-gray-700 mb-2">
+                ${setting.label}
+              </label>
+              <div class="pwc-layout-picker grid grid-cols-3 gap-2" data-name="${setting.name}">
+                ${layoutButtons}
+              </div>
+              ${setting.help ? `<p class="mt-1 text-xs text-gray-500">${setting.help}</p>` : ''}
+            </div>
+          `;
+
+        case 'gapPicker':
+          const gapOptions = setting.options || [];
+          const gapButtons = gapOptions.map(opt => {
+            const isSelected = value === opt.value;
+            return `
+              <button
+                type="button"
+                class="pwc-gap-picker-btn flex flex-col items-center justify-center p-2 rounded-lg border-2 transition-all ${isSelected ? 'bg-blue-50 border-blue-500 text-blue-600' : 'bg-white border-gray-200 text-gray-500 hover:border-blue-300 hover:bg-blue-50'}"
+                data-value="${opt.value}"
+                data-name="${setting.name}"
+                title="${opt.px}"
+              >
+                <span class="text-sm font-semibold">${opt.label}</span>
+                <span class="text-[10px] text-gray-400">${opt.px}</span>
+              </button>
+            `;
+          }).join('');
+
+          return `
+            <div class="pwc-setting-field">
+              <label class="block text-sm font-medium text-gray-700 mb-2">
+                ${setting.label}
+              </label>
+              <div class="pwc-gap-picker grid grid-cols-4 gap-2" data-name="${setting.name}">
+                ${gapButtons}
+              </div>
+              ${setting.help ? `<p class="mt-1 text-xs text-gray-500">${setting.help}</p>` : ''}
+            </div>
+          `;
+
+        case 'verticalAlignPicker':
+          const vAlignOptions = setting.options || [];
+          const vAlignIcons = {
+            'align-top': `<svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="4" y="4" width="16" height="16" rx="1" stroke-opacity="0.3"/>
+              <rect x="7" y="4" width="4" height="8" rx="1" fill="currentColor"/>
+              <rect x="13" y="4" width="4" height="12" rx="1" fill="currentColor"/>
+            </svg>`,
+            'align-middle': `<svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="4" y="4" width="16" height="16" rx="1" stroke-opacity="0.3"/>
+              <rect x="7" y="8" width="4" height="8" rx="1" fill="currentColor"/>
+              <rect x="13" y="6" width="4" height="12" rx="1" fill="currentColor"/>
+            </svg>`,
+            'align-bottom': `<svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="4" y="4" width="16" height="16" rx="1" stroke-opacity="0.3"/>
+              <rect x="7" y="12" width="4" height="8" rx="1" fill="currentColor"/>
+              <rect x="13" y="8" width="4" height="12" rx="1" fill="currentColor"/>
+            </svg>`,
+            'align-stretch': `<svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="4" y="4" width="16" height="16" rx="1" stroke-opacity="0.3"/>
+              <rect x="7" y="4" width="4" height="16" rx="1" fill="currentColor"/>
+              <rect x="13" y="4" width="4" height="16" rx="1" fill="currentColor"/>
+            </svg>`,
+          };
+
+          const vAlignButtons = vAlignOptions.map(opt => {
+            const isSelected = value === opt.value;
+            return `
+              <button
+                type="button"
+                class="pwc-valign-picker-btn flex flex-col items-center gap-1 p-2 rounded-lg border-2 transition-all ${isSelected ? 'bg-blue-50 border-blue-500 text-blue-600' : 'bg-white border-gray-200 text-gray-500 hover:border-blue-300 hover:bg-blue-50'}"
+                data-value="${opt.value}"
+                data-name="${setting.name}"
+                title="${opt.label}"
+              >
+                ${vAlignIcons[opt.icon] || ''}
+                <span class="text-[10px] font-medium">${opt.label}</span>
+              </button>
+            `;
+          }).join('');
+
+          return `
+            <div class="pwc-setting-field">
+              <label class="block text-sm font-medium text-gray-700 mb-2">
+                ${setting.label}
+              </label>
+              <div class="pwc-valign-picker grid grid-cols-4 gap-2" data-name="${setting.name}">
+                ${vAlignButtons}
               </div>
               ${setting.help ? `<p class="mt-1 text-xs text-gray-500">${setting.help}</p>` : ''}
             </div>
@@ -604,6 +793,101 @@
           });
           swatch.classList.remove('border-gray-300');
           swatch.classList.add('border-blue-500', 'ring-2', 'ring-blue-300');
+
+          this.updateBlockAttribute(name, value);
+        });
+      });
+
+      // Radius picker buttons
+      this.querySelectorAll('.pwc-radius-picker-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const name = btn.dataset.name;
+          const value = btn.dataset.value;
+          const container = btn.closest('.pwc-radius-picker');
+
+          // Update visual selection
+          container.querySelectorAll('.pwc-radius-picker-btn').forEach(b => {
+            b.classList.remove('bg-blue-50', 'border-blue-500', 'text-blue-600');
+            b.classList.add('bg-white', 'border-gray-200', 'text-gray-500');
+          });
+          btn.classList.remove('bg-white', 'border-gray-200', 'text-gray-500');
+          btn.classList.add('bg-blue-50', 'border-blue-500', 'text-blue-600');
+
+          this.updateBlockAttribute(name, value);
+        });
+      });
+
+      // Border width picker buttons
+      this.querySelectorAll('.pwc-border-width-picker-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const name = btn.dataset.name;
+          const value = btn.dataset.value;
+          const container = btn.closest('.pwc-border-width-picker');
+
+          // Update visual selection
+          container.querySelectorAll('.pwc-border-width-picker-btn').forEach(b => {
+            b.classList.remove('bg-blue-50', 'border-blue-500', 'text-blue-600');
+            b.classList.add('bg-white', 'border-gray-200', 'text-gray-500');
+          });
+          btn.classList.remove('bg-white', 'border-gray-200', 'text-gray-500');
+          btn.classList.add('bg-blue-50', 'border-blue-500', 'text-blue-600');
+
+          this.updateBlockAttribute(name, value);
+        });
+      });
+
+      // Layout picker buttons
+      this.querySelectorAll('.pwc-layout-picker-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const name = btn.dataset.name;
+          const value = btn.dataset.value;
+          const container = btn.closest('.pwc-layout-picker');
+
+          // Update visual selection
+          container.querySelectorAll('.pwc-layout-picker-btn').forEach(b => {
+            b.classList.remove('bg-blue-50', 'border-blue-500', 'text-blue-600');
+            b.classList.add('bg-white', 'border-gray-200', 'text-gray-500');
+          });
+          btn.classList.remove('bg-white', 'border-gray-200', 'text-gray-500');
+          btn.classList.add('bg-blue-50', 'border-blue-500', 'text-blue-600');
+
+          this.updateBlockAttribute(name, value);
+        });
+      });
+
+      // Gap picker buttons
+      this.querySelectorAll('.pwc-gap-picker-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const name = btn.dataset.name;
+          const value = btn.dataset.value;
+          const container = btn.closest('.pwc-gap-picker');
+
+          // Update visual selection
+          container.querySelectorAll('.pwc-gap-picker-btn').forEach(b => {
+            b.classList.remove('bg-blue-50', 'border-blue-500', 'text-blue-600');
+            b.classList.add('bg-white', 'border-gray-200', 'text-gray-500');
+          });
+          btn.classList.remove('bg-white', 'border-gray-200', 'text-gray-500');
+          btn.classList.add('bg-blue-50', 'border-blue-500', 'text-blue-600');
+
+          this.updateBlockAttribute(name, value);
+        });
+      });
+
+      // Vertical align picker buttons
+      this.querySelectorAll('.pwc-valign-picker-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const name = btn.dataset.name;
+          const value = btn.dataset.value;
+          const container = btn.closest('.pwc-valign-picker');
+
+          // Update visual selection
+          container.querySelectorAll('.pwc-valign-picker-btn').forEach(b => {
+            b.classList.remove('bg-blue-50', 'border-blue-500', 'text-blue-600');
+            b.classList.add('bg-white', 'border-gray-200', 'text-gray-500');
+          });
+          btn.classList.remove('bg-white', 'border-gray-200', 'text-gray-500');
+          btn.classList.add('bg-blue-50', 'border-blue-500', 'text-blue-600');
 
           this.updateBlockAttribute(name, value);
         });

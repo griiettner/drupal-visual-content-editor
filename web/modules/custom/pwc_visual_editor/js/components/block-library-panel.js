@@ -16,8 +16,7 @@
     {
       id: 'layout',
       label: 'Layout',
-      blocks: ['layout'],
-      special: true  // Uses special rendering
+      blocks: ['layout']
     },
     {
       id: 'text',
@@ -34,19 +33,6 @@
       label: 'Widgets',
       blocks: ['button', 'table', 'classic', 'columns', 'group', 'spacer', 'separator']
     }
-  ];
-
-  /**
-   * Layout variations configuration.
-   * Uses flex-grow ratios for consistent sizing.
-   */
-  const LAYOUT_VARIATIONS = [
-    { id: '100', label: '100', columns: [1] },
-    { id: '50-50', label: '50 / 50', columns: [1, 1] },
-    { id: '30-70', label: '30 / 70', columns: [3, 7] },
-    { id: '70-30', label: '70 / 30', columns: [7, 3] },
-    { id: '33-33-33', label: '33 / 33 / 33', columns: [1, 1, 1] },
-    { id: '25-50-25', label: '25 / 50 / 25', columns: [1, 2, 1] },
   ];
 
   class BlockLibraryPanel extends HTMLElement {
@@ -169,21 +155,6 @@
       let html = '';
 
       BLOCK_CATEGORIES.forEach(category => {
-        // Special handling for layout category
-        if (category.special && category.id === 'layout') {
-          // Check if layout block is registered
-          const layoutBlock = registeredBlocks.find(b => b.name === 'layout');
-          const matchesSearch = !this.searchQuery ||
-            'layout'.includes(this.searchQuery.toLowerCase()) ||
-            'columns'.includes(this.searchQuery.toLowerCase());
-
-          if (layoutBlock && matchesSearch) {
-            html += this.renderLayoutCategory();
-          } else {
-          }
-          return;
-        }
-
         // Filter blocks that are actually registered and match search
         const categoryBlocks = registeredBlocks.filter(block => {
           const inCategory = category.blocks.includes(block.name);
@@ -224,41 +195,6 @@
       }
 
       return html;
-    }
-
-    /**
-     * Render the layout category with visual variation previews.
-     */
-    renderLayoutCategory() {
-      const variationsHtml = LAYOUT_VARIATIONS.map(variation => {
-        // Build column preview bars
-        const columnsHtml = variation.columns.map(flex => {
-          return `<div class="pwc-layout-variation__column" style="flex:${flex} 0 0;"></div>`;
-        }).join('');
-
-        return `
-          <div class="pwc-layout-variation"
-               data-block-type="layout"
-               data-layout-variation="${variation.id}"
-               draggable="true"
-               title="Insert ${variation.label} layout">
-            <div class="pwc-layout-variation__preview">
-              ${columnsHtml}
-            </div>
-            <span class="pwc-layout-variation__label">${variation.label}</span>
-          </div>
-        `;
-      }).join('');
-
-      return `
-        <div class="pwc-block-library__category" style="margin-bottom:20px;">
-          <div class="pwc-block-library__category-label" style="font-size:11px;font-weight:600;color:#9ca3af;letter-spacing:0.05em;margin-bottom:8px;">LAYOUT</div>
-          <p style="font-size:12px;color:#6b7280;margin:0 0 12px 0;">Select a column layout</p>
-          <div class="pwc-layout-variations-grid">
-            ${variationsHtml}
-          </div>
-        </div>
-      `;
     }
 
     renderBlockItem(block) {
@@ -371,47 +307,11 @@
         });
       });
 
-      // Layout variation items
-      this.setupLayoutVariationListeners();
-
       // Close on escape
       document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape' && this.isOpen) {
           this.close();
         }
-      });
-    }
-
-    /**
-     * Setup event listeners for layout variation items.
-     */
-    setupLayoutVariationListeners() {
-      const layoutItems = this.querySelectorAll('.pwc-layout-variation');
-      layoutItems.forEach(item => {
-        item.addEventListener('dragstart', (e) => {
-          this.draggedBlockType = 'layout';
-          this.draggedLayoutVariation = item.dataset.layoutVariation;
-          e.dataTransfer.setData('text/plain', 'layout');
-          e.dataTransfer.setData('layout-variation', item.dataset.layoutVariation);
-          e.dataTransfer.effectAllowed = 'copy';
-          item.style.opacity = '0.5';
-
-          document.body.classList.add('pwc-dragging-block');
-          this.createDropZones();
-        });
-
-        item.addEventListener('dragend', () => {
-          item.style.opacity = '';
-          document.body.classList.remove('pwc-dragging-block');
-          this.removeDropZones();
-          this.draggedBlockType = null;
-          this.draggedLayoutVariation = null;
-        });
-
-        // Click to insert
-        item.addEventListener('click', () => {
-          this.insertLayoutBlock(item.dataset.layoutVariation);
-        });
       });
     }
 
@@ -467,16 +367,10 @@
         zone.addEventListener('drop', (e) => {
           e.preventDefault();
           const blockType = e.dataTransfer.getData('text/plain') || this.draggedBlockType;
-          const layoutVariation = e.dataTransfer.getData('layout-variation') || this.draggedLayoutVariation;
           const insertIndex = parseInt(zone.dataset.insertIndex, 10);
 
           if (blockType) {
-            // Handle layout block with variation
-            if (blockType === 'layout' && layoutVariation) {
-              this.insertLayoutBlock(layoutVariation, insertIndex);
-            } else {
-              this.insertBlock(blockType, insertIndex);
-            }
+            this.insertBlock(blockType, insertIndex);
           }
 
           zone.classList.remove('pwc-drop-zone--active');
@@ -526,34 +420,6 @@
       }
     }
 
-    /**
-     * Insert a layout block with a specific variation.
-     */
-    insertLayoutBlock(variation, index = null) {
-      const blockData = window.pwcBlockRegistry.createBlockData('layout');
-
-      if (blockData) {
-        // Set the layout variation
-        blockData.attributes = blockData.attributes || {};
-        blockData.attributes.layout = variation;
-
-        // Initialize innerBlocks for the layout
-        blockData.innerBlocks = [];
-
-        // Use provided index, or fall back to panel's insertIndex, or -1 for end
-        const insertAt = index !== null ? index : this.insertIndex;
-        window.pwcEditorState.addBlock(blockData, insertAt, this.parentBlockId);
-
-        // Select the new block
-        setTimeout(() => {
-          window.pwcEditorState.selectBlock(blockData.id);
-        }, 50);
-
-        // Close the panel after inserting
-        this.close();
-      }
-    }
-
     updateBlockList() {
       const content = this.querySelector('.pwc-block-library__content');
       if (content) {
@@ -581,9 +447,6 @@
             this.insertBlock(item.dataset.blockType);
           });
         });
-
-        // Re-setup layout variation listeners
-        this.setupLayoutVariationListeners();
       }
     }
 

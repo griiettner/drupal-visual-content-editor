@@ -407,6 +407,36 @@ function pwc_visual_editor_render_layout(array $attributes, array $innerBlocks):
   $layoutClasses = ['pwc-layout-block', 'flex', 'flex-wrap'];
   $layoutClasses[] = 'gap-' . htmlspecialchars($gap);
 
+  // Add margin if any
+  if (!empty($attributes['margin'])) {
+    $layoutClasses[] = htmlspecialchars($attributes['margin']);
+  }
+
+  // Add padding if any
+  if (!empty($attributes['padding'])) {
+    $layoutClasses[] = htmlspecialchars($attributes['padding']);
+  }
+
+  // Add background color if any
+  if (!empty($attributes['backgroundColor'])) {
+    $layoutClasses[] = htmlspecialchars($attributes['backgroundColor']);
+  }
+
+  // Add border width if any
+  if (!empty($attributes['borderWidth'])) {
+    $layoutClasses[] = htmlspecialchars($attributes['borderWidth']);
+  }
+
+  // Add border color if any
+  if (!empty($attributes['borderColor'])) {
+    $layoutClasses[] = htmlspecialchars($attributes['borderColor']);
+  }
+
+  // Add border radius if any
+  if (!empty($attributes['borderRadius'])) {
+    $layoutClasses[] = htmlspecialchars($attributes['borderRadius']);
+  }
+
   // Add custom classes if any
   if (!empty($attributes['customClasses'])) {
     $layoutClasses[] = htmlspecialchars($attributes['customClasses']);

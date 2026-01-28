@@ -324,6 +324,12 @@ function pwc_visual_editor_render_block(array $block): string {
     case 'heading':
       return pwc_visual_editor_render_heading($attributes);
 
+    case 'paragraph':
+      return pwc_visual_editor_render_paragraph($attributes);
+
+    case 'list':
+      return pwc_visual_editor_render_list($attributes);
+
     case 'layout':
       return pwc_visual_editor_render_layout($attributes, $innerBlocks);
 
@@ -361,6 +367,9 @@ function pwc_visual_editor_render_heading(array $attributes): string {
   if (!empty($attributes['fontWeight'])) {
     $classes[] = htmlspecialchars($attributes['fontWeight']);
   }
+  if (!empty($attributes['lineHeight'])) {
+    $classes[] = htmlspecialchars($attributes['lineHeight']);
+  }
   if (!empty($attributes['textAlign'])) {
     $classes[] = htmlspecialchars($attributes['textAlign']);
   }
@@ -380,6 +389,478 @@ function pwc_visual_editor_render_heading(array $attributes): string {
   $classString = implode(' ', array_filter($classes));
 
   return "<{$level} class=\"{$classString}\">{$content}</{$level}>\n";
+}
+
+/**
+ * Render a paragraph block.
+ *
+ * @param array $attributes
+ *   Block attributes.
+ *
+ * @return string
+ *   Rendered HTML.
+ */
+function pwc_visual_editor_render_paragraph(array $attributes): string {
+  $content = $attributes['content'] ?? '';
+
+  // Build container classes (gap, margin, padding, custom)
+  $containerClasses = ['pwc-paragraph'];
+
+  // Paragraph gap (default to space-y-4)
+  $paragraphGap = $attributes['paragraphGap'] ?? 'space-y-4';
+  if (!empty($paragraphGap)) {
+    $containerClasses[] = htmlspecialchars($paragraphGap);
+  }
+  if (!empty($attributes['margin'])) {
+    $containerClasses[] = htmlspecialchars($attributes['margin']);
+  }
+  if (!empty($attributes['padding'])) {
+    $containerClasses[] = htmlspecialchars($attributes['padding']);
+  }
+  if (!empty($attributes['customClasses'])) {
+    $containerClasses[] = htmlspecialchars($attributes['customClasses']);
+  }
+
+  // Build paragraph text classes
+  $textClasses = ['pwc-paragraph__text'];
+
+  if (!empty($attributes['fontSize'])) {
+    $textClasses[] = htmlspecialchars($attributes['fontSize']);
+  }
+  if (!empty($attributes['fontWeight'])) {
+    $textClasses[] = htmlspecialchars($attributes['fontWeight']);
+  }
+  if (!empty($attributes['lineHeight'])) {
+    $textClasses[] = htmlspecialchars($attributes['lineHeight']);
+  }
+  if (!empty($attributes['textAlign'])) {
+    $textClasses[] = htmlspecialchars($attributes['textAlign']);
+  }
+  if (!empty($attributes['textColor'])) {
+    $textClasses[] = htmlspecialchars($attributes['textColor']);
+  }
+
+  $containerClassString = implode(' ', array_filter($containerClasses));
+  $textClassString = implode(' ', array_filter($textClasses));
+
+  // Convert <br><br> patterns to separate paragraphs
+  $content = pwc_visual_editor_convert_double_br_to_paragraphs($content);
+
+  // Check if content already has <p> tags
+  if (strpos($content, '<p') !== FALSE) {
+    // Content has paragraph tags - add classes to each <p>
+    $content = preg_replace('/<p(\s|>)/', '<p class="' . $textClassString . '"$1', $content);
+    // Sanitize the content (allow <p>, <br>, and inline formatting)
+    $content = pwc_visual_editor_sanitize_paragraph_html($content);
+    // Remove empty <p> tags
+    $content = pwc_visual_editor_remove_empty_paragraphs($content);
+  } else {
+    // No paragraph tags - wrap in <p> and sanitize
+    $content = pwc_visual_editor_sanitize_inline_html($content);
+    if (trim($content)) {
+      $content = "<p class=\"{$textClassString}\">{$content}</p>";
+    } else {
+      $content = '';
+    }
+  }
+
+  // Don't render empty paragraph blocks
+  if (!trim(strip_tags($content))) {
+    return '';
+  }
+
+  return "<div class=\"{$containerClassString}\">{$content}</div>\n";
+}
+
+/**
+ * Render a list block.
+ *
+ * @param array $attributes
+ *   Block attributes.
+ *
+ * @return string
+ *   Rendered HTML.
+ */
+function pwc_visual_editor_render_list(array $attributes): string {
+  $content = $attributes['content'] ?? '<li>List item</li>';
+  $listType = $attributes['listType'] ?? 'ul';
+
+  // Validate list type
+  if (!in_array($listType, ['ul', 'ol'])) {
+    $listType = 'ul';
+  }
+
+  // Build list classes
+  $listClasses = ['pwc-list__items'];
+
+  // List style
+  $listStyle = $attributes['listStyle'] ?? ($listType === 'ul' ? 'list-disc' : 'list-decimal');
+  if (!empty($listStyle)) {
+    $listClasses[] = htmlspecialchars($listStyle);
+  }
+
+  // List position
+  $listPosition = $attributes['listPosition'] ?? 'list-inside';
+  if (!empty($listPosition)) {
+    $listClasses[] = htmlspecialchars($listPosition);
+  }
+
+  if (!empty($attributes['fontSize'])) {
+    $listClasses[] = htmlspecialchars($attributes['fontSize']);
+  }
+  if (!empty($attributes['fontWeight'])) {
+    $listClasses[] = htmlspecialchars($attributes['fontWeight']);
+  }
+  if (!empty($attributes['lineHeight'])) {
+    $listClasses[] = htmlspecialchars($attributes['lineHeight']);
+  }
+  if (!empty($attributes['textAlign'])) {
+    $listClasses[] = htmlspecialchars($attributes['textAlign']);
+  }
+  if (!empty($attributes['textColor'])) {
+    $listClasses[] = htmlspecialchars($attributes['textColor']);
+  }
+
+  // Item gap
+  $itemGap = $attributes['itemGap'] ?? 'space-y-2';
+  if (!empty($itemGap)) {
+    $listClasses[] = htmlspecialchars($itemGap);
+  }
+
+  if (!empty($attributes['margin'])) {
+    $listClasses[] = htmlspecialchars($attributes['margin']);
+  }
+  if (!empty($attributes['padding'])) {
+    $listClasses[] = htmlspecialchars($attributes['padding']);
+  }
+  if (!empty($attributes['customClasses'])) {
+    $listClasses[] = htmlspecialchars($attributes['customClasses']);
+  }
+
+  $listClassString = implode(' ', array_filter($listClasses));
+
+  // Sanitize list content - only allow <li> and inline formatting
+  $content = pwc_visual_editor_sanitize_list_html($content);
+
+  // Add classes to list items
+  $content = preg_replace('/<li(\s|>)/', '<li class="pwc-list__item"$1', $content);
+
+  // Don't render empty lists
+  if (!trim(strip_tags($content))) {
+    return '';
+  }
+
+  return "<{$listType} class=\"{$listClassString}\">{$content}</{$listType}>\n";
+}
+
+/**
+ * Sanitize list HTML content, allowing only <li> and safe inline tags.
+ *
+ * @param string $content
+ *   Raw content that may contain HTML.
+ *
+ * @return string
+ *   Sanitized HTML with only allowed tags.
+ */
+function pwc_visual_editor_sanitize_list_html(string $content): string {
+  // List of allowed tags for lists
+  $allowed_tags = '<li><br><strong><em><b><i><a><span><sub><sup><mark><code>';
+
+  // Strip all tags except allowed ones
+  $content = strip_tags($content, $allowed_tags);
+
+  // Sanitize attributes on allowed tags
+  if (strpos($content, '<') !== FALSE) {
+    $content = pwc_visual_editor_sanitize_list_attributes($content);
+  }
+
+  return $content;
+}
+
+/**
+ * Sanitize attributes on list HTML tags.
+ *
+ * @param string $html
+ *   HTML content with allowed tags.
+ *
+ * @return string
+ *   HTML with sanitized attributes.
+ */
+function pwc_visual_editor_sanitize_list_attributes(string $html): string {
+  // Wrap in a root element to ensure valid parsing
+  $wrapped = '<div>' . $html . '</div>';
+
+  $dom = new \DOMDocument();
+  @$dom->loadHTML('<?xml encoding="UTF-8">' . $wrapped, LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD);
+
+  // Allowed attributes per tag
+  $allowed_attributes = [
+    'li' => ['class'],
+    'a' => ['href', 'title', 'target', 'rel'],
+    'span' => ['class'],
+    'strong' => [],
+    'em' => [],
+    'b' => [],
+    'i' => [],
+    'br' => [],
+    'sub' => [],
+    'sup' => [],
+    'mark' => [],
+    'code' => ['class'],
+  ];
+
+  // Dangerous attribute patterns
+  $dangerous_patterns = [
+    '/^on/i',
+    '/^javascript:/i',
+    '/^vbscript:/i',
+    '/^data:/i',
+  ];
+
+  $xpath = new \DOMXPath($dom);
+  $elements = $xpath->query('//*');
+
+  foreach ($elements as $element) {
+    if (!$element instanceof \DOMElement) {
+      continue;
+    }
+
+    $tagName = strtolower($element->tagName);
+
+    if ($tagName === 'div' || $tagName === 'body' || $tagName === 'html') {
+      continue;
+    }
+
+    $tagAllowed = $allowed_attributes[$tagName] ?? [];
+    $attributesToRemove = [];
+
+    foreach ($element->attributes as $attr) {
+      $attrName = strtolower($attr->name);
+      $attrValue = $attr->value;
+
+      if (!in_array($attrName, $tagAllowed)) {
+        $attributesToRemove[] = $attr->name;
+        continue;
+      }
+
+      foreach ($dangerous_patterns as $pattern) {
+        if (preg_match($pattern, $attrValue)) {
+          $attributesToRemove[] = $attr->name;
+          break;
+        }
+      }
+
+      if ($attrName === 'href') {
+        $parsed = parse_url($attrValue);
+        $scheme = strtolower($parsed['scheme'] ?? '');
+        if ($scheme && !in_array($scheme, ['http', 'https', 'mailto', 'tel'])) {
+          $attributesToRemove[] = $attr->name;
+        }
+      }
+    }
+
+    foreach ($attributesToRemove as $attrName) {
+      $element->removeAttribute($attrName);
+    }
+
+    if ($tagName === 'a' && $element->hasAttribute('href')) {
+      $href = $element->getAttribute('href');
+      if (strpos($href, 'http') === 0) {
+        $element->setAttribute('rel', 'noopener noreferrer');
+      }
+    }
+  }
+
+  $result = '';
+  $wrapper = $dom->getElementsByTagName('div')->item(0);
+  if ($wrapper) {
+    foreach ($wrapper->childNodes as $child) {
+      $result .= $dom->saveHTML($child);
+    }
+  }
+
+  return $result ?: $html;
+}
+
+/**
+ * Remove empty <p> tags from content.
+ *
+ * @param string $content
+ *   HTML content that may contain empty <p> tags.
+ *
+ * @return string
+ *   Content with empty <p> tags removed.
+ */
+function pwc_visual_editor_remove_empty_paragraphs(string $content): string {
+  // Remove <p> tags that are empty or only contain whitespace/br tags
+  // Pattern matches <p ...></p> or <p ...><br></p> or <p ...>   </p>
+  $content = preg_replace('/<p[^>]*>\s*(<br\s*\/?>)?\s*<\/p>/i', '', $content);
+
+  return trim($content);
+}
+
+/**
+ * Convert <br><br> patterns inside <p> tags to separate paragraphs.
+ *
+ * @param string $content
+ *   HTML content that may contain <br><br> patterns.
+ *
+ * @return string
+ *   Content with <br><br> converted to separate <p> tags.
+ */
+function pwc_visual_editor_convert_double_br_to_paragraphs(string $content): string {
+  // Match <p> tags containing <br><br> (with optional whitespace)
+  $pattern = '/<p([^>]*)>([\s\S]*?)<\/p>/i';
+
+  return preg_replace_callback($pattern, function($matches) {
+    $attrs = $matches[1];
+    $innerContent = $matches[2];
+
+    // Check if there are double <br> tags
+    if (preg_match('/<br\s*\/?>\s*<br\s*\/?>/i', $innerContent)) {
+      // Split by double <br> and create separate paragraphs
+      $parts = preg_split('/<br\s*\/?>\s*<br\s*\/?>/i', $innerContent);
+      $paragraphs = [];
+      foreach ($parts as $part) {
+        $part = trim($part);
+        if ($part) {
+          $paragraphs[] = "<p{$attrs}>{$part}</p>";
+        }
+      }
+      return implode('', $paragraphs);
+    }
+
+    return $matches[0];
+  }, $content);
+}
+
+/**
+ * Sanitize paragraph HTML content, allowing <p>, <br>, and safe inline tags.
+ *
+ * @param string $content
+ *   Raw content that may contain HTML.
+ *
+ * @return string
+ *   Sanitized HTML with only allowed tags.
+ */
+function pwc_visual_editor_sanitize_paragraph_html(string $content): string {
+  // List of allowed tags for paragraphs
+  $allowed_tags = '<p><br><strong><em><b><i><a><span><sub><sup><mark><code>';
+
+  // Strip all tags except allowed ones
+  $content = strip_tags($content, $allowed_tags);
+
+  // Sanitize attributes on allowed tags
+  if (strpos($content, '<') !== FALSE) {
+    $content = pwc_visual_editor_sanitize_paragraph_attributes($content);
+  }
+
+  return $content;
+}
+
+/**
+ * Sanitize attributes on paragraph HTML tags.
+ *
+ * @param string $html
+ *   HTML content with allowed tags.
+ *
+ * @return string
+ *   HTML with sanitized attributes.
+ */
+function pwc_visual_editor_sanitize_paragraph_attributes(string $html): string {
+  // Wrap in a root element to ensure valid parsing
+  $wrapped = '<div>' . $html . '</div>';
+
+  $dom = new \DOMDocument();
+  @$dom->loadHTML('<?xml encoding="UTF-8">' . $wrapped, LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD);
+
+  // Allowed attributes per tag
+  $allowed_attributes = [
+    'p' => ['class'],
+    'a' => ['href', 'title', 'target', 'rel'],
+    'span' => ['class'],
+    'strong' => [],
+    'em' => [],
+    'b' => [],
+    'i' => [],
+    'br' => [],
+    'sub' => [],
+    'sup' => [],
+    'mark' => [],
+    'code' => ['class'],
+  ];
+
+  // Dangerous attribute patterns
+  $dangerous_patterns = [
+    '/^on/i',
+    '/^javascript:/i',
+    '/^vbscript:/i',
+    '/^data:/i',
+  ];
+
+  $xpath = new \DOMXPath($dom);
+  $elements = $xpath->query('//*');
+
+  foreach ($elements as $element) {
+    if (!$element instanceof \DOMElement) {
+      continue;
+    }
+
+    $tagName = strtolower($element->tagName);
+
+    if ($tagName === 'div' || $tagName === 'body' || $tagName === 'html') {
+      continue;
+    }
+
+    $tagAllowed = $allowed_attributes[$tagName] ?? [];
+    $attributesToRemove = [];
+
+    foreach ($element->attributes as $attr) {
+      $attrName = strtolower($attr->name);
+      $attrValue = $attr->value;
+
+      if (!in_array($attrName, $tagAllowed)) {
+        $attributesToRemove[] = $attr->name;
+        continue;
+      }
+
+      foreach ($dangerous_patterns as $pattern) {
+        if (preg_match($pattern, $attrValue)) {
+          $attributesToRemove[] = $attr->name;
+          break;
+        }
+      }
+
+      if ($attrName === 'href') {
+        $parsed = parse_url($attrValue);
+        $scheme = strtolower($parsed['scheme'] ?? '');
+        if ($scheme && !in_array($scheme, ['http', 'https', 'mailto', 'tel'])) {
+          $attributesToRemove[] = $attr->name;
+        }
+      }
+    }
+
+    foreach ($attributesToRemove as $attrName) {
+      $element->removeAttribute($attrName);
+    }
+
+    if ($tagName === 'a' && $element->hasAttribute('href')) {
+      $href = $element->getAttribute('href');
+      if (strpos($href, 'http') === 0) {
+        $element->setAttribute('rel', 'noopener noreferrer');
+      }
+    }
+  }
+
+  $result = '';
+  $wrapper = $dom->getElementsByTagName('div')->item(0);
+  if ($wrapper) {
+    foreach ($wrapper->childNodes as $child) {
+      $result .= $dom->saveHTML($child);
+    }
+  }
+
+  return $result ?: $html;
 }
 
 /**

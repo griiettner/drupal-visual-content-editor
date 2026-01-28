@@ -107,13 +107,6 @@
     static get blockSettings() {
       return [
         {
-          name: 'content',
-          type: 'text',
-          label: 'Heading Text',
-          default: 'Heading',
-          placeholder: 'Enter heading text...',
-        },
-        {
           name: 'level',
           type: 'select',
           label: 'Heading Level',
@@ -140,6 +133,21 @@
           label: 'Font Weight',
           default: '',
           options: TAILWIND_OPTIONS.fontWeight,
+        },
+        {
+          name: 'lineHeight',
+          type: 'select',
+          label: 'Line Height',
+          default: '',
+          options: [
+            { value: '', label: 'Default' },
+            { value: 'leading-none', label: 'None (1)' },
+            { value: 'leading-tight', label: 'Tight (1.25)' },
+            { value: 'leading-snug', label: 'Snug (1.375)' },
+            { value: 'leading-normal', label: 'Normal (1.5)' },
+            { value: 'leading-relaxed', label: 'Relaxed (1.625)' },
+            { value: 'leading-loose', label: 'Loose (2)' },
+          ],
         },
         {
           name: 'textAlign',
@@ -201,6 +209,7 @@
         'level',
         'font-size',
         'font-weight',
+        'line-height',
         'text-align',
         'text-color',
         'margin',
@@ -209,11 +218,80 @@
       ];
     }
 
+    /**
+     * Override attributeChangedCallback to allow style updates during editing.
+     */
+    attributeChangedCallback(name, oldValue, newValue) {
+      if (oldValue === newValue || !this.isConnected) return;
+
+      // These attributes affect styling only, not content - safe to update during editing
+      const styleOnlyAttributes = [
+        'level', 'font-size', 'font-weight', 'line-height', 'text-align',
+        'text-color', 'margin', 'padding', 'custom-classes'
+      ];
+
+      // Skip re-render for content changes during inline editing (to preserve cursor)
+      if (this._isInlineEditing && name === 'content') {
+        return;
+      }
+
+      // For style-only changes, update classes without full re-render
+      // This works whether inline editing or not, to provide immediate visual feedback
+      if (styleOnlyAttributes.includes(name)) {
+        this.updateStyles();
+        return;
+      }
+
+      this.render();
+      this.addHoverControls();
+    }
+
+    /**
+     * Update styles without full re-render (preserves cursor during editing).
+     */
+    updateStyles() {
+      const level = this.getAttribute('level') || 'h2';
+      const fontSize = this.getAttribute('font-size') || '';
+      const fontWeight = this.getAttribute('font-weight') || '';
+      const lineHeight = this.getAttribute('line-height') || '';
+      const textAlign = this.getAttribute('text-align') || '';
+      const textColor = this.getAttribute('text-color') || '';
+      const margin = this.getAttribute('margin') || '';
+      const padding = this.getAttribute('padding') || '';
+      const customClasses = this.getAttribute('custom-classes') || '';
+
+      const classes = [
+        'pwc-heading',
+        fontSize,
+        fontWeight,
+        lineHeight,
+        textAlign,
+        textColor,
+        margin,
+        padding,
+        customClasses,
+      ].filter(Boolean).join(' ');
+
+      // Update the heading element
+      const heading = this.querySelector('h1, h2, h3, h4, h5, h6');
+      if (heading) {
+        heading.className = classes;
+
+        // If level changed, we need a full re-render
+        if (heading.tagName.toLowerCase() !== level) {
+          this._isInlineEditing = false;
+          this.render();
+          this.addHoverControls();
+        }
+      }
+    }
+
     render() {
       const content = this.getAttribute('content') || 'Heading';
       const level = this.getAttribute('level') || 'h2';
       const fontSize = this.getAttribute('font-size') || '';
       const fontWeight = this.getAttribute('font-weight') || '';
+      const lineHeight = this.getAttribute('line-height') || '';
       const textAlign = this.getAttribute('text-align') || '';
       const textColor = this.getAttribute('text-color') || '';
       const margin = this.getAttribute('margin') || '';
@@ -225,6 +303,7 @@
         'pwc-heading',
         fontSize,
         fontWeight,
+        lineHeight,
         textAlign,
         textColor,
         margin,

@@ -1869,6 +1869,128 @@ body.pwc-block-library-open .pwc-block-library-toggle:hover {
 }
 
 /* ==========================================================================
+   Paragraph Block
+   ========================================================================== */
+
+.pwc-paragraph {
+  position: relative;
+}
+
+/* Paragraph text styling */
+.pwc-paragraph__text {
+  margin: 0;
+}
+
+/* Spacing between paragraphs within the block */
+.pwc-paragraph p + p,
+.pwc-paragraph .pwc-paragraph__text + .pwc-paragraph__text {
+  margin-top: 1em;
+}
+
+/* Editable paragraph styles */
+.pwc-editing .pwc-paragraph[contenteditable="true"] {
+  min-height: 1.5em;
+  border-radius: 4px;
+  outline: none;
+  /* Note: padding and margin are controlled by Tailwind utility classes */
+}
+
+.pwc-editing .pwc-paragraph[contenteditable="true"]:focus {
+  background-color: rgba(0, 124, 186, 0.03);
+}
+
+/* Empty paragraph placeholder */
+.pwc-paragraph[data-placeholder]:empty::before,
+.pwc-paragraph[data-placeholder] p:only-child:empty::before {
+  content: attr(data-placeholder);
+  color: #9ca3af;
+  font-style: italic;
+  pointer-events: none;
+}
+
+/* Ensure proper paragraph spacing in edit mode */
+.pwc-editing .pwc-paragraph p {
+  margin: 0;
+  min-height: 1.2em;
+}
+
+.pwc-editing .pwc-paragraph p + p {
+  margin-top: 1em;
+}
+
+/* Empty paragraph needs min-height to be clickable */
+.pwc-editing .pwc-paragraph p:empty,
+.pwc-editing .pwc-paragraph p br:only-child {
+  min-height: 1.5em;
+}
+
+/* ==========================================================================
+   List Block
+   ========================================================================== */
+
+.pwc-list__items {
+  position: relative;
+}
+
+.pwc-list__item {
+  position: relative;
+}
+
+/* Editable list styles */
+.pwc-editing .pwc-list__items[contenteditable="true"] {
+  min-height: 1.5em;
+  border-radius: 4px;
+  outline: none;
+}
+
+.pwc-editing .pwc-list__items[contenteditable="true"]:focus {
+  background-color: rgba(0, 124, 186, 0.03);
+}
+
+/* Empty list placeholder */
+.pwc-list__items[data-placeholder]:empty::before,
+.pwc-list__items[data-placeholder] li:only-child:empty::before {
+  content: attr(data-placeholder);
+  color: #9ca3af;
+  font-style: italic;
+  pointer-events: none;
+}
+
+/* List item styling in edit mode */
+.pwc-editing .pwc-list__items li {
+  min-height: 1.2em;
+}
+
+/* Custom list styles that Tailwind doesn't have built-in */
+.list-decimal-leading-zero {
+  list-style-type: decimal-leading-zero;
+}
+
+.list-lower-alpha {
+  list-style-type: lower-alpha;
+}
+
+.list-upper-alpha {
+  list-style-type: upper-alpha;
+}
+
+.list-lower-roman {
+  list-style-type: lower-roman;
+}
+
+.list-upper-roman {
+  list-style-type: upper-roman;
+}
+
+.list-square {
+  list-style-type: square;
+}
+
+.list-circle {
+  list-style-type: circle;
+}
+
+/* ==========================================================================
    Print Styles
    ========================================================================== */
 

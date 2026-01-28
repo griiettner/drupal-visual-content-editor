@@ -631,8 +631,8 @@ pwc-layout.pwc-block--dragging {
 body.pwc-reordering .pwc-drop-zone--reorder,
 body.pwc-dragging-block .pwc-drop-zone--reorder {
   pointer-events: auto !important;
-  position: relative;
-  z-index: 1000;
+  position: relative !important;
+  z-index: 10000 !important;
 }
 
 /* Keep layout controls interactive during drag */
@@ -642,8 +642,10 @@ body.pwc-dragging-block .pwc-layout-controls {
 }
 
 /* Ensure column content allows drop zones to work */
-body.pwc-dragging-block .pwc-layout-column__content {
-  pointer-events: auto;
+body.pwc-dragging-block .pwc-layout-column__content,
+body.pwc-reordering .pwc-layout-column__content {
+  pointer-events: auto !important;
+  position: relative;
 }
 
 /* Layout variations preview in block library */

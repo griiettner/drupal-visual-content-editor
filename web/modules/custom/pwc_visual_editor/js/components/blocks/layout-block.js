@@ -470,6 +470,25 @@
 
         // Dragover - show drop indicator
         column.addEventListener('dragover', (e) => {
+          // Check if we're reordering blocks (not adding new ones)
+          const isReordering = e.dataTransfer.types.includes('application/x-pwc-block-reorder');
+
+          // If reordering, check if the event originated from or should go to a drop zone
+          if (isReordering) {
+            // Check if target or any ancestor is a drop zone
+            const dropZone = e.target.closest('.pwc-drop-zone--reorder');
+            if (dropZone) {
+              // Let the drop zone handle it - don't interfere
+              return;
+            }
+            // If reordering but not over a drop zone, don't show column highlight
+            // Just allow the event to continue
+            e.preventDefault();
+            e.dataTransfer.dropEffect = 'move';
+            return;
+          }
+
+          // Not reordering - this is a new block being added
           e.preventDefault();
           e.stopPropagation();
           e.dataTransfer.dropEffect = 'copy';
@@ -486,6 +505,21 @@
 
         // Drop - insert block
         column.addEventListener('drop', (e) => {
+          // Check if we're reordering blocks (not adding new ones)
+          const isReordering = e.dataTransfer.types.includes('application/x-pwc-block-reorder');
+
+          // If reordering, check if a drop zone should handle this
+          if (isReordering) {
+            const dropZone = e.target.closest('.pwc-drop-zone--reorder');
+            if (dropZone) {
+              // Let the drop zone handle it
+              return;
+            }
+            // Reordering but not on a drop zone - ignore
+            e.preventDefault();
+            return;
+          }
+
           e.preventDefault();
           e.stopPropagation();
           column.classList.remove('pwc-layout-column--drag-over');

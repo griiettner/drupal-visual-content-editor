@@ -2,116 +2,106 @@
  * @file
  * Heading block component.
  *
- * A configurable heading block that uses Tailwind utility classes.
+ * A configurable heading block that uses Appkit4 utility classes.
  */
 
 (function (Drupal) {
   'use strict';
 
   /**
-   * Tailwind color palette for color swatch.
-   * Each color has hex value for display and Tailwind class for usage.
+   * Appkit4 color palette for color swatch.
+   * Each color has hex value for display and Appkit class for usage.
+   * Uses ap-text- prefix; settings panel converts to ap-bg- or ap-border- as needed.
    */
-  const TAILWIND_COLORS = [
-    // Row 1: Grays
+  const APPKIT_COLORS = [
+    // Row 1: Semantic colors
     { value: '', hex: 'transparent', label: 'None' },
-    { value: 'text-white', hex: '#ffffff', label: 'White' },
-    { value: 'text-black', hex: '#000000', label: 'Black' },
-    { value: 'text-slate-500', hex: '#64748b', label: 'Slate' },
-    { value: 'text-gray-500', hex: '#6b7280', label: 'Gray' },
-    { value: 'text-zinc-500', hex: '#71717a', label: 'Zinc' },
-    { value: 'text-neutral-500', hex: '#737373', label: 'Neutral' },
-    { value: 'text-stone-500', hex: '#78716c', label: 'Stone' },
-    // Row 2: Warm colors
-    { value: 'text-red-500', hex: '#ef4444', label: 'Red' },
-    { value: 'text-orange-500', hex: '#f97316', label: 'Orange' },
-    { value: 'text-amber-500', hex: '#f59e0b', label: 'Amber' },
-    { value: 'text-yellow-500', hex: '#eab308', label: 'Yellow' },
-    { value: 'text-lime-500', hex: '#84cc16', label: 'Lime' },
-    { value: 'text-green-500', hex: '#22c55e', label: 'Green' },
-    { value: 'text-emerald-500', hex: '#10b981', label: 'Emerald' },
-    { value: 'text-teal-500', hex: '#14b8a6', label: 'Teal' },
-    // Row 3: Cool colors
-    { value: 'text-cyan-500', hex: '#06b6d4', label: 'Cyan' },
-    { value: 'text-sky-500', hex: '#0ea5e9', label: 'Sky' },
-    { value: 'text-blue-500', hex: '#3b82f6', label: 'Blue' },
-    { value: 'text-indigo-500', hex: '#6366f1', label: 'Indigo' },
-    { value: 'text-violet-500', hex: '#8b5cf6', label: 'Violet' },
-    { value: 'text-purple-500', hex: '#a855f7', label: 'Purple' },
-    { value: 'text-fuchsia-500', hex: '#d946ef', label: 'Fuchsia' },
-    { value: 'text-pink-500', hex: '#ec4899', label: 'Pink' },
-    { value: 'text-rose-500', hex: '#f43f5e', label: 'Rose' },
+    { value: 'ap-text-color-background-default', hex: '#ffffff', label: 'White' },
+    { value: 'ap-text-color-background-default-inverse', hex: '#191919', label: 'Black' },
+    { value: 'ap-text-color-text-heading', hex: '#252525', label: 'Heading' },
+    { value: 'ap-text-color-text-body', hex: '#474747', label: 'Body' },
+    { value: 'ap-text-color-text-primary', hex: '#415385', label: 'Primary' },
+    { value: 'ap-text-color-text-error', hex: '#e0301e', label: 'Error' },
+    { value: 'ap-text-color-text-success', hex: '#299d8f', label: 'Success' },
+    // Row 2: Red, Orange, Pink
+    { value: 'ap-text-primary-red-03', hex: '#e96e61', label: 'Red Light' },
+    { value: 'ap-text-primary-red-05', hex: '#e0301e', label: 'Red' },
+    { value: 'ap-text-primary-red-07', hex: '#a62b1e', label: 'Red Dark' },
+    { value: 'ap-text-primary-orange-03', hex: '#fb7c4d', label: 'Orange Light' },
+    { value: 'ap-text-primary-orange-05', hex: '#d04a02', label: 'Orange' },
+    { value: 'ap-text-primary-orange-07', hex: '#a7452c', label: 'Orange Dark' },
+    { value: 'ap-text-primary-pink-03', hex: '#e998a6', label: 'Pink Light' },
+    { value: 'ap-text-primary-pink-05', hex: '#d93954', label: 'Pink' },
+    // Row 3: Pink dark, Teal, Blue
+    { value: 'ap-text-primary-pink-07', hex: '#903f4d', label: 'Pink Dark' },
+    { value: 'ap-text-primary-teal-03', hex: '#69bab0', label: 'Teal Light' },
+    { value: 'ap-text-primary-teal-05', hex: '#299d8f', label: 'Teal' },
+    { value: 'ap-text-primary-teal-07', hex: '#26776d', label: 'Teal Dark' },
+    { value: 'ap-text-primary-blue-02', hex: '#9aa4be', label: 'Blue Light' },
+    { value: 'ap-text-primary-blue-04', hex: '#415385', label: 'Blue' },
+    { value: 'ap-text-primary-blue-06', hex: '#1a2a5a', label: 'Blue Dark' },
+    { value: 'ap-text-primary-blue-08', hex: '#0d152d', label: 'Blue Deep' },
   ];
 
   /**
-   * Tailwind spacing presets (matching Tailwind scale).
+   * Appkit4 spacing presets (matching Appkit spacing scale 1-8).
+   * Values map to ap-m-spacing-N / ap-p-spacing-N classes.
    */
-  const TAILWIND_SPACING_PRESETS = [
-    { value: '0', label: '0', px: '0px' },
-    { value: '1', label: '1', px: '4px' },
-    { value: '2', label: '2', px: '8px' },
-    { value: '3', label: '3', px: '12px' },
-    { value: '4', label: '4', px: '16px' },
-    { value: '6', label: '6', px: '24px' },
-    { value: '8', label: '8', px: '32px' },
-    { value: '12', label: '12', px: '48px' },
-    { value: '16', label: '16', px: '64px' },
-    { value: 'auto', label: 'auto', px: 'auto' },
+  const APPKIT_SPACING_PRESETS = [
+    { value: '', label: '0', px: '0px' },
+    { value: '1', label: '1', px: '2px' },
+    { value: '2', label: '2', px: '4px' },
+    { value: '3', label: '3', px: '8px' },
+    { value: '4', label: '4', px: '12px' },
+    { value: '5', label: '5', px: '16px' },
+    { value: '6', label: '6', px: '20px' },
+    { value: '7', label: '7', px: '24px' },
+    { value: '8', label: '8', px: '48px' },
   ];
 
   /**
-   * Tailwind utility class options for the settings panel.
+   * Appkit4 utility class options for the settings panel.
    */
-  const TAILWIND_OPTIONS = {
+  const APPKIT_OPTIONS = {
     fontSize: [
       { value: '', label: 'Default' },
-      { value: 'text-xs', label: 'Extra Small (text-xs)' },
-      { value: 'text-sm', label: 'Small (text-sm)' },
-      { value: 'text-base', label: 'Base (text-base)' },
-      { value: 'text-lg', label: 'Large (text-lg)' },
-      { value: 'text-xl', label: 'XL (text-xl)' },
-      { value: 'text-2xl', label: '2XL (text-2xl)' },
-      { value: 'text-3xl', label: '3XL (text-3xl)' },
-      { value: 'text-4xl', label: '4XL (text-4xl)' },
-      { value: 'text-5xl', label: '5XL (text-5xl)' },
-      { value: 'text-6xl', label: '6XL (text-6xl)' },
-      { value: 'text-7xl', label: '7XL (text-7xl)' },
-      { value: 'text-8xl', label: '8XL (text-8xl)' },
-      { value: 'text-9xl', label: '9XL (text-9xl)' },
+      { value: 'ap-font-12', label: 'Extra Small (12px)' },
+      { value: 'ap-font-14', label: 'Small (14px)' },
+      { value: 'ap-font-16', label: 'Base (16px)' },
+      { value: 'ap-font-18', label: 'Large (18px)' },
+      { value: 'ap-font-20', label: 'XL (20px)' },
+      { value: 'ap-font-24', label: '2XL (24px)' },
+      { value: 'ap-font-30', label: '3XL (30px)' },
+      { value: 'ap-font-36', label: '4XL (36px)' },
+      { value: 'ap-font-48', label: '5XL (48px)' },
     ],
     fontWeight: [
       { value: '', label: 'Default' },
-      { value: 'font-thin', label: 'Thin (100)' },
-      { value: 'font-extralight', label: 'Extra Light (200)' },
-      { value: 'font-light', label: 'Light (300)' },
-      { value: 'font-normal', label: 'Normal (400)' },
-      { value: 'font-medium', label: 'Medium (500)' },
-      { value: 'font-semibold', label: 'Semibold (600)' },
-      { value: 'font-bold', label: 'Bold (700)' },
-      { value: 'font-extrabold', label: 'Extra Bold (800)' },
-      { value: 'font-black', label: 'Black (900)' },
+      { value: 'ap-font-weight-1', label: 'Normal (400)' },
+      { value: 'ap-font-weight-2', label: 'Medium (500)' },
+      { value: 'ap-font-weight-3', label: 'Bold (700)' },
     ],
-    colors: TAILWIND_COLORS,
-    spacingPresets: TAILWIND_SPACING_PRESETS,
+    colors: APPKIT_COLORS,
+    spacingPresets: APPKIT_SPACING_PRESETS,
   };
 
   // Export for settings panel
-  window.TAILWIND_OPTIONS = TAILWIND_OPTIONS;
+  window.APPKIT_OPTIONS = APPKIT_OPTIONS;
 
   const HEADING_LEVEL_DEFAULTS = {
-    'h1': { fontSize: 'text-6xl', fontWeight: 'font-medium' },
-    'h2': { fontSize: 'text-4xl', fontWeight: 'font-medium' },
-    'h3': { fontSize: 'text-3xl', fontWeight: 'font-medium' },
-    'h4': { fontSize: 'text-xl', fontWeight: 'font-medium' },
-    'h5': { fontSize: 'text-lg', fontWeight: 'font-medium' },
-    'h6': { fontSize: 'text-base', fontWeight: 'font-medium' },
+    'h1': { fontSize: 'ap-font-48', fontWeight: 'ap-font-weight-2' },
+    'h2': { fontSize: 'ap-font-36', fontWeight: 'ap-font-weight-2' },
+    'h3': { fontSize: 'ap-font-30', fontWeight: 'ap-font-weight-2' },
+    'h4': { fontSize: 'ap-font-20', fontWeight: 'ap-font-weight-2' },
+    'h5': { fontSize: 'ap-font-18', fontWeight: 'ap-font-weight-2' },
+    'h6': { fontSize: 'ap-font-16', fontWeight: 'ap-font-weight-2' },
   };
 
   class HeadingBlock extends window.PwcBaseBlock {
     static get blockName() { return 'heading'; }
     static get blockTitle() { return 'Heading'; }
     static get blockIcon() { return ''; }
-    static get blockDescription() { return 'Add a heading with customizable styles using Tailwind classes.'; }
+    static get blockDescription() { return 'Add a heading with customizable styles.'; }
     static get levelDefaults() { return HEADING_LEVEL_DEFAULTS; }
 
     static get blockSettings() {
@@ -137,7 +127,7 @@
           label: 'Font Size',
           default: '',
           tab: 'typography',
-          options: TAILWIND_OPTIONS.fontSize,
+          options: APPKIT_OPTIONS.fontSize,
         },
         {
           name: 'fontWeight',
@@ -145,7 +135,7 @@
           label: 'Font Weight',
           default: '',
           tab: 'typography',
-          options: TAILWIND_OPTIONS.fontWeight,
+          options: APPKIT_OPTIONS.fontWeight,
         },
         {
           name: 'lineHeight',
@@ -155,12 +145,12 @@
           tab: 'typography',
           options: [
             { value: '', label: 'Default' },
-            { value: 'leading-none', label: 'None (1)' },
-            { value: 'leading-tight', label: 'Tight (1.25)' },
-            { value: 'leading-snug', label: 'Snug (1.375)' },
-            { value: 'leading-normal', label: 'Normal (1.5)' },
-            { value: 'leading-relaxed', label: 'Relaxed (1.625)' },
-            { value: 'leading-loose', label: 'Loose (2)' },
+            { value: 'pwc-leading-none', label: 'None (1)' },
+            { value: 'pwc-leading-tight', label: 'Tight (1.25)' },
+            { value: 'pwc-leading-snug', label: 'Snug (1.375)' },
+            { value: 'pwc-leading-normal', label: 'Normal (1.5)' },
+            { value: 'pwc-leading-relaxed', label: 'Relaxed (1.625)' },
+            { value: 'pwc-leading-loose', label: 'Loose (2)' },
           ],
         },
         {
@@ -171,10 +161,10 @@
           tab: 'typography',
           options: [
             { value: '', label: 'None', icon: 'align-left' },
-            { value: 'text-left', label: 'Left', icon: 'align-left' },
-            { value: 'text-center', label: 'Center', icon: 'align-center' },
-            { value: 'text-right', label: 'Right', icon: 'align-right' },
-            { value: 'text-justify', label: 'Justify', icon: 'align-justify' },
+            { value: 'pwc-text-left', label: 'Left', icon: 'align-left' },
+            { value: 'pwc-text-center', label: 'Center', icon: 'align-center' },
+            { value: 'pwc-text-right', label: 'Right', icon: 'align-right' },
+            { value: 'pwc-text-justify', label: 'Justify', icon: 'align-justify' },
           ],
         },
         {
@@ -183,7 +173,7 @@
           label: 'Text Color',
           default: '',
           tab: 'style',
-          colors: TAILWIND_COLORS,
+          colors: APPKIT_COLORS,
         },
         {
           name: 'margin',
@@ -204,11 +194,11 @@
         {
           name: 'customClasses',
           type: 'text',
-          label: 'Custom Tailwind Classes',
+          label: 'Custom Classes',
           default: '',
           tab: 'style',
-          placeholder: 'e.g., tracking-wide uppercase',
-          help: 'Add any additional Tailwind utility classes',
+          placeholder: 'e.g., ap-typography-heading',
+          help: 'Add any additional CSS utility classes',
         },
       ];
     }
@@ -319,7 +309,7 @@
       const padding = this.getAttribute('padding') || '';
       const customClasses = this.getAttribute('custom-classes') || '';
 
-      // Build the class list from Tailwind utilities
+      // Build the class list from Appkit4 utilities
       const classes = [
         'pwc-heading',
         fontSize,

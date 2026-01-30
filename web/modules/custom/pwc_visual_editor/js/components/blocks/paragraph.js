@@ -2,7 +2,7 @@
  * @file
  * Paragraph block component.
  *
- * A configurable paragraph block for extended text content with Tailwind utility classes.
+ * A configurable paragraph block for extended text content with Appkit4 utility classes.
  * Supports multiple paragraphs within a single block.
  */
 
@@ -10,35 +10,35 @@
   'use strict';
 
   /**
-   * Tailwind line height options.
+   * Line height options (custom pwc- classes since Appkit4 has none).
    */
   const LINE_HEIGHT_OPTIONS = [
     { value: '', label: 'Default' },
-    { value: 'leading-none', label: 'None (1)' },
-    { value: 'leading-tight', label: 'Tight (1.25)' },
-    { value: 'leading-snug', label: 'Snug (1.375)' },
-    { value: 'leading-normal', label: 'Normal (1.5)' },
-    { value: 'leading-relaxed', label: 'Relaxed (1.625)' },
-    { value: 'leading-loose', label: 'Loose (2)' },
+    { value: 'pwc-leading-none', label: 'None (1)' },
+    { value: 'pwc-leading-tight', label: 'Tight (1.25)' },
+    { value: 'pwc-leading-snug', label: 'Snug (1.375)' },
+    { value: 'pwc-leading-normal', label: 'Normal (1.5)' },
+    { value: 'pwc-leading-relaxed', label: 'Relaxed (1.625)' },
+    { value: 'pwc-leading-loose', label: 'Loose (2)' },
   ];
 
   /**
-   * Tailwind paragraph gap options (space between paragraphs).
+   * Paragraph gap options (custom pwc- classes since Appkit4 has no space-y).
    */
   const PARAGRAPH_GAP_OPTIONS = [
     { value: '', label: 'Default' },
-    { value: 'space-y-0', label: 'None' },
-    { value: 'space-y-1', label: '4px' },
-    { value: 'space-y-2', label: '8px' },
-    { value: 'space-y-3', label: '12px' },
-    { value: 'space-y-4', label: '16px' },
-    { value: 'space-y-6', label: '24px' },
-    { value: 'space-y-8', label: '32px' },
+    { value: 'pwc-space-y-0', label: 'None' },
+    { value: 'pwc-space-y-1', label: '4px' },
+    { value: 'pwc-space-y-2', label: '8px' },
+    { value: 'pwc-space-y-3', label: '12px' },
+    { value: 'pwc-space-y-4', label: '16px' },
+    { value: 'pwc-space-y-6', label: '24px' },
+    { value: 'pwc-space-y-8', label: '32px' },
   ];
 
   // Export for other blocks to use
-  window.TAILWIND_LINE_HEIGHT_OPTIONS = LINE_HEIGHT_OPTIONS;
-  window.TAILWIND_PARAGRAPH_GAP_OPTIONS = PARAGRAPH_GAP_OPTIONS;
+  window.APPKIT_LINE_HEIGHT_OPTIONS = LINE_HEIGHT_OPTIONS;
+  window.APPKIT_PARAGRAPH_GAP_OPTIONS = PARAGRAPH_GAP_OPTIONS;
 
   class ParagraphBlock extends window.PwcBaseBlock {
     static get blockName() { return 'paragraph'; }
@@ -55,7 +55,7 @@
           label: 'Font Size',
           default: '',
           tab: 'typography',
-          options: window.TAILWIND_OPTIONS?.fontSize || [],
+          options: window.APPKIT_OPTIONS?.fontSize || [],
         },
         {
           name: 'fontWeight',
@@ -63,7 +63,7 @@
           label: 'Font Weight',
           default: '',
           tab: 'typography',
-          options: window.TAILWIND_OPTIONS?.fontWeight || [],
+          options: window.APPKIT_OPTIONS?.fontWeight || [],
         },
         {
           name: 'lineHeight',
@@ -81,10 +81,10 @@
           tab: 'typography',
           options: [
             { value: '', label: 'None', icon: 'align-left' },
-            { value: 'text-left', label: 'Left', icon: 'align-left' },
-            { value: 'text-center', label: 'Center', icon: 'align-center' },
-            { value: 'text-right', label: 'Right', icon: 'align-right' },
-            { value: 'text-justify', label: 'Justify', icon: 'align-justify' },
+            { value: 'pwc-text-left', label: 'Left', icon: 'align-left' },
+            { value: 'pwc-text-center', label: 'Center', icon: 'align-center' },
+            { value: 'pwc-text-right', label: 'Right', icon: 'align-right' },
+            { value: 'pwc-text-justify', label: 'Justify', icon: 'align-justify' },
           ],
         },
         {
@@ -93,13 +93,13 @@
           label: 'Text Color',
           default: '',
           tab: 'style',
-          colors: window.TAILWIND_OPTIONS?.colors || [],
+          colors: window.APPKIT_OPTIONS?.colors || [],
         },
         {
           name: 'paragraphGap',
           type: 'select',
           label: 'Paragraph Gap',
-          default: 'space-y-4',
+          default: 'pwc-space-y-4',
           tab: 'layout',
           options: PARAGRAPH_GAP_OPTIONS,
         },
@@ -122,11 +122,11 @@
         {
           name: 'customClasses',
           type: 'text',
-          label: 'Custom Tailwind Classes',
+          label: 'Custom Classes',
           default: '',
           tab: 'style',
-          placeholder: 'e.g., prose max-w-none',
-          help: 'Add any additional Tailwind utility classes',
+          placeholder: 'e.g., ap-typography-body',
+          help: 'Add any additional CSS utility classes',
         },
       ];
     }
@@ -193,7 +193,7 @@
       const lineHeight = this.getAttribute('line-height') || '';
       const textAlign = this.getAttribute('text-align') || '';
       const textColor = this.getAttribute('text-color') || '';
-      const paragraphGap = this.getAttribute('paragraph-gap') || 'space-y-4';
+      const paragraphGap = this.getAttribute('paragraph-gap') || 'pwc-space-y-4';
       const margin = this.getAttribute('margin') || '';
       const padding = this.getAttribute('padding') || '';
       const customClasses = this.getAttribute('custom-classes') || '';
@@ -243,12 +243,12 @@
       const lineHeight = this.getAttribute('line-height') || '';
       const textAlign = this.getAttribute('text-align') || '';
       const textColor = this.getAttribute('text-color') || '';
-      const paragraphGap = this.getAttribute('paragraph-gap') || 'space-y-4';
+      const paragraphGap = this.getAttribute('paragraph-gap') || 'pwc-space-y-4';
       const margin = this.getAttribute('margin') || '';
       const padding = this.getAttribute('padding') || '';
       const customClasses = this.getAttribute('custom-classes') || '';
 
-      // Build the class list from Tailwind utilities for paragraphs
+      // Build the class list from Appkit4 utilities for paragraphs
       this._paragraphClasses = [
         'pwc-paragraph__text',
         fontSize,

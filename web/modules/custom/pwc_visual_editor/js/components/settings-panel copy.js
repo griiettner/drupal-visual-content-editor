@@ -16,7 +16,6 @@
       this._unsubscribeEditMode = null;
       this._isMinimized = false;
       this._reopenButton = null;
-      this._activeTab = null;
     }
 
     connectedCallback() {
@@ -60,57 +59,47 @@
 
     render() {
       this.innerHTML = `
-        <aside class="pwc-settings-panel">
-          <!-- Header with Add Block, Save, and Close buttons -->
-          <div class="pwc-settings-panel__header">
-            <h2>Settings</h2>
-            <div class="pwc-settings-panel__actions">
-              <button
-                type="button"
+        <apw-drawer
+          id="pwc-settings-drawer"
+          placement="right"
+          resizable="true"
+          mask="false"
+          closable="true"
+        >
+          <div slot="header" class="ap-container">
+            <div slot="header" class="ap-flex gap-1 align-items-center ">
+              <h2 class="m-0">Settings</h2>
+              <apw-button
                 class="pwc-settings-panel__add-block"
-                title="Add Block (Open Block Library)"
-              >
-                <svg class="pwc-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
-                </svg>
-              </button>
-              <button
+                btn-type="secondary"
                 type="button"
+                label="Add Block"
+              ></apw-button>
+              <apw-button
                 class="pwc-settings-panel__save"
-                title="Save Changes"
-              >
-                <svg class="pwc-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                </svg>
-              </button>
-              <button
+                btn-type="primary"
+                loading="true"
                 type="button"
-                class="pwc-settings-panel__close"
-                title="Close Editor"
-              >
-                <svg class="pwc-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                </svg>
-              </button>
+                label="Save"
+              ></apw-button>
             </div>
           </div>
 
-          <!-- Content -->
-          <div class="pwc-settings-panel__content">
-            <!-- Dynamic content goes here -->
+          <div slot="body">
+            <div class="pwc-settings-panel__content">
+              <!-- Dynamic content goes here -->
+            </div>
           </div>
-        </aside>
+        </apw-drawer>
       `;
 
       this.setupEventListeners();
-
-      // Show default empty state content
       this.showDefaultContent();
     }
 
     setupEventListeners() {
       // Add Block button - opens block library panel
-      this.querySelector('.pwc-settings-panel__add-block').addEventListener('click', () => {
+      this.querySelector('.pwc-settings-panel__add-block').addEventListener('apwClick', () => {
 
         // Try global reference first, then query, then create if needed
         let blockLibraryPanel = window.pwcBlockLibraryPanel || document.querySelector('pwc-block-library-panel');
@@ -126,25 +115,18 @@
       });
 
       // Save button - saves content
-      this.querySelector('.pwc-settings-panel__save').addEventListener('click', async () => {
+      this.querySelector('.pwc-settings-panel__save').addEventListener('apwClick', async () => {
         await this.saveContent();
       });
 
-      // Close button - exits edit mode and returns to content view
-      this.querySelector('.pwc-settings-panel__close').addEventListener('click', () => {
-        // Check if there are unsaved changes
-        if (window.pwcEditorState.isDirty) {
-          if (confirm('You have unsaved changes. Do you want to save before exiting?')) {
-            this.saveContent().then(() => {
-              window.pwcEditorState.exitEditMode();
-              window.pwcEditorState.renderContentRegion();
-            });
-            return;
-          }
-        }
-        window.pwcEditorState.exitEditMode();
-        window.pwcEditorState.renderContentRegion();
-      });
+      // Drawer close event — minimize instead of exiting edit mode
+      const drawer = this.querySelector('#pwc-settings-drawer');
+      if (drawer) {
+        drawer.addEventListener('apwClose', (e) => {
+          e.preventDefault();
+          this.minimize();
+        });
+      }
     }
 
     /**
@@ -152,10 +134,9 @@
      */
     minimize() {
       this._isMinimized = true;
-      this.querySelector('.pwc-settings-panel').classList.add('pwc-settings-panel--hidden');
+      const drawer = this.querySelector('#pwc-settings-drawer');
+      if (drawer) drawer.visible = false;
       document.body.classList.add('pwc-settings-minimized');
-
-      // Show the re-open button
       this.showReopenButton();
     }
 
@@ -165,17 +146,16 @@
     showReopenButton() {
       if (this._reopenButton) return;
 
-      this._reopenButton = document.createElement('button');
+      this._reopenButton = document.createElement('apw-button');
       this._reopenButton.className = 'pwc-reopen-panel';
+      this._reopenButton.setAttribute('icon', 'settings-outline');
+      this._reopenButton.setAttribute('btn-type', 'secondary');
+      this._reopenButton.setAttribute('compact', 'true');
+      this._reopenButton.setAttribute('rounded', 'true');
+      this._reopenButton.setAttribute('type', 'button');
       this._reopenButton.title = 'Open Settings Panel';
-      this._reopenButton.innerHTML = `
-        <svg class="pwc-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-        </svg>
-      `;
 
-      this._reopenButton.addEventListener('click', () => {
+      this._reopenButton.addEventListener('apwClick', () => {
         this.show();
       });
 
@@ -235,11 +215,6 @@
       }
       const availableTabs = tabOrder.filter(t => settingsByTab[t] && settingsByTab[t].length > 0);
 
-      // If active tab is not valid for this block, reset to first available
-      if (!this._activeTab || !availableTabs.includes(this._activeTab)) {
-        this._activeTab = availableTabs[0] || null;
-      }
-
       let html = `
         <!-- Block Type Header -->
         <div class="pwc-block-header">
@@ -261,33 +236,23 @@
         return;
       }
 
-      // Render tab buttons
-      html += `<div class="pwc-settings-tabs">`;
+      // Render tab sections
+      html += `<apw-tabset type="underline" stretched>`;
       availableTabs.forEach(tabKey => {
         const def = tabDefs[tabKey];
-        const isActive = tabKey === this._activeTab;
-        html += `
-          <button type="button"
-            class="pwc-settings-tab-btn ${isActive ? 'pwc-settings-tab-btn--active' : ''}"
-            data-tab="${tabKey}">
-            ${def.icon}
-            <span>${def.label}</span>
-          </button>
-        `;
-      });
-      html += `</div>`;
 
-      // Render tab content sections
-      availableTabs.forEach(tabKey => {
-        const isActive = tabKey === this._activeTab;
-        html += `<div class="pwc-settings-tab-content ${isActive ? 'pwc-settings-tab-content--active' : ''}" data-tab-content="${tabKey}">`;
-        html += `<div class="pwc-settings-fields">`;
+        html += `
+          <apw-tab label="${def.label}">
+            <div class="pwc-settings-fields">`;
+
         settingsByTab[tabKey].forEach(setting => {
           const currentValue = block.getAttribute(this.camelToKebab(setting.name)) || setting.default || '';
           html += this.renderSettingField(setting, currentValue);
         });
-        html += `</div></div>`;
+
+        html += `</div></apw-tab>`;
       });
+      html += `</apw-tabset>`;
 
       content.innerHTML = html;
 
@@ -426,13 +391,13 @@
           `;
 
         case 'colorSwatch':
-          const colors = setting.colors || window.APPKIT_OPTIONS?.colors || [];
+          const colors = setting.colors || window.TAILWIND_OPTIONS?.colors || [];
           const colorType = setting.colorType || 'text'; // 'text', 'bg', or 'border'
           const colorSwatches = colors.map(color => {
-            // Transform color value based on colorType (e.g., ap-text-primary-red-05 -> ap-bg-primary-red-05)
+            // Transform color value based on colorType (e.g., text-red-500 -> bg-red-500)
             let colorValue = color.value;
             if (colorValue && colorType !== 'text') {
-              colorValue = colorValue.replace(/^ap-text-/, `ap-${colorType}-`);
+              colorValue = colorValue.replace(/^text-/, `${colorType}-`);
             }
             const isSelected = value === colorValue;
             const isTransparent = color.hex === 'transparent';
@@ -701,34 +666,34 @@
           });
 
           const listStyleIcons = {
-            'pwc-list-disc': `<svg class="pwc-icon" viewBox="0 0 24 24" fill="none">
+            'list-disc': `<svg class="pwc-icon" viewBox="0 0 24 24" fill="none">
               <circle cx="12" cy="12" r="5" fill="currentColor"></circle>
             </svg>`,
-            'pwc-list-circle': `<svg class="pwc-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            'list-circle': `<svg class="pwc-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <circle cx="12" cy="12" r="5"></circle>
             </svg>`,
-            'pwc-list-square': `<svg class="pwc-icon" viewBox="0 0 24 24" fill="none">
+            'list-square': `<svg class="pwc-icon" viewBox="0 0 24 24" fill="none">
               <rect x="7" y="7" width="10" height="10" fill="currentColor"></rect>
             </svg>`,
-            'pwc-list-decimal': `<svg class="pwc-icon" viewBox="0 0 24 24" fill="none">
+            'list-decimal': `<svg class="pwc-icon" viewBox="0 0 24 24" fill="none">
               <text x="12" y="16" font-size="14" fill="currentColor" stroke="none" font-family="sans-serif" text-anchor="middle" font-weight="600">1</text>
             </svg>`,
-            'pwc-list-decimal-leading-zero': `<svg class="pwc-icon" viewBox="0 0 24 24" fill="none">
+            'list-decimal-leading-zero': `<svg class="pwc-icon" viewBox="0 0 24 24" fill="none">
               <text x="12" y="16" font-size="12" fill="currentColor" stroke="none" font-family="sans-serif" text-anchor="middle" font-weight="600">01</text>
             </svg>`,
-            'pwc-list-lower-alpha': `<svg class="pwc-icon" viewBox="0 0 24 24" fill="none">
+            'list-lower-alpha': `<svg class="pwc-icon" viewBox="0 0 24 24" fill="none">
               <text x="12" y="16" font-size="14" fill="currentColor" stroke="none" font-family="sans-serif" text-anchor="middle" font-weight="600">a</text>
             </svg>`,
-            'pwc-list-upper-alpha': `<svg class="pwc-icon" viewBox="0 0 24 24" fill="none">
+            'list-upper-alpha': `<svg class="pwc-icon" viewBox="0 0 24 24" fill="none">
               <text x="12" y="16" font-size="14" fill="currentColor" stroke="none" font-family="sans-serif" text-anchor="middle" font-weight="600">A</text>
             </svg>`,
-            'pwc-list-lower-roman': `<svg class="pwc-icon" viewBox="0 0 24 24" fill="none">
+            'list-lower-roman': `<svg class="pwc-icon" viewBox="0 0 24 24" fill="none">
               <text x="12" y="16" font-size="12" fill="currentColor" stroke="none" font-family="sans-serif" text-anchor="middle" font-weight="600">iv</text>
             </svg>`,
-            'pwc-list-upper-roman': `<svg class="pwc-icon" viewBox="0 0 24 24" fill="none">
+            'list-upper-roman': `<svg class="pwc-icon" viewBox="0 0 24 24" fill="none">
               <text x="12" y="16" font-size="12" fill="currentColor" stroke="none" font-family="sans-serif" text-anchor="middle" font-weight="600">IV</text>
             </svg>`,
-            'pwc-list-none': `<svg class="pwc-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" opacity="0.4">
+            'list-none': `<svg class="pwc-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" opacity="0.4">
               <line x1="5" y1="5" x2="19" y2="19"></line>
               <line x1="19" y1="5" x2="5" y2="19"></line>
             </svg>`,
@@ -763,7 +728,7 @@
 
         case 'markerPositionPicker': {
           const markerPosIcons = {
-            'pwc-list-outside': `<svg class="pwc-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            'list-outside': `<svg class="pwc-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
               <circle cx="3" cy="6" r="1.5" fill="currentColor" stroke="none"></circle>
               <circle cx="3" cy="12" r="1.5" fill="currentColor" stroke="none"></circle>
               <line x1="8" y1="6" x2="21" y2="6"></line>
@@ -772,7 +737,7 @@
               <line x1="8" y1="14" x2="16" y2="14"></line>
               <rect x="7" y="4" width="15" height="12" rx="1" stroke-dasharray="2 2" opacity="0.3"></rect>
             </svg>`,
-            'pwc-list-inside': `<svg class="pwc-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            'list-inside': `<svg class="pwc-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
               <circle cx="6" cy="6" r="1.5" fill="currentColor" stroke="none"></circle>
               <circle cx="6" cy="12" r="1.5" fill="currentColor" stroke="none"></circle>
               <line x1="10" y1="6" x2="21" y2="6"></line>
@@ -864,10 +829,10 @@
         case 'alignment':
           const alignmentOptions = setting.options || [
             { value: '', label: 'None', icon: 'align-left' },
-            { value: 'pwc-text-left', label: 'Left', icon: 'align-left' },
-            { value: 'pwc-text-center', label: 'Center', icon: 'align-center' },
-            { value: 'pwc-text-right', label: 'Right', icon: 'align-right' },
-            { value: 'pwc-text-justify', label: 'Justify', icon: 'align-justify' },
+            { value: 'text-left', label: 'Left', icon: 'align-left' },
+            { value: 'text-center', label: 'Center', icon: 'align-center' },
+            { value: 'text-right', label: 'Right', icon: 'align-right' },
+            { value: 'text-justify', label: 'Justify', icon: 'align-justify' },
           ];
 
           const alignIcons = {
@@ -924,16 +889,17 @@
 
         case 'spacing':
           const prefix = setting.prefix || 'm';
-          const spacingPresets = window.APPKIT_OPTIONS?.spacingPresets || [
-            { value: '', label: '0', px: '0px' },
-            { value: '1', label: '1', px: '2px' },
-            { value: '2', label: '2', px: '4px' },
-            { value: '3', label: '3', px: '8px' },
-            { value: '4', label: '4', px: '12px' },
-            { value: '5', label: '5', px: '16px' },
-            { value: '6', label: '6', px: '20px' },
-            { value: '7', label: '7', px: '24px' },
-            { value: '8', label: '8', px: '48px' },
+          const spacingPresets = window.TAILWIND_OPTIONS?.spacingPresets || [
+            { value: '0', label: '0', px: '0px' },
+            { value: '1', label: '1', px: '4px' },
+            { value: '2', label: '2', px: '8px' },
+            { value: '3', label: '3', px: '12px' },
+            { value: '4', label: '4', px: '16px' },
+            { value: '6', label: '6', px: '24px' },
+            { value: '8', label: '8', px: '32px' },
+            { value: '12', label: '12', px: '48px' },
+            { value: '16', label: '16', px: '64px' },
+            { value: 'auto', label: 'auto', px: 'auto' },
           ];
 
           // Parse current value to determine values for each side
@@ -1031,24 +997,6 @@
      * Set up event listeners for setting fields.
      */
     setupFieldListeners() {
-      // Tab switching
-      this.querySelectorAll('.pwc-settings-tab-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
-          const tab = btn.dataset.tab;
-          this._activeTab = tab;
-
-          // Update active button
-          this.querySelectorAll('.pwc-settings-tab-btn').forEach(b => {
-            b.classList.toggle('pwc-settings-tab-btn--active', b.dataset.tab === tab);
-          });
-
-          // Show/hide content
-          this.querySelectorAll('.pwc-settings-tab-content').forEach(c => {
-            c.classList.toggle('pwc-settings-tab-content--active', c.dataset.tabContent === tab);
-          });
-        });
-      });
-
       // Text and textarea inputs
       this.querySelectorAll('input[type="text"], textarea, select').forEach(input => {
         input.addEventListener('input', () => {
@@ -1192,7 +1140,7 @@
           this.updateBlockAttribute(name, value);
 
           // Set appropriate default style for the new list type
-          this.updateBlockAttribute('listStyle', value === 'ol' ? 'pwc-list-decimal' : 'pwc-list-disc');
+          this.updateBlockAttribute('listStyle', value === 'ol' ? 'list-decimal' : 'list-disc');
 
           // Re-render the settings to update the style picker for the new type
           if (this.currentBlock) {
@@ -1349,7 +1297,7 @@
           // Update the side button to show the new value
           const sideBtn = field.querySelector(`.pwc-spacing-side-btn[data-side="${activeSide}"]`);
           if (sideBtn) {
-            const presets = window.APPKIT_OPTIONS?.spacingPresets || [];
+            const presets = window.TAILWIND_OPTIONS?.spacingPresets || [];
             const presetInfo = presets.find(p => p.value === value);
             const displayValue = presetInfo ? presetInfo.px : value;
             sideBtn.querySelector('span').textContent = displayValue;
@@ -1414,7 +1362,7 @@
         state.l = '';
 
         // Update all side button displays
-        const presets = window.APPKIT_OPTIONS?.spacingPresets || [];
+        const presets = window.TAILWIND_OPTIONS?.spacingPresets || [];
         const presetInfo = presets.find(p => p.value === value);
         const displayValue = presetInfo ? presetInfo.px : value;
 
@@ -1440,15 +1388,15 @@
         }
       }
 
-      // Build the new class string (Appkit4 format: ap-m-spacing-N, ap-mt-spacing-N)
+      // Build the new class string
       const classes = [];
       if (state.all) {
-        classes.push(`ap-${prefix}-spacing-${state.all}`);
+        classes.push(`${prefix}-${state.all}`);
       } else {
-        if (state.t) classes.push(`ap-${prefix}t-spacing-${state.t}`);
-        if (state.r) classes.push(`ap-${prefix}r-spacing-${state.r}`);
-        if (state.b) classes.push(`ap-${prefix}b-spacing-${state.b}`);
-        if (state.l) classes.push(`ap-${prefix}l-spacing-${state.l}`);
+        if (state.t) classes.push(`${prefix}t-${state.t}`);
+        if (state.r) classes.push(`${prefix}r-${state.r}`);
+        if (state.b) classes.push(`${prefix}b-${state.b}`);
+        if (state.l) classes.push(`${prefix}l-${state.l}`);
       }
 
       this.updateBlockAttribute(name, classes.join(' '));
@@ -1456,9 +1404,8 @@
 
     /**
      * Parse a spacing value string into component parts.
-     * Appkit4 format: "ap-m-spacing-5" or "ap-mt-spacing-3 ap-mb-spacing-5".
      *
-     * @param {string} value - Spacing value like "ap-m-spacing-5" or "ap-mt-spacing-3 ap-mb-spacing-5".
+     * @param {string} value - Spacing value like "m-4" or "mt-2 mb-4".
      * @param {string} prefix - Prefix like 'm' or 'p'.
      * @returns {Object} Parsed state with mode and values.
      */
@@ -1478,33 +1425,33 @@
 
       const classes = value.split(' ').filter(Boolean);
 
-      // Appkit4 spacing class patterns: ap-{prefix}{side}-spacing-{value}
-      const hasTop = classes.some(c => c.startsWith(`ap-${prefix}t-spacing-`));
-      const hasRight = classes.some(c => c.startsWith(`ap-${prefix}r-spacing-`));
-      const hasBottom = classes.some(c => c.startsWith(`ap-${prefix}b-spacing-`));
-      const hasLeft = classes.some(c => c.startsWith(`ap-${prefix}l-spacing-`));
-      const hasX = classes.some(c => c.startsWith(`ap-${prefix}x-spacing-`));
-      const hasY = classes.some(c => c.startsWith(`ap-${prefix}y-spacing-`));
-      const hasAll = classes.some(c => c.startsWith(`ap-${prefix}-spacing-`));
+      // Check for individual sides
+      const hasTop = classes.some(c => c.startsWith(`${prefix}t-`));
+      const hasRight = classes.some(c => c.startsWith(`${prefix}r-`));
+      const hasBottom = classes.some(c => c.startsWith(`${prefix}b-`));
+      const hasLeft = classes.some(c => c.startsWith(`${prefix}l-`));
+      const hasX = classes.some(c => c.startsWith(`${prefix}x-`));
+      const hasY = classes.some(c => c.startsWith(`${prefix}y-`));
+      const hasAll = classes.some(c => c.match(new RegExp(`^${prefix}-`)));
 
       if (hasTop || hasRight || hasBottom || hasLeft) {
         state.mode = 'individual';
         classes.forEach(c => {
-          if (c.startsWith(`ap-${prefix}t-spacing-`)) state.t = c.replace(`ap-${prefix}t-spacing-`, '');
-          if (c.startsWith(`ap-${prefix}r-spacing-`)) state.r = c.replace(`ap-${prefix}r-spacing-`, '');
-          if (c.startsWith(`ap-${prefix}b-spacing-`)) state.b = c.replace(`ap-${prefix}b-spacing-`, '');
-          if (c.startsWith(`ap-${prefix}l-spacing-`)) state.l = c.replace(`ap-${prefix}l-spacing-`, '');
+          if (c.startsWith(`${prefix}t-`)) state.t = c.replace(`${prefix}t-`, '');
+          if (c.startsWith(`${prefix}r-`)) state.r = c.replace(`${prefix}r-`, '');
+          if (c.startsWith(`${prefix}b-`)) state.b = c.replace(`${prefix}b-`, '');
+          if (c.startsWith(`${prefix}l-`)) state.l = c.replace(`${prefix}l-`, '');
         });
       } else if (hasX || hasY) {
         state.mode = 'axis';
         classes.forEach(c => {
-          if (c.startsWith(`ap-${prefix}x-spacing-`)) state.x = c.replace(`ap-${prefix}x-spacing-`, '');
-          if (c.startsWith(`ap-${prefix}y-spacing-`)) state.y = c.replace(`ap-${prefix}y-spacing-`, '');
+          if (c.startsWith(`${prefix}x-`)) state.x = c.replace(`${prefix}x-`, '');
+          if (c.startsWith(`${prefix}y-`)) state.y = c.replace(`${prefix}y-`, '');
         });
       } else if (hasAll) {
         state.mode = 'all';
         classes.forEach(c => {
-          const match = c.match(new RegExp(`^ap-${prefix}-spacing-(.+)$`));
+          const match = c.match(new RegExp(`^${prefix}-(.+)$`));
           if (match) state.all = match[1];
         });
       }
@@ -1556,17 +1503,10 @@
      */
     async saveContent() {
       const saveBtn = this.querySelector('.pwc-settings-panel__save');
-      const originalHtml = saveBtn.innerHTML;
 
       try {
-        saveBtn.disabled = true;
-        // Show spinning indicator
-        saveBtn.innerHTML = `
-          <svg class="pwc-icon pwc-spin" fill="none" viewBox="0 0 24 24">
-            <circle class="pwc-spin__track" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-            <path class="pwc-spin__arc" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-          </svg>
-        `;
+        saveBtn.setAttribute('apw-disabled', 'true');
+        saveBtn.setAttribute('is-loading', 'true');
 
         const content = window.pwcEditorState.serialize();
         await window.pwcApiClient.saveContent(content);
@@ -1574,41 +1514,38 @@
         window.pwcEditorState.isDirty = false;
         window.pwcApiClient.clearLocalStorage();
 
-        // Show success checkmark
-        saveBtn.innerHTML = `
-          <svg class="pwc-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-          </svg>
-        `;
-        saveBtn.classList.add('pwc-settings-panel__save--success');
+        // Show success state
+        saveBtn.setAttribute('is-loading', 'false');
+        saveBtn.setAttribute('label', 'Saved');
+        saveBtn.setAttribute('icon', 'checkmark-outline');
 
         setTimeout(() => {
-          saveBtn.innerHTML = originalHtml;
-          saveBtn.classList.remove('pwc-settings-panel__save--success');
+          saveBtn.setAttribute('label', 'Save');
+          saveBtn.setAttribute('icon', 'checkmark-outline');
         }, 2000);
 
       } catch (error) {
-        // Show error X
-        saveBtn.innerHTML = `
-          <svg class="pwc-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-          </svg>
-        `;
-        saveBtn.classList.add('pwc-settings-panel__save--error');
+        // Show error state
+        saveBtn.setAttribute('is-loading', 'false');
+        saveBtn.setAttribute('btn-type', 'negative');
+        saveBtn.setAttribute('label', 'Error');
+        saveBtn.setAttribute('icon', 'close-outline');
 
         setTimeout(() => {
-          saveBtn.innerHTML = originalHtml;
-          saveBtn.classList.remove('pwc-settings-panel__save--error');
+          saveBtn.setAttribute('btn-type', 'primary');
+          saveBtn.setAttribute('label', 'Save');
+          saveBtn.setAttribute('icon', 'checkmark-outline');
         }, 3000);
       } finally {
-        saveBtn.disabled = false;
+        saveBtn.setAttribute('apw-disabled', 'false');
       }
     }
 
     show() {
       this._isMinimized = false;
       this.style.display = 'block';
-      this.querySelector('.pwc-settings-panel').classList.remove('pwc-settings-panel--hidden');
+      const drawer = this.querySelector('#pwc-settings-drawer');
+      if (drawer) drawer.visible = true;
       document.body.classList.remove('pwc-settings-minimized');
       this.hideReopenButton();
     }
@@ -1617,10 +1554,9 @@
       this._isMinimized = false;
       this.hideReopenButton();
       document.body.classList.remove('pwc-settings-minimized');
-      this.querySelector('.pwc-settings-panel')?.classList.add('pwc-settings-panel--hidden');
-      setTimeout(() => {
-        this.style.display = 'none';
-      }, 300);
+      const drawer = this.querySelector('#pwc-settings-drawer');
+      if (drawer) drawer.visible = false;
+      setTimeout(() => { this.style.display = 'none'; }, 300);
     }
 
     escapeHtml(text) {

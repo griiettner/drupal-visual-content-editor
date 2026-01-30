@@ -1618,7 +1618,7 @@ body.pwc-dragging-block .pwc-drop-zone {
   width: 44px;
   height: 24px;
   border-radius: 9999px;
-  background: #e5e7eb;
+  background: var(--color-background-border);
   border: none;
   cursor: pointer;
   transition: background-color 0.2s ease;
@@ -1626,7 +1626,7 @@ body.pwc-dragging-block .pwc-drop-zone {
 
 .pwc-toggle:focus {
   outline: none;
-  box-shadow: 0 0 0 2px #3b82f6;
+  box-shadow: 0 0 0 2px var(--color-text-primary);
 }
 
 .pwc-toggle span {
@@ -1705,14 +1705,14 @@ body.pwc-dragging-block .pwc-drop-zone {
 .pwc-color-swatch-grid {
   display: grid;
   grid-template-columns: repeat(8, 1fr);
-  gap: 4px;
+  gap: var(--spacing-2);
 }
 
 .pwc-color-swatch {
   width: 24px;
   height: 24px;
-  border-radius: 4px;
-  border: 2px solid #d1d5db;
+  border-radius: var(--border-radius-1);
+  border: 2px solid var(--color-background-border);
   cursor: pointer;
   transition: all 0.15s ease;
   padding: 0;
@@ -1720,19 +1720,19 @@ body.pwc-dragging-block .pwc-drop-zone {
 
 .pwc-color-swatch:hover {
   transform: scale(1.1);
-  border-color: #9ca3af;
+  border-color: var(--color-text-primary);
 }
 
 .pwc-color-swatch:focus {
   outline: none;
-  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.5);
+  box-shadow: 0 0 0 2px var(--color-text-primary);
 }
 
 /* Radius Picker */
 .pwc-radius-picker {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 8px;
+  gap: var(--spacing-3);
 }
 
 .pwc-radius-picker-btn {
@@ -1740,18 +1740,18 @@ body.pwc-dragging-block .pwc-drop-zone {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 8px 4px;
-  border: 2px solid #e5e7eb;
-  border-radius: 8px;
-  background: #fff;
-  color: #6b7280;
+  padding: var(--spacing-3) var(--spacing-2);
+  border: 2px solid var(--color-background-border);
+  border-radius: var(--border-radius-3);
+  background: var(--color-background-default);
+  color: var(--color-text-body);
   cursor: pointer;
   transition: all 0.15s ease;
 }
 
 .pwc-radius-picker-btn:hover {
-  border-color: #93c5fd;
-  background: #eff6ff;
+  border-color: var(--color-text-primary);
+  background: var(--color-background-hover);
 }
 
 .pwc-radius-picker-btn__preview {
@@ -1761,27 +1761,35 @@ body.pwc-dragging-block .pwc-drop-zone {
 }
 
 .pwc-radius-picker-btn__label {
-  font-size: 10px;
-  font-weight: 500;
-  margin-top: 4px;
+  font: var(--typography-1);
+  font-weight: var(--font-weight-2);
+  margin-top: var(--spacing-2);
 }
 
 /* Layout Picker */
 .pwc-layout-picker {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 8px;
+  gap: var(--spacing-3);
 }
 
 .pwc-layout-picker-btn {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 4px;
-  padding: 8px;
-  border-radius: 8px;
+  gap: var(--spacing-2);
+  padding: var(--spacing-3);
+  border: 2px solid var(--color-background-border);
+  border-radius: var(--border-radius-3);
+  background: var(--color-background-default);
+  color: var(--color-text-body);
   cursor: pointer;
   transition: all 0.15s ease;
+}
+
+.pwc-layout-picker-btn:hover {
+  border-color: var(--color-text-primary);
+  background: var(--color-background-hover);
 }
 
 .pwc-layout-picker-btn svg {
@@ -1789,11 +1797,16 @@ body.pwc-dragging-block .pwc-drop-zone {
   height: 32px;
 }
 
+.pwc-layout-picker-btn__label {
+  font: var(--typography-1);
+  font-weight: var(--font-weight-2);
+}
+
 /* Gap Picker */
 .pwc-gap-picker {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 8px;
+  gap: var(--spacing-3);
 }
 
 .pwc-gap-picker-btn {
@@ -1801,29 +1814,56 @@ body.pwc-dragging-block .pwc-drop-zone {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 8px 4px;
-  border-radius: 8px;
+  padding: var(--spacing-3) var(--spacing-2);
+  border: 2px solid var(--color-background-border);
+  border-radius: var(--border-radius-3);
+  background: var(--color-background-default);
+  color: var(--color-text-body);
   cursor: pointer;
   transition: all 0.15s ease;
   min-height: 52px;
+}
+
+.pwc-gap-picker-btn:hover {
+  border-color: var(--color-text-primary);
+  background: var(--color-background-hover);
+}
+
+.pwc-gap-picker-btn__value {
+  font: var(--typography-2);
+  font-weight: var(--font-weight-3);
+}
+
+.pwc-gap-picker-btn__px {
+  font: var(--typography-1);
+  color: var(--color-text-light);
+  margin-top: var(--spacing-1);
 }
 
 /* Vertical Align Picker */
 .pwc-valign-picker {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 8px;
+  gap: var(--spacing-3);
 }
 
 .pwc-valign-picker-btn {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 4px;
-  padding: 8px 4px;
-  border-radius: 8px;
+  gap: var(--spacing-2);
+  padding: var(--spacing-3) var(--spacing-2);
+  border: 2px solid var(--color-background-border);
+  border-radius: var(--border-radius-3);
+  background: var(--color-background-default);
+  color: var(--color-text-body);
   cursor: pointer;
   transition: all 0.15s ease;
+}
+
+.pwc-valign-picker-btn:hover {
+  border-color: var(--color-text-primary);
+  background: var(--color-background-hover);
 }
 
 .pwc-valign-picker-btn svg {
@@ -1831,22 +1871,34 @@ body.pwc-dragging-block .pwc-drop-zone {
   height: 20px;
 }
 
+.pwc-valign-picker-btn__label {
+  font: var(--typography-1);
+  font-weight: var(--font-weight-2);
+}
+
 /* Heading Level Picker */
 .pwc-heading-level-picker {
   display: grid;
   grid-template-columns: repeat(6, 1fr);
-  gap: 4px;
+  gap: var(--spacing-2);
 }
 
 .pwc-heading-level-btn {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 8px 4px;
-  border: 1px solid;
-  border-radius: 6px;
+  padding: var(--spacing-3) var(--spacing-2);
+  border: 2px solid var(--color-background-border);
+  border-radius: var(--border-radius-3);
+  background: var(--color-background-default);
+  color: var(--color-text-body);
   cursor: pointer;
   transition: all 0.15s ease;
+}
+
+.pwc-heading-level-btn:hover {
+  border-color: var(--color-text-primary);
+  background: var(--color-background-hover);
 }
 
 .pwc-heading-level-btn svg {
@@ -1855,17 +1907,166 @@ body.pwc-dragging-block .pwc-drop-zone {
 }
 
 .pwc-heading-level-btn__label {
-  font-size: 12px;
-  font-weight: 600;
+  font: var(--typography-1);
+  font-weight: var(--font-weight-3);
+}
+
+/* List Type Picker */
+.pwc-list-type-picker {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--spacing-3);
+}
+
+.pwc-list-type-btn {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+  padding: var(--spacing-3) var(--spacing-4);
+  border: 2px solid var(--color-background-border);
+  border-radius: var(--border-radius-3);
+  background: var(--color-background-default);
+  color: var(--color-text-body);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  font: var(--typography-body-xs);
+  font-weight: var(--font-weight-2);
+}
+
+.pwc-list-type-btn:hover {
+  border-color: var(--color-text-primary);
+  background: var(--color-background-hover);
+}
+
+.pwc-list-type-btn svg {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+}
+
+.pwc-list-type-btn__label {
+  font: var(--typography-body-xs);
+  font-weight: var(--font-weight-2);
+}
+
+/* List Style Picker */
+.pwc-list-style-picker {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: var(--spacing-2);
+}
+
+.pwc-list-style-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--spacing-3) var(--spacing-2);
+  border: 2px solid var(--color-background-border);
+  border-radius: var(--border-radius-3);
+  background: var(--color-background-default);
+  color: var(--color-text-body);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.pwc-list-style-btn:hover {
+  border-color: var(--color-text-primary);
+  background: var(--color-background-hover);
+}
+
+.pwc-list-style-btn svg {
+  width: 20px;
+  height: 20px;
+}
+
+.pwc-list-style-btn__label {
+  font: var(--typography-1);
+  font-weight: var(--font-weight-3);
+}
+
+/* Marker Position Picker */
+.pwc-marker-pos-picker {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--spacing-3);
+}
+
+.pwc-marker-pos-btn {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+  padding: var(--spacing-3) var(--spacing-4);
+  border: 2px solid var(--color-background-border);
+  border-radius: var(--border-radius-3);
+  background: var(--color-background-default);
+  color: var(--color-text-body);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  font: var(--typography-body-xs);
+  font-weight: var(--font-weight-2);
+}
+
+.pwc-marker-pos-btn:hover {
+  border-color: var(--color-text-primary);
+  background: var(--color-background-hover);
+}
+
+.pwc-marker-pos-btn svg {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+}
+
+.pwc-marker-pos-btn__label {
+  font: var(--typography-body-xs);
+  font-weight: var(--font-weight-2);
+}
+
+/* Border Width Picker */
+.pwc-border-width-picker {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--spacing-3);
+}
+
+.pwc-border-width-picker-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--spacing-3) var(--spacing-2);
+  border: 2px solid var(--color-background-border);
+  border-radius: var(--border-radius-3);
+  background: var(--color-background-default);
+  color: var(--color-text-body);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  min-height: 52px;
+}
+
+.pwc-border-width-picker-btn:hover {
+  border-color: var(--color-text-primary);
+  background: var(--color-background-hover);
+}
+
+.pwc-border-width-picker-btn__value {
+  font: var(--typography-2);
+  font-weight: var(--font-weight-3);
+}
+
+.pwc-border-width-picker-btn__px {
+  font: var(--typography-1);
+  color: var(--color-text-light);
+  margin-top: var(--spacing-1);
 }
 
 /* Alignment */
 .pwc-alignment-buttons {
   display: flex;
-  gap: 4px;
-  padding: 4px;
-  background: #f3f4f6;
-  border-radius: 8px;
+  gap: var(--spacing-2);
+  padding: var(--spacing-2);
+  background: var(--color-background-alt);
+  border-radius: var(--border-radius-3);
 }
 
 .pwc-align-btn {
@@ -1873,8 +2074,8 @@ body.pwc-dragging-block .pwc-drop-zone {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 8px;
-  border-radius: 6px;
+  padding: var(--spacing-3);
+  border-radius: var(--border-radius-2);
   cursor: pointer;
   transition: all 0.15s ease;
 }
@@ -1886,17 +2087,17 @@ body.pwc-dragging-block .pwc-drop-zone {
 
 /* Spacing */
 .pwc-spacing-field {
-  background: #f9fafb;
+  background: var(--color-background-alt);
   border-radius: 8px;
   padding: 12px;
-  border: 1px solid #e5e7eb;
+  border: 1px solid var(--color-background-border);
 }
 
 .pwc-spacing-sides {
   display: flex;
   gap: 2px;
   padding: 4px;
-  background: #e5e7eb;
+  background: var(--color-background-border);
   border-radius: 8px;
 }
 
@@ -1909,10 +2110,10 @@ body.pwc-dragging-block .pwc-drop-zone {
   padding: 8px 4px;
   border: none;
   background: transparent;
-  border-radius: 6px;
+  border-radius: 4px;
   cursor: pointer;
   transition: all 0.15s ease;
-  color: #6b7280;
+  color: var(--color-text-body);
 }
 
 .pwc-spacing-side-btn:hover {
@@ -1920,7 +2121,7 @@ body.pwc-dragging-block .pwc-drop-zone {
 }
 
 .pwc-spacing-side-btn--active {
-  background: #fff !important;
+  background: var(--color-background-default) !important;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
@@ -1931,17 +2132,16 @@ body.pwc-dragging-block .pwc-drop-zone {
 
 .pwc-spacing-side-btn span {
   font-size: 10px;
-  font-weight: 500;
+  font-weight: var(--font-weight-2);
   white-space: nowrap;
 }
 
 .pwc-spacing-sizes {
   margin-top: 8px;
   padding: 8px;
-  background: #fff;
-  border: 1px solid #e5e7eb;
+  background: var(--color-background-default);
+  border: 1px solid var(--color-background-border);
   border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
 
 .pwc-spacing-sizes.hidden {
@@ -1958,19 +2158,19 @@ body.pwc-dragging-block .pwc-drop-zone {
   min-width: 40px;
   padding: 6px 8px;
   font-size: 11px;
-  font-weight: 500;
+  font-weight: var(--font-weight-2);
   border-radius: 6px;
-  border: 1px solid #e5e7eb;
-  background: #fff;
+  border: 1px solid var(--color-background-border);
+  background: var(--color-background-default);
   cursor: pointer;
   transition: all 0.15s ease;
   text-align: center;
 }
 
 .pwc-spacing-preset:hover {
-  border-color: #3b82f6;
-  background: #eff6ff;
-  color: #2563eb;
+  border-color: var(--color-text-primary);
+  background: var(--color-background-hover);
+  color: var(--color-text-primary);
 }
 
 
@@ -2353,20 +2553,20 @@ body.pwc-dragging-block .pwc-drop-zone {
 
 /* Picker button universal selected state */
 .pwc-picker-btn--selected {
-  background: #eff6ff !important;
-  border-color: #3b82f6 !important;
-  color: #2563eb !important;
+  background: var(--color-background-selected) !important;
+  border-color: var(--color-text-primary) !important;
+  color: var(--color-text-primary) !important;
 }
 
 /* Color swatch selected state */
 .pwc-color-swatch--selected {
-  border-color: #3b82f6 !important;
-  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.3);
+  border-color: var(--color-text-primary) !important;
+  box-shadow: 0 0 0 2px var(--color-text-primary);
 }
 
 /* Toggle checked state */
 .pwc-toggle--checked {
-  background-color: #2563eb;
+  background-color: var(--color-text-primary);
 }
 
 .pwc-toggle--checked span {
@@ -2375,9 +2575,9 @@ body.pwc-dragging-block .pwc-drop-zone {
 
 /* Alignment selected state */
 .pwc-align-btn--selected {
-  background: #dbeafe !important;
-  border-color: #3b82f6 !important;
-  color: #2563eb !important;
+  background: var(--color-background-selected) !important;
+  border-color: var(--color-text-primary) !important;
+  color: var(--color-text-primary) !important;
 }
 
 /* Spacing side button with value */
@@ -2494,36 +2694,58 @@ body.pwc-dragging-block .pwc-drop-zone {
 
 /* ==========================================================================
    25. Utility Classes
+   Custom CSS utility classes for features Appkit4 does not provide.
    ========================================================================== */
 
-/* Custom list styles */
-.list-decimal-leading-zero {
-  list-style-type: decimal-leading-zero;
-}
+/* --- Text Alignment --- */
+.pwc-text-left { text-align: left; }
+.pwc-text-center { text-align: center; }
+.pwc-text-right { text-align: right; }
+.pwc-text-justify { text-align: justify; }
 
-.list-lower-alpha {
-  list-style-type: lower-alpha;
-}
+/* --- Line Height --- */
+.pwc-leading-none { line-height: 1; }
+.pwc-leading-tight { line-height: 1.25; }
+.pwc-leading-snug { line-height: 1.375; }
+.pwc-leading-normal { line-height: 1.5; }
+.pwc-leading-relaxed { line-height: 1.625; }
+.pwc-leading-loose { line-height: 2; }
 
-.list-upper-alpha {
-  list-style-type: upper-alpha;
-}
+/* --- Vertical Spacing (space-y) --- */
+.pwc-space-y-0 > * + * { margin-top: 0; }
+.pwc-space-y-1 > * + * { margin-top: 0.25rem; }
+.pwc-space-y-2 > * + * { margin-top: 0.5rem; }
+.pwc-space-y-3 > * + * { margin-top: 0.75rem; }
+.pwc-space-y-4 > * + * { margin-top: 1rem; }
+.pwc-space-y-6 > * + * { margin-top: 1.5rem; }
+.pwc-space-y-8 > * + * { margin-top: 2rem; }
 
-.list-lower-roman {
-  list-style-type: lower-roman;
-}
+/* --- List Styles --- */
+.pwc-list-disc { list-style-type: disc; }
+.pwc-list-circle { list-style-type: circle; }
+.pwc-list-square { list-style-type: square; }
+.pwc-list-decimal { list-style-type: decimal; }
+.pwc-list-decimal-leading-zero { list-style-type: decimal-leading-zero; }
+.pwc-list-lower-alpha { list-style-type: lower-alpha; }
+.pwc-list-upper-alpha { list-style-type: upper-alpha; }
+.pwc-list-lower-roman { list-style-type: lower-roman; }
+.pwc-list-upper-roman { list-style-type: upper-roman; }
+.pwc-list-none { list-style-type: none; }
 
-.list-upper-roman {
-  list-style-type: upper-roman;
-}
+/* --- List Position --- */
+.pwc-list-outside { list-style-position: outside; }
+.pwc-list-inside { list-style-position: inside; }
 
-.list-square {
-  list-style-type: square;
-}
+/* --- Border Width --- */
+.pwc-border { border-width: 1px; border-style: solid; }
+.pwc-border-2 { border-width: 2px; border-style: solid; }
+.pwc-border-4 { border-width: 4px; border-style: solid; }
+.pwc-border-8 { border-width: 8px; border-style: solid; }
 
-.list-circle {
-  list-style-type: circle;
-}
+/* --- Border Radius (supplements Appkit ap-border-radius-1/2/3) --- */
+.pwc-rounded-xl { border-radius: 12px; }
+.pwc-rounded-2xl { border-radius: 16px; }
+.pwc-rounded-full { border-radius: 9999px; }
 
 /* ==========================================================================
    26. Animations

@@ -2,7 +2,7 @@
  * @file
  * List block component.
  *
- * A configurable list block (ordered/unordered) with Tailwind utility classes.
+ * A configurable list block (ordered/unordered) with Appkit4 utility classes.
  */
 
 (function (Drupal) {
@@ -17,35 +17,35 @@
   ];
 
   /**
-   * List style options for all list types.
+   * List style options for all list types (custom pwc- classes).
    */
   const LIST_STYLE_OPTIONS = [
     // Unordered styles
-    { value: 'list-disc', label: 'Disc (●)', group: 'ul' },
-    { value: 'list-circle', label: 'Circle (○)', group: 'ul' },
-    { value: 'list-square', label: 'Square (■)', group: 'ul' },
+    { value: 'pwc-list-disc', label: 'Disc (●)', group: 'ul' },
+    { value: 'pwc-list-circle', label: 'Circle (○)', group: 'ul' },
+    { value: 'pwc-list-square', label: 'Square (■)', group: 'ul' },
     // Ordered styles
-    { value: 'list-decimal', label: 'Decimal (1, 2, 3)', group: 'ol' },
-    { value: 'list-decimal-leading-zero', label: 'Decimal Leading Zero (01, 02)', group: 'ol' },
-    { value: 'list-lower-alpha', label: 'Lower Alpha (a, b, c)', group: 'ol' },
-    { value: 'list-upper-alpha', label: 'Upper Alpha (A, B, C)', group: 'ol' },
-    { value: 'list-lower-roman', label: 'Lower Roman (i, ii, iii)', group: 'ol' },
-    { value: 'list-upper-roman', label: 'Upper Roman (I, II, III)', group: 'ol' },
+    { value: 'pwc-list-decimal', label: 'Decimal (1, 2, 3)', group: 'ol' },
+    { value: 'pwc-list-decimal-leading-zero', label: 'Decimal Leading Zero (01, 02)', group: 'ol' },
+    { value: 'pwc-list-lower-alpha', label: 'Lower Alpha (a, b, c)', group: 'ol' },
+    { value: 'pwc-list-upper-alpha', label: 'Upper Alpha (A, B, C)', group: 'ol' },
+    { value: 'pwc-list-lower-roman', label: 'Lower Roman (i, ii, iii)', group: 'ol' },
+    { value: 'pwc-list-upper-roman', label: 'Upper Roman (I, II, III)', group: 'ol' },
     // None
-    { value: 'list-none', label: 'None', group: 'both' },
+    { value: 'pwc-list-none', label: 'None', group: 'both' },
   ];
 
   /**
-   * Item gap options (space between list items).
+   * Item gap options (custom pwc- classes since Appkit4 has no space-y).
    */
   const ITEM_GAP_OPTIONS = [
     { value: '', label: 'Default' },
-    { value: 'space-y-0', label: 'None' },
-    { value: 'space-y-1', label: '4px' },
-    { value: 'space-y-2', label: '8px' },
-    { value: 'space-y-3', label: '12px' },
-    { value: 'space-y-4', label: '16px' },
-    { value: 'space-y-6', label: '24px' },
+    { value: 'pwc-space-y-0', label: 'None' },
+    { value: 'pwc-space-y-1', label: '4px' },
+    { value: 'pwc-space-y-2', label: '8px' },
+    { value: 'pwc-space-y-3', label: '12px' },
+    { value: 'pwc-space-y-4', label: '16px' },
+    { value: 'pwc-space-y-6', label: '24px' },
   ];
 
   class ListBlock extends window.PwcBaseBlock {
@@ -69,7 +69,7 @@
           name: 'listStyle',
           type: 'listStylePicker',
           label: 'List Style',
-          default: 'list-disc',
+          default: 'pwc-list-disc',
           tab: 'typography',
           options: LIST_STYLE_OPTIONS,
         },
@@ -77,11 +77,11 @@
           name: 'listPosition',
           type: 'markerPositionPicker',
           label: 'Marker Position',
-          default: 'list-outside',
+          default: 'pwc-list-outside',
           tab: 'typography',
           options: [
-            { value: 'list-outside', label: 'Outside' },
-            { value: 'list-inside', label: 'Inside' },
+            { value: 'pwc-list-outside', label: 'Outside' },
+            { value: 'pwc-list-inside', label: 'Inside' },
           ],
         },
         {
@@ -90,7 +90,7 @@
           label: 'Font Size',
           default: '',
           tab: 'typography',
-          options: window.TAILWIND_OPTIONS?.fontSize || [],
+          options: window.APPKIT_OPTIONS?.fontSize || [],
         },
         {
           name: 'fontWeight',
@@ -98,7 +98,7 @@
           label: 'Font Weight',
           default: '',
           tab: 'typography',
-          options: window.TAILWIND_OPTIONS?.fontWeight || [],
+          options: window.APPKIT_OPTIONS?.fontWeight || [],
         },
         {
           name: 'lineHeight',
@@ -106,7 +106,7 @@
           label: 'Line Height',
           default: '',
           tab: 'typography',
-          options: window.TAILWIND_LINE_HEIGHT_OPTIONS || [],
+          options: window.APPKIT_LINE_HEIGHT_OPTIONS || [],
         },
         {
           name: 'textAlign',
@@ -116,9 +116,9 @@
           tab: 'typography',
           options: [
             { value: '', label: 'None', icon: 'align-left' },
-            { value: 'text-left', label: 'Left', icon: 'align-left' },
-            { value: 'text-center', label: 'Center', icon: 'align-center' },
-            { value: 'text-right', label: 'Right', icon: 'align-right' },
+            { value: 'pwc-text-left', label: 'Left', icon: 'align-left' },
+            { value: 'pwc-text-center', label: 'Center', icon: 'align-center' },
+            { value: 'pwc-text-right', label: 'Right', icon: 'align-right' },
           ],
         },
         {
@@ -127,13 +127,13 @@
           label: 'Text Color',
           default: '',
           tab: 'style',
-          colors: window.TAILWIND_OPTIONS?.colors || [],
+          colors: window.APPKIT_OPTIONS?.colors || [],
         },
         {
           name: 'itemGap',
           type: 'select',
           label: 'Item Gap',
-          default: 'space-y-2',
+          default: 'pwc-space-y-2',
           tab: 'layout',
           options: ITEM_GAP_OPTIONS,
         },
@@ -156,11 +156,11 @@
         {
           name: 'customClasses',
           type: 'text',
-          label: 'Custom Tailwind Classes',
+          label: 'Custom Classes',
           default: '',
           tab: 'style',
-          placeholder: 'e.g., marker:text-blue-500',
-          help: 'Add any additional Tailwind utility classes',
+          placeholder: 'e.g., ap-text-primary-blue-05',
+          help: 'Add any additional CSS utility classes',
         },
       ];
     }
@@ -233,13 +233,13 @@
     updateStyles() {
       const listType = this.getAttribute('list-type') || 'ul';
       const listStyle = this.getAttribute('list-style') || '';
-      const listPosition = this.getAttribute('list-position') || 'list-outside';
+      const listPosition = this.getAttribute('list-position') || 'pwc-list-outside';
       const fontSize = this.getAttribute('font-size') || '';
       const fontWeight = this.getAttribute('font-weight') || '';
       const lineHeight = this.getAttribute('line-height') || '';
       const textAlign = this.getAttribute('text-align') || '';
       const textColor = this.getAttribute('text-color') || '';
-      const itemGap = this.getAttribute('item-gap') || 'space-y-2';
+      const itemGap = this.getAttribute('item-gap') || 'pwc-space-y-2';
       const margin = this.getAttribute('margin') || '';
       const padding = this.getAttribute('padding') || '';
       const customClasses = this.getAttribute('custom-classes') || '';
@@ -274,13 +274,13 @@
       let content = this.getAttribute('content') || '<li>List item</li>';
       const listType = this.getAttribute('list-type') || 'ul';
       const listStyle = this.getAttribute('list-style') || '';
-      const listPosition = this.getAttribute('list-position') || 'list-outside';
+      const listPosition = this.getAttribute('list-position') || 'pwc-list-outside';
       const fontSize = this.getAttribute('font-size') || '';
       const fontWeight = this.getAttribute('font-weight') || '';
       const lineHeight = this.getAttribute('line-height') || '';
       const textAlign = this.getAttribute('text-align') || '';
       const textColor = this.getAttribute('text-color') || '';
-      const itemGap = this.getAttribute('item-gap') || 'space-y-2';
+      const itemGap = this.getAttribute('item-gap') || 'pwc-space-y-2';
       const margin = this.getAttribute('margin') || '';
       const padding = this.getAttribute('padding') || '';
       const customClasses = this.getAttribute('custom-classes') || '';

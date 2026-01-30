@@ -166,6 +166,12 @@
       const contentBgColor = this.getAttribute('content-bg-color') || '';
       const isEditing = window.pwcEditorState && window.pwcEditorState.isEditing;
 
+      // Restore active tab from editor state (survives element re-creation).
+      const blockData = window.pwcEditorState?.findBlock(this.blockId);
+      if (blockData && blockData._activeTabIndex !== undefined) {
+        this._activeTabIndex = blockData._activeTabIndex;
+      }
+
       // Clamp active tab index
       if (this._activeTabIndex >= titles.length) {
         this._activeTabIndex = 0;
@@ -311,6 +317,10 @@
           const tabIndex = parseInt(btn.dataset.tabIndex, 10);
           this._activeTabIndex = tabIndex;
 
+          // Persist to editor state so it survives re-renders.
+          const blockData = window.pwcEditorState?.findBlock(this.blockId);
+          if (blockData) blockData._activeTabIndex = tabIndex;
+
           // Update header active state
           this.querySelectorAll('.pwc-tab-header').forEach(h => {
             h.classList.toggle('pwc-tab-header--active', parseInt(h.dataset.tabIndex, 10) === tabIndex);
@@ -398,8 +408,12 @@
       blockData.attributes = blockData.attributes || {};
       blockData.attributes.columnIndex = tabIndex;
 
+      // Stay on the current tab after adding the block.
+      this._activeTabIndex = tabIndex;
+
       const tabBlockData = window.pwcEditorState?.findBlock(this.blockId);
       if (tabBlockData) {
+        tabBlockData._activeTabIndex = tabIndex;
         tabBlockData.innerBlocks = tabBlockData.innerBlocks || [];
         tabBlockData.innerBlocks.push(blockData);
         window.pwcEditorState.isDirty = true;

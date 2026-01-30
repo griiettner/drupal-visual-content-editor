@@ -31,7 +31,7 @@
     {
       id: 'widgets',
       label: 'Widgets',
-      blocks: ['button', 'tag', 'accordion', 'table', 'classic', 'columns', 'group', 'spacer', 'separator']
+      blocks: ['button', 'tag', 'accordion', 'tab', 'table', 'classic', 'columns', 'group', 'spacer', 'separator']
     }
   ];
 
@@ -245,6 +245,7 @@
         'button': `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 6H5c-1.1 0-2 .9-2 2v8c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm0 10H5V8h14v8z"/></svg>`,
         'tag': `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M21.41 11.58l-9-9C12.05 2.22 11.55 2 11 2H4c-1.1 0-2 .9-2 2v7c0 .55.22 1.05.59 1.42l9 9c.36.36.86.58 1.41.58s1.05-.22 1.41-.59l7-7c.37-.36.59-.86.59-1.41s-.23-1.06-.59-1.42zM5.5 7C4.67 7 4 6.33 4 5.5S4.67 4 5.5 4 7 4.67 7 5.5 6.33 7 5.5 7z"/></svg>`,
         'accordion': `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 5h18v3H3V5zm0 5h18v3H3v-3zm0 5h18v3H3v-3z" opacity=".3"/><path d="M3 4v4h18V4H3zm16 2H5V6h14v0zM3 9v4h18V9H3zm16 2H5v0h14v0zM3 14v4h18v-4H3zm16 2H5v0h14v0z"/></svg>`,
+        'tab': `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M21 3H3c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h18c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H3V5h10v4h8v10z"/></svg>`,
       };
 
       return icons[block.name] || `<span class="text-lg">${block.icon || '▢'}</span>`;

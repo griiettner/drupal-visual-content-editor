@@ -17,6 +17,7 @@ editor:
     js/components/blocks/button.js: {}
     js/components/blocks/tag.js: {}
     js/components/blocks/accordion.js: {}
+    js/components/blocks/tab.js: {}
     js/components/block-library-panel.js: {}
     js/editor.js: {}
   css:

@@ -84,6 +84,39 @@
   flex-direction: column;
 }
 
+/* --- Layout --- */
+.pwc-layout-block {
+  display: flex;
+  flex-wrap: wrap;
+  width: 100%;
+}
+
+.pwc-layout-column {
+  min-width: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.pwc-layout-column__content {
+  flex: 1;
+}
+
+@media (max-width: 768px) {
+  .pwc-layout-block {
+    flex-direction: column;
+  }
+
+  .pwc-layout-column {
+    flex: 1 0 auto !important;
+  }
+}
+
+/* --- Tab --- */
+.pwc-tab-wrapper {
+  position: relative;
+}
+
 /* --- Accordion --- */
 .pwc-accordion-wrapper {
   position: relative;

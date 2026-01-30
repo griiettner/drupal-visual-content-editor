@@ -371,6 +371,58 @@
           `;
         }
 
+        case 'tabTitles': {
+          let tabTitles;
+          try { tabTitles = JSON.parse(value || '[]'); } catch { tabTitles = []; }
+          const lastTabIdx = tabTitles.length - 1;
+
+          const tabTitlesHtml = tabTitles.map((title, index) => {
+            return `
+              <div class="pwc-tab-item-editor" data-index="${index}">
+                <div class="pwc-tab-item-editor__header">
+                  <span class="pwc-tab-item-editor__number">${index + 1}</span>
+                  <div class="pwc-tab-item-editor__arrows">
+                    <button type="button" class="pwc-tab-item-editor__move-up" data-index="${index}" data-name="${setting.name}" ${index === 0 ? 'disabled' : ''} title="Move up">&#9650;</button>
+                    <button type="button" class="pwc-tab-item-editor__move-down" data-index="${index}" data-name="${setting.name}" ${index === lastTabIdx ? 'disabled' : ''} title="Move down">&#9660;</button>
+                  </div>
+                  <button type="button" class="pwc-tab-item-editor__remove" data-index="${index}" data-name="${setting.name}" title="Remove tab">
+                    <svg class="pwc-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <line x1="18" y1="6" x2="6" y2="18"></line>
+                      <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                  </button>
+                </div>
+                <input
+                  type="text"
+                  class="pwc-tab-item-editor__title pwc-setting-input"
+                  value="${this.escapeHtml(title || '')}"
+                  data-index="${index}"
+                  data-name="${setting.name}"
+                  placeholder="Tab title"
+                >
+              </div>
+            `;
+          }).join('');
+
+          return `
+            <div class="pwc-setting-field">
+              <label class="pwc-setting-label pwc-setting-label--mb2">
+                ${setting.label}
+              </label>
+              <div class="pwc-tab-items-editor" data-name="${setting.name}">
+                ${tabTitlesHtml}
+                <button type="button" class="pwc-tab-item-editor__add" data-name="${setting.name}">
+                  <svg class="pwc-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="12" y1="5" x2="12" y2="19"></line>
+                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                  </svg>
+                  Add Tab
+                </button>
+              </div>
+            </div>
+          `;
+        }
+
         case 'textarea':
           return `
             <div class="pwc-setting-field">
@@ -1414,6 +1466,81 @@
         });
       });
 
+      // Tab titles editor
+      this.querySelectorAll('.pwc-tab-item-editor__title').forEach(input => {
+        input.addEventListener('input', () => {
+          const name = input.dataset.name;
+          const container = input.closest('.pwc-tab-items-editor');
+          this._updateTabTitlesFromDOM(name, container);
+        });
+      });
+
+      this.querySelectorAll('.pwc-tab-item-editor__remove').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const name = btn.dataset.name;
+          const index = parseInt(btn.dataset.index, 10);
+          const container = btn.closest('.pwc-tab-items-editor');
+          const editor = btn.closest('.pwc-tab-item-editor');
+
+          // Shift columnIndex for inner blocks in higher indices
+          const blockData = window.pwcEditorState?.findBlock(this.currentBlock.blockId);
+          if (blockData?.innerBlocks) {
+            // Remove blocks belonging to deleted tab, shift higher ones down
+            blockData.innerBlocks = blockData.innerBlocks.filter(block => {
+              return (block.attributes?.columnIndex ?? 0) !== index;
+            });
+            blockData.innerBlocks.forEach(block => {
+              const ci = block.attributes?.columnIndex ?? 0;
+              if (ci > index) {
+                block.attributes.columnIndex = ci - 1;
+              }
+            });
+            window.pwcEditorState.isDirty = true;
+            window.pwcEditorState.pushHistory();
+          }
+
+          editor.remove();
+          this._updateTabTitlesFromDOM(name, container);
+
+          if (this.currentBlock) {
+            setTimeout(() => this.showBlockSettings(this.currentBlock), 50);
+          }
+        });
+      });
+
+      this.querySelectorAll('.pwc-tab-item-editor__add').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const name = btn.dataset.name;
+          const container = btn.closest('.pwc-tab-items-editor');
+          const titles = this._getTabTitlesFromDOM(container);
+          titles.push(`Tab ${titles.length + 1}`);
+          this.updateBlockAttribute(name, JSON.stringify(titles));
+          if (this.currentBlock) {
+            setTimeout(() => this.showBlockSettings(this.currentBlock), 50);
+          }
+        });
+      });
+
+      this.querySelectorAll('.pwc-tab-item-editor__move-up').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const index = parseInt(btn.dataset.index, 10);
+          if (index > 0) {
+            this._reorderTab(index, index - 1);
+          }
+        });
+      });
+
+      this.querySelectorAll('.pwc-tab-item-editor__move-down').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const index = parseInt(btn.dataset.index, 10);
+          const container = btn.closest('.pwc-tab-items-editor');
+          const titles = this._getTabTitlesFromDOM(container);
+          if (index < titles.length - 1) {
+            this._reorderTab(index, index + 1);
+          }
+        });
+      });
+
       // Button type picker buttons
       this.querySelectorAll('.pwc-btn-type-btn').forEach(btn => {
         btn.addEventListener('click', () => {
@@ -1886,6 +2013,48 @@
     _updateAccordionTitlesFromDOM(name, container) {
       const titles = this._getAccordionTitlesFromDOM(container);
       this.updateBlockAttribute(name, JSON.stringify(titles));
+    }
+
+    _getTabTitlesFromDOM(container) {
+      const titles = [];
+      container.querySelectorAll('.pwc-tab-item-editor').forEach(editor => {
+        const title = editor.querySelector('.pwc-tab-item-editor__title')?.value || '';
+        titles.push(title);
+      });
+      return titles;
+    }
+
+    _updateTabTitlesFromDOM(name, container) {
+      const titles = this._getTabTitlesFromDOM(container);
+      this.updateBlockAttribute(name, JSON.stringify(titles));
+    }
+
+    _reorderTab(fromIndex, toIndex) {
+      if (!this.currentBlock) return;
+
+      // 1. Swap titles
+      const container = this.querySelector('.pwc-tab-items-editor');
+      if (!container) return;
+      const titles = this._getTabTitlesFromDOM(container);
+      [titles[fromIndex], titles[toIndex]] = [titles[toIndex], titles[fromIndex]];
+      this.updateBlockAttribute('titles', JSON.stringify(titles));
+
+      // 2. Remap columnIndex on inner blocks
+      const blockData = window.pwcEditorState?.findBlock(this.currentBlock.blockId);
+      if (blockData?.innerBlocks) {
+        blockData.innerBlocks.forEach(block => {
+          const ci = block.attributes?.columnIndex ?? 0;
+          if (ci === fromIndex) block.attributes.columnIndex = toIndex;
+          else if (ci === toIndex) block.attributes.columnIndex = fromIndex;
+        });
+        window.pwcEditorState.isDirty = true;
+        window.pwcEditorState.pushHistory();
+      }
+
+      // 3. Re-render settings panel and the tab block
+      if (this.currentBlock) {
+        setTimeout(() => this.showBlockSettings(this.currentBlock), 50);
+      }
     }
 
     camelToKebab(str) {

@@ -41,7 +41,8 @@ pwc-list,
 pwc-layout,
 pwc-button,
 pwc-tag,
-pwc-accordion {
+pwc-accordion,
+pwc-tab {
   display: block;
 }
 
@@ -592,6 +593,228 @@ body.pwc-dragging-block .pwc-accordion-section__content {
   height: 14px;
 }
 
+/* ==========================================================================
+   Tab Block
+   ========================================================================== */
+
+/* Tab wrapper */
+.pwc-tab-wrapper {
+  position: relative;
+}
+
+/* Tab headers row */
+.pwc-tab-headers {
+  display: flex;
+  gap: 0;
+  border-bottom: 2px solid #e5e7eb;
+}
+
+.pwc-tab-header {
+  padding: 8px 16px;
+  border: none;
+  background: transparent;
+  font-size: 13px;
+  font-weight: 500;
+  color: #6b7280;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -2px;
+  transition: all 0.15s ease;
+}
+
+.pwc-tab-header:hover {
+  color: #374151;
+}
+
+.pwc-tab-header--active {
+  color: #3b82f6;
+  border-bottom-color: #3b82f6;
+}
+
+/* Tab content area */
+.pwc-tab-content {
+  min-height: 60px;
+  padding: 12px 0;
+}
+
+/* Section body (drop zone target — mirrors accordion) */
+.pwc-tab-section__body {
+  min-height: 50px;
+  position: relative;
+  border: 2px dashed transparent;
+  border-radius: 6px;
+  transition: border-color 0.15s ease, background-color 0.15s ease;
+  padding: 8px;
+}
+
+.pwc-tab-section__body--drag-over {
+  border-color: #3b82f6;
+  background: rgba(59, 130, 246, 0.04);
+}
+
+.pwc-tab-section__content {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-height: 30px;
+}
+
+/* Empty state */
+.pwc-tab-section__empty {
+  display: none;
+}
+
+.pwc-editing .pwc-tab-section__empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  border: 2px dashed #e5e7eb;
+  border-radius: 6px;
+  background: rgba(249, 250, 251, 0.5);
+}
+
+.pwc-tab-section__empty-text {
+  font-size: 12px;
+  color: #9ca3af;
+  font-weight: 500;
+}
+
+/* Add button */
+.pwc-tab-section__add-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 28px;
+  margin-top: 4px;
+  border: 2px dashed #d1d5db;
+  border-radius: 4px;
+  background: transparent;
+  color: #9ca3af;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.pwc-tab-section__add-btn:hover {
+  border-color: #3b82f6;
+  color: #3b82f6;
+  background: #eff6ff;
+}
+
+.pwc-tab-section__add-btn svg {
+  width: 18px;
+  height: 18px;
+}
+
+/* Hide default block controls on tab blocks (uses custom handle) */
+pwc-tab > .pwc-block__controls {
+  display: none !important;
+}
+
+/* Tab controls (drag handle + delete) */
+.pwc-tab-controls {
+  position: absolute;
+  right: -40px;
+  top: 0;
+  bottom: 0;
+  width: 36px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.15s ease, visibility 0.15s ease;
+  z-index: 100;
+}
+
+pwc-tab:hover .pwc-tab-controls,
+pwc-tab.pwc-block--selected .pwc-tab-controls {
+  opacity: 1;
+  visibility: visible;
+}
+
+.pwc-tab-handle {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  cursor: grab;
+  color: #6b7280;
+  transition: all 0.15s ease;
+  -webkit-user-drag: element;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: none;
+}
+
+.pwc-tab-handle:hover {
+  background: #f3f4f6;
+  color: #374151;
+  border-color: #3b82f6;
+}
+
+.pwc-tab-handle:active {
+  cursor: grabbing;
+  background: #e0e7ff;
+}
+
+.pwc-tab-handle svg {
+  width: 18px;
+  height: 18px;
+  pointer-events: none;
+}
+
+.pwc-tab-delete {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  cursor: pointer;
+  color: #6b7280;
+  transition: all 0.15s ease;
+}
+
+.pwc-tab-delete:hover {
+  background: #fee2e2;
+  border-color: #fecaca;
+  color: #dc2626;
+}
+
+.pwc-tab-delete svg {
+  width: 18px;
+  height: 18px;
+}
+
+/* Tab selected state */
+pwc-tab.pwc-block--selected > .pwc-tab-wrapper {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Tab being dragged */
+pwc-tab.pwc-block--dragging {
+  opacity: 0.4;
+  outline: 2px dashed #3b82f6;
+}
+
+/* Drag state: ensure tab section content accepts drops */
+body.pwc-dragging-block .pwc-tab-section__content {
+  pointer-events: auto !important;
+  position: relative;
+}
+
 /* --- Paragraph --- */
 
 .pwc-paragraph {
@@ -673,6 +896,8 @@ pwc-layout {
   display: flex;
   flex-direction: column;
   min-height: 60px;
+  min-width: 0;
+  overflow: hidden;
 }
 
 .pwc-layout-column__content {
@@ -2522,6 +2747,135 @@ body.pwc-dragging-block .pwc-drop-zone {
 }
 
 .pwc-accordion-item-editor__add svg {
+  width: 16px;
+  height: 16px;
+}
+
+/* Settings panel: Tab item editor with arrows */
+.pwc-tab-item-editor {
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 12px;
+  background: #fafafa;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.pwc-tab-item-editor__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.pwc-tab-item-editor__number {
+  font-size: 11px;
+  font-weight: 700;
+  color: #6b7280;
+  background: #e5e7eb;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.pwc-tab-item-editor__arrows {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-left: auto;
+  margin-right: 4px;
+}
+
+.pwc-tab-item-editor__move-up,
+.pwc-tab-item-editor__move-down {
+  width: 18px;
+  height: 14px;
+  padding: 0;
+  border: 1px solid #d1d5db;
+  border-radius: 3px;
+  background: #fff;
+  color: #6b7280;
+  cursor: pointer;
+  font-size: 8px;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.pwc-tab-item-editor__move-up:hover,
+.pwc-tab-item-editor__move-down:hover {
+  border-color: #3b82f6;
+  color: #3b82f6;
+}
+
+.pwc-tab-item-editor__move-up:disabled,
+.pwc-tab-item-editor__move-down:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.pwc-tab-item-editor__remove {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border: none;
+  background: none;
+  color: #9ca3af;
+  cursor: pointer;
+  border-radius: 4px;
+  padding: 0;
+  transition: all 0.15s ease;
+}
+
+.pwc-tab-item-editor__remove:hover {
+  color: #e0301e;
+  background: #fef2f2;
+}
+
+.pwc-tab-item-editor__remove svg {
+  width: 14px;
+  height: 14px;
+}
+
+.pwc-tab-item-editor__title {
+  font-weight: 500;
+}
+
+.pwc-tab-items-editor {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.pwc-tab-item-editor__add {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px 12px;
+  border: 2px dashed #d1d5db;
+  border-radius: 8px;
+  background: none;
+  color: #6b7280;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 500;
+  transition: all 0.15s ease;
+}
+
+.pwc-tab-item-editor__add:hover {
+  border-color: #93c5fd;
+  color: #3b82f6;
+  background: #eff6ff;
+}
+
+.pwc-tab-item-editor__add svg {
   width: 16px;
   height: 16px;
 }

@@ -359,6 +359,9 @@ function pwc_visual_editor_render_block(array $block): string {
     case 'accordion':
       return pwc_visual_editor_render_accordion($attributes, $innerBlocks);
 
+    case 'tab':
+      return pwc_visual_editor_render_tab($attributes, $innerBlocks);
+
     default:
       // Unknown block type - render as comment for debugging
       return '<!-- Unknown block type: ' . htmlspecialchars($type) . ' -->';
@@ -1267,6 +1270,76 @@ function pwc_visual_editor_render_accordion(array $attributes, array $innerBlock
 }
 
 /**
+ * Render a tab block (container block).
+ *
+ * @param array $attributes
+ *   Block attributes including JSON 'titles' array.
+ * @param array $innerBlocks
+ *   Inner blocks grouped by columnIndex (tab panel index).
+ *
+ * @return string
+ *   Rendered HTML using apw-tabset / apw-tab.
+ */
+function pwc_visual_editor_render_tab(array $attributes, array $innerBlocks): string {
+  $titlesJson = $attributes['titles'] ?? '[]';
+  $titles = json_decode($titlesJson, TRUE);
+
+  if (!is_array($titles) || empty($titles)) {
+    return '';
+  }
+
+  $tabType = htmlspecialchars($attributes['tabType'] ?? 'underline');
+  $stretched = (!empty($attributes['stretched']) && $attributes['stretched'] !== 'false')
+    ? ' stretched="true"' : '';
+  $contentBgColor = $attributes['contentBgColor'] ?? '';
+
+  // Wrapper classes
+  $wrapperClasses = ['pwc-tab-wrapper'];
+  if (!empty($attributes['margin'])) {
+    $wrapperClasses[] = htmlspecialchars($attributes['margin']);
+  }
+  if (!empty($attributes['padding'])) {
+    $wrapperClasses[] = htmlspecialchars($attributes['padding']);
+  }
+  if (!empty($attributes['customClasses'])) {
+    $wrapperClasses[] = htmlspecialchars($attributes['customClasses']);
+  }
+
+  // Group blocks by tab index
+  $blocksByTab = [];
+  foreach ($innerBlocks as $block) {
+    $tabIndex = (int) ($block['attributes']['columnIndex'] ?? 0);
+    $blocksByTab[$tabIndex][] = $block;
+  }
+
+  // Build tabs
+  $tabsHtml = '';
+  foreach ($titles as $index => $title) {
+    $safeTitle = htmlspecialchars($title, ENT_QUOTES, 'UTF-8');
+    $tabsHtml .= '<apw-tab label="' . $safeTitle . '">';
+
+    // Content wrapper with background color
+    $contentClasses = $contentBgColor ? ' class="' . htmlspecialchars($contentBgColor) . '"' : '';
+    $tabsHtml .= '<div' . $contentClasses . '>';
+    if (!empty($blocksByTab[$index])) {
+      foreach ($blocksByTab[$index] as $innerBlock) {
+        $tabsHtml .= pwc_visual_editor_render_block($innerBlock);
+      }
+    }
+    $tabsHtml .= '</div>';
+    $tabsHtml .= '</apw-tab>';
+  }
+
+  $wrapperClassString = implode(' ', $wrapperClasses);
+
+  return '<div class="' . $wrapperClassString . '">'
+    . '<apw-tabset type="' . $tabType . '"' . $stretched . '>'
+    . $tabsHtml
+    . '</apw-tabset>'
+    . "</div>\n";
+}
+
+/**
  * Render a layout block.
  *
  * @param array $attributes
@@ -1283,52 +1356,91 @@ function pwc_visual_editor_render_layout(array $attributes, array $innerBlocks):
     return '';
   }
 
-  $columns = (int) ($attributes['columns'] ?? 2);
-  $gap = $attributes['gap'] ?? '4';
-  $layout = $attributes['layout'] ?? 'equal';
+  $layout = $attributes['layout'] ?? '100';
+  $gap = $attributes['gap'] ?? 'medium';
+  $verticalAlign = $attributes['verticalAlign'] ?? 'top';
 
-  // Build layout classes
-  $layoutClasses = ['pwc-layout-block', 'flex', 'flex-wrap'];
-  $layoutClasses[] = 'gap-' . htmlspecialchars($gap);
+  // Layout configurations matching JS layoutVariations (flex-grow ratios).
+  $layoutConfigs = [
+    '100' => [1],
+    '50-50' => [1, 1],
+    '30-70' => [3, 7],
+    '70-30' => [7, 3],
+    '33-33-33' => [1, 1, 1],
+    '25-50-25' => [1, 2, 1],
+    // Legacy layout names for backwards compatibility.
+    'equal' => [],
+    '1-2' => [1, 2],
+    '2-1' => [2, 1],
+    '1-2-1' => [1, 2, 1],
+    '1-3' => [1, 3],
+    '3-1' => [3, 1],
+  ];
 
-  // Add margin if any
+  // Gap values matching JS gapValues.
+  $gapValues = [
+    'none' => '0',
+    'small' => '8px',
+    'medium' => '16px',
+    'large' => '24px',
+    // Legacy numeric gap values.
+    '0' => '0',
+    '1' => '0.25rem',
+    '2' => '0.5rem',
+    '3' => '0.75rem',
+    '4' => '1rem',
+    '5' => '1.25rem',
+    '6' => '1.5rem',
+    '8' => '2rem',
+  ];
+
+  // Vertical alignment values matching JS.
+  $alignValues = [
+    'top' => 'flex-start',
+    'center' => 'center',
+    'bottom' => 'flex-end',
+    'stretch' => 'stretch',
+  ];
+
+  $flexRatios = $layoutConfigs[$layout] ?? [];
+  $columns = !empty($flexRatios) ? count($flexRatios) : (int) ($attributes['columns'] ?? 2);
+
+  // For legacy 'equal' layout, fill with 1s.
+  if (empty($flexRatios)) {
+    $flexRatios = array_fill(0, $columns, 1);
+  }
+
+  $gapValue = $gapValues[$gap] ?? '16px';
+  $alignValue = $alignValues[$verticalAlign] ?? 'flex-start';
+
+  // Build wrapper classes (no Tailwind — flex/wrap handled by .pwc-layout-block in CSS).
+  $wrapperClasses = ['pwc-layout-block'];
   if (!empty($attributes['margin'])) {
-    $layoutClasses[] = htmlspecialchars($attributes['margin']);
+    $wrapperClasses[] = htmlspecialchars($attributes['margin']);
   }
-
-  // Add padding if any
   if (!empty($attributes['padding'])) {
-    $layoutClasses[] = htmlspecialchars($attributes['padding']);
+    $wrapperClasses[] = htmlspecialchars($attributes['padding']);
   }
-
-  // Add background color if any
   if (!empty($attributes['backgroundColor'])) {
-    $layoutClasses[] = htmlspecialchars($attributes['backgroundColor']);
+    $wrapperClasses[] = htmlspecialchars($attributes['backgroundColor']);
   }
-
-  // Add border width if any
   if (!empty($attributes['borderWidth'])) {
-    $layoutClasses[] = htmlspecialchars($attributes['borderWidth']);
+    $wrapperClasses[] = htmlspecialchars($attributes['borderWidth']);
   }
-
-  // Add border color if any
   if (!empty($attributes['borderColor'])) {
-    $layoutClasses[] = htmlspecialchars($attributes['borderColor']);
+    $wrapperClasses[] = htmlspecialchars($attributes['borderColor']);
   }
-
-  // Add border radius if any
   if (!empty($attributes['borderRadius'])) {
-    $layoutClasses[] = htmlspecialchars($attributes['borderRadius']);
+    $wrapperClasses[] = htmlspecialchars($attributes['borderRadius']);
   }
-
-  // Add custom classes if any
   if (!empty($attributes['customClasses'])) {
-    $layoutClasses[] = htmlspecialchars($attributes['customClasses']);
+    $wrapperClasses[] = htmlspecialchars($attributes['customClasses']);
   }
 
-  $layoutClassString = implode(' ', $layoutClasses);
+  $wrapperClassString = implode(' ', $wrapperClasses);
+  $wrapperStyle = "gap: {$gapValue}; align-items: {$alignValue};";
 
-  // Group inner blocks by columnIndex
+  // Group inner blocks by columnIndex.
   $blocksByColumn = [];
   for ($i = 0; $i < $columns; $i++) {
     $blocksByColumn[$i] = [];
@@ -1336,27 +1448,22 @@ function pwc_visual_editor_render_layout(array $attributes, array $innerBlocks):
 
   foreach ($innerBlocks as $block) {
     $columnIndex = (int) ($block['attributes']['columnIndex'] ?? 0);
-    // Ensure column index is within bounds
     if ($columnIndex >= $columns) {
       $columnIndex = 0;
     }
     $blocksByColumn[$columnIndex][] = $block;
   }
 
-  $html = "<div class=\"{$layoutClassString}\">\n";
+  $html = "<div class=\"{$wrapperClassString}\" style=\"{$wrapperStyle}\">\n";
 
-  // Render each column
+  // Render each column using flex-grow ratios (matching JS inline styles).
   for ($columnIndex = 0; $columnIndex < $columns; $columnIndex++) {
-    // Column width classes based on layout
-    $widthClass = pwc_visual_editor_get_column_width_class($layout, $columnIndex, $columns);
+    $flex = $flexRatios[$columnIndex] ?? 1;
+    $columnStyle = "flex: {$flex} 0 0;";
 
-    $columnClasses = ['pwc-layout-column', $widthClass];
-    $columnClassString = implode(' ', array_filter($columnClasses));
-
-    $html .= "  <div class=\"{$columnClassString}\">\n";
+    $html .= "  <div class=\"pwc-layout-column\" style=\"{$columnStyle}\">\n";
     $html .= "    <div class=\"pwc-layout-column__content\">\n";
 
-    // Render blocks inside this column
     foreach ($blocksByColumn[$columnIndex] as $innerBlock) {
       $html .= '      ' . pwc_visual_editor_render_block($innerBlock);
     }
@@ -1371,46 +1478,41 @@ function pwc_visual_editor_render_layout(array $attributes, array $innerBlocks):
 }
 
 /**
- * Get Tailwind width class for a column based on layout.
+ * Get flex-grow ratio for a column based on layout.
  *
  * @param string $layout
- *   Layout type (equal, 1-2, 2-1, 1-2-1, etc.).
+ *   Layout type (100, 50-50, 30-70, 70-30, 33-33-33, 25-50-25).
  * @param int $index
  *   Column index.
  * @param int $totalColumns
  *   Total number of columns.
  *
- * @return string
- *   Tailwind width class.
+ * @return int
+ *   Flex-grow ratio for the column.
+ *
+ * @deprecated No longer used directly by render_layout. Kept for reference.
  */
 function pwc_visual_editor_get_column_width_class(string $layout, int $index, int $totalColumns): string {
-  // Layout patterns and their column width distributions
+  // Layout patterns with flex-grow ratios matching JS layoutVariations.
   $layouts = [
-    'equal' => [], // Will calculate based on totalColumns
-    '1-2' => ['w-1/3', 'w-2/3'],
-    '2-1' => ['w-2/3', 'w-1/3'],
-    '1-2-1' => ['w-1/4', 'w-1/2', 'w-1/4'],
-    '1-3' => ['w-1/4', 'w-3/4'],
-    '3-1' => ['w-3/4', 'w-1/4'],
+    '50-50' => [1, 1],
+    '30-70' => [3, 7],
+    '70-30' => [7, 3],
+    '33-33-33' => [1, 1, 1],
+    '25-50-25' => [1, 2, 1],
+    // Legacy layout names.
+    '1-2' => [1, 2],
+    '2-1' => [2, 1],
+    '1-2-1' => [1, 2, 1],
+    '1-3' => [1, 3],
+    '3-1' => [3, 1],
   ];
 
-  if ($layout === 'equal' || !isset($layouts[$layout])) {
-    // Equal distribution
-    switch ($totalColumns) {
-      case 1:
-        return 'w-full';
-      case 2:
-        return 'w-1/2';
-      case 3:
-        return 'w-1/3';
-      case 4:
-        return 'w-1/4';
-      default:
-        return 'w-full';
-    }
+  if (!isset($layouts[$layout])) {
+    return '1';
   }
 
-  return $layouts[$layout][$index] ?? 'w-full';
+  return (string) ($layouts[$layout][$index] ?? 1);
 }
 
 /**

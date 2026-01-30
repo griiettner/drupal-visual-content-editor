@@ -40,7 +40,8 @@ pwc-paragraph,
 pwc-list,
 pwc-layout,
 pwc-button,
-pwc-tag {
+pwc-tag,
+pwc-accordion {
   display: block;
 }
 
@@ -275,10 +276,320 @@ body.pwc-editing button.contextual-trigger {
 .pwc-tag-list {
   list-style-type: none;
   padding-inline-start: 0;
+  margin-left: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.pwc-tag-list--stacked {
+  flex-direction: column;
   display: inline-flex;
   flex-wrap: wrap;
   gap: 4px;
   margin: 0;
+}
+
+/* --- Accordion --- */
+
+.pwc-accordion-wrapper {
+  position: relative;
+}
+
+.pwc-accordion-section {
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  margin-bottom: 8px;
+  background: #fff;
+}
+
+.pwc-accordion-section:last-child {
+  margin-bottom: 0;
+}
+
+/* Zebra stripes */
+.pwc-accordion-wrapper--zebra .pwc-accordion-section:nth-child(even) {
+  background: #f9fafb;
+}
+
+.pwc-accordion-section__header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px;
+  background: #f9fafb;
+  border-bottom: 1px solid #e5e7eb;
+  border-radius: 7px 7px 0 0;
+  cursor: default;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.pwc-accordion-section__chevron {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+  color: #6b7280;
+  transition: transform 0.2s ease;
+}
+
+.pwc-accordion-section__title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #111827;
+}
+
+.pwc-accordion-section__body {
+  padding: 12px;
+  min-height: 48px;
+  transition: background 0.15s ease, outline-color 0.15s ease;
+}
+
+.pwc-accordion-section__content {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-height: 40px;
+}
+
+/* Empty state inside accordion section */
+.pwc-accordion-section__empty {
+  display: none;
+}
+
+.pwc-editing .pwc-accordion-section__empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 60px;
+  padding: 16px;
+  border: 2px dashed #d1d5db;
+  border-radius: 8px;
+  background: #f9fafb;
+  transition: all 0.15s ease;
+}
+
+.pwc-accordion-section__empty-text {
+  font-size: 12px;
+  color: #9ca3af;
+}
+
+/* Drag-over state for accordion section body */
+.pwc-accordion-section__body--drag-over {
+  background: #eff6ff;
+  outline: 2px dashed #3b82f6;
+  outline-offset: -2px;
+  border-radius: 8px;
+}
+
+.pwc-accordion-section__body--drag-over .pwc-accordion-section__empty {
+  border-color: #3b82f6;
+  background: #dbeafe;
+}
+
+/* Add block button inside accordion section */
+.pwc-accordion-section__add-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  margin-top: 8px;
+  padding: 6px;
+  border: 2px dashed #d1d5db;
+  border-radius: 6px;
+  background: transparent;
+  color: #9ca3af;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.pwc-accordion-section__add-btn:hover {
+  border-color: #3b82f6;
+  color: #3b82f6;
+  background: #eff6ff;
+}
+
+.pwc-accordion-section__add-btn svg {
+  width: 18px;
+  height: 18px;
+}
+
+/* Hide default block controls on accordions (uses custom handle) */
+pwc-accordion > .pwc-block__controls {
+  display: none !important;
+}
+
+/* Accordion controls (drag handle + delete) */
+.pwc-accordion-controls {
+  position: absolute;
+  right: -40px;
+  top: 0;
+  bottom: 0;
+  width: 36px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.15s ease, visibility 0.15s ease;
+  z-index: 100;
+}
+
+pwc-accordion:hover .pwc-accordion-controls,
+pwc-accordion.pwc-block--selected .pwc-accordion-controls {
+  opacity: 1;
+  visibility: visible;
+}
+
+.pwc-accordion-handle {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  cursor: grab;
+  color: #6b7280;
+  transition: all 0.15s ease;
+  -webkit-user-drag: element;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: none;
+}
+
+.pwc-accordion-handle:hover {
+  background: #f3f4f6;
+  color: #374151;
+  border-color: #3b82f6;
+}
+
+.pwc-accordion-handle:active {
+  cursor: grabbing;
+  background: #e0e7ff;
+}
+
+.pwc-accordion-handle svg {
+  width: 18px;
+  height: 18px;
+  pointer-events: none;
+}
+
+.pwc-accordion-delete {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  cursor: pointer;
+  color: #6b7280;
+  transition: all 0.15s ease;
+}
+
+.pwc-accordion-delete:hover {
+  background: #fee2e2;
+  border-color: #fecaca;
+  color: #dc2626;
+}
+
+.pwc-accordion-delete svg {
+  width: 18px;
+  height: 18px;
+}
+
+/* Accordion selected state */
+pwc-accordion.pwc-block--selected > .pwc-accordion-wrapper {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Accordion being dragged */
+pwc-accordion.pwc-block--dragging {
+  opacity: 0.4;
+  outline: 2px dashed #3b82f6;
+}
+
+/* Drag state: ensure accordion section content accepts drops */
+body.pwc-dragging-block .pwc-accordion-section__content {
+  pointer-events: auto !important;
+  position: relative;
+}
+
+/* Custom accordion header (drop zone mode) */
+.pwc-accordion-section__header--custom {
+  min-height: 48px;
+  flex-wrap: wrap;
+}
+
+.pwc-accordion-section__header-content {
+  flex: 1;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  min-height: 32px;
+}
+
+.pwc-accordion-section__header-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 32px;
+  padding: 8px;
+  border: 2px dashed #d1d5db;
+  border-radius: 6px;
+  background: rgba(249, 250, 251, 0.5);
+}
+
+.pwc-accordion-section__header-empty span {
+  font-size: 12px;
+  color: #9ca3af;
+  font-weight: 400;
+}
+
+/* Header drop zone drag-over */
+.pwc-accordion-section__header--drag-over {
+  background: #eff6ff;
+}
+
+.pwc-accordion-section__header--drag-over .pwc-accordion-section__header-empty {
+  border-color: #3b82f6;
+  background: rgba(219, 234, 254, 0.5);
+}
+
+/* Add button inside custom header */
+.pwc-accordion-section__header-add-btn {
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px dashed #d1d5db;
+  border-radius: 4px;
+  background: transparent;
+  color: #9ca3af;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: all 0.15s ease;
+}
+
+.pwc-accordion-section__header-add-btn:hover {
+  border-color: #3b82f6;
+  color: #3b82f6;
+  background: #eff6ff;
+}
+
+.pwc-accordion-section__header-add-btn svg {
+  width: 14px;
+  height: 14px;
 }
 
 /* --- Paragraph --- */
@@ -606,7 +917,9 @@ body.pwc-dragging-block .pwc-drop-zone--reorder {
 }
 
 body.pwc-reordering .pwc-layout-controls,
-body.pwc-dragging-block .pwc-layout-controls {
+body.pwc-dragging-block .pwc-layout-controls,
+body.pwc-reordering .pwc-accordion-controls,
+body.pwc-dragging-block .pwc-accordion-controls {
   pointer-events: auto;
 }
 
@@ -616,8 +929,9 @@ body.pwc-reordering .pwc-layout-column__content {
   position: relative;
 }
 
-/* Cross-container drop target feedback on columns */
-body.pwc-dragging-block .pwc-layout-column__content.pwc-drop-active {
+/* Cross-container drop target feedback on columns and accordion sections */
+body.pwc-dragging-block .pwc-layout-column__content.pwc-drop-active,
+body.pwc-dragging-block .pwc-accordion-section__content.pwc-drop-active {
   outline: 2px dashed #93c5fd;
   outline-offset: -2px;
   border-radius: 4px;
@@ -2120,6 +2434,125 @@ body.pwc-dragging-block .pwc-drop-zone {
   font-weight: 500;
 }
 
+/* Accordion Items Editor */
+.pwc-accordion-items-editor {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.pwc-accordion-item-editor {
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 12px;
+  background: #fafafa;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.pwc-accordion-item-editor__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.pwc-accordion-item-editor__number {
+  font-size: 11px;
+  font-weight: 700;
+  color: #6b7280;
+  background: #e5e7eb;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.pwc-accordion-item-editor__remove {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border: none;
+  background: none;
+  color: #9ca3af;
+  cursor: pointer;
+  border-radius: 4px;
+  padding: 0;
+  transition: all 0.15s ease;
+}
+
+.pwc-accordion-item-editor__remove:hover {
+  color: #e0301e;
+  background: #fef2f2;
+}
+
+.pwc-accordion-item-editor__remove svg {
+  width: 14px;
+  height: 14px;
+}
+
+.pwc-accordion-item-editor__title {
+  font-weight: 500;
+}
+
+.pwc-accordion-item-editor__add {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px 12px;
+  border: 2px dashed #d1d5db;
+  border-radius: 8px;
+  background: none;
+  color: #6b7280;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 500;
+  transition: all 0.15s ease;
+}
+
+.pwc-accordion-item-editor__add:hover {
+  border-color: #93c5fd;
+  color: #3b82f6;
+  background: #eff6ff;
+}
+
+.pwc-accordion-item-editor__add svg {
+  width: 16px;
+  height: 16px;
+}
+
+/* Settings panel: Custom checkbox toggle */
+.pwc-accordion-item-editor__custom-toggle {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  font-weight: 500;
+  color: #6b7280;
+  cursor: pointer;
+  margin-left: auto;
+  margin-right: 8px;
+}
+
+.pwc-accordion-item-editor__custom-toggle input[type="checkbox"] {
+  width: 14px;
+  height: 14px;
+  cursor: pointer;
+  accent-color: #3b82f6;
+}
+
+/* Disabled title input when custom is active */
+.pwc-accordion-item-editor__title:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  background: #f3f4f6;
+}
+
 /* List Style Picker */
 .pwc-list-style-picker {
   display: grid;
@@ -2763,6 +3196,27 @@ body.pwc-dragging-block .pwc-drop-zone {
   background: #dbeafe !important;
   border-color: #3b82f6 !important;
   color: #1d4ed8 !important;
+}
+
+.pwc-spacing-preset--reset {
+  color: #9ca3af;
+}
+
+.pwc-spacing-preset--reset svg {
+  width: 14px;
+  height: 14px;
+}
+
+.pwc-spacing-preset--reset:hover {
+  color: #e0301e;
+  border-color: #e0301e;
+  background: #fef2f2;
+}
+
+.pwc-spacing-preset--reset.pwc-spacing-preset--selected {
+  color: #e0301e !important;
+  border-color: #e0301e !important;
+  background: #fef2f2 !important;
 }
 
 /* Save button states */

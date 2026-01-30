@@ -324,6 +324,69 @@
             </div>
           `;
 
+        case 'accordionTitles': {
+          let accTitles;
+          try { accTitles = JSON.parse(value || '[]'); } catch { accTitles = []; }
+
+          // Read customHeaders from the block
+          let accCustomHeaders = [];
+          if (this.currentBlock) {
+            const chVal = this.currentBlock.getAttribute('custom-headers') || '[]';
+            try { accCustomHeaders = JSON.parse(chVal); } catch { accCustomHeaders = []; }
+          }
+
+          const accTitlesHtml = accTitles.map((title, index) => {
+            const isCustom = accCustomHeaders[index] === true;
+            return `
+              <div class="pwc-accordion-item-editor" data-index="${index}">
+                <div class="pwc-accordion-item-editor__header">
+                  <span class="pwc-accordion-item-editor__number">${index + 1}</span>
+                  <label class="pwc-accordion-item-editor__custom-toggle">
+                    <input type="checkbox"
+                           class="pwc-accordion-item-editor__custom-cb"
+                           data-index="${index}"
+                           ${isCustom ? 'checked' : ''}>
+                    <span>Custom</span>
+                  </label>
+                  <button type="button" class="pwc-accordion-item-editor__remove" data-index="${index}" data-name="${setting.name}" title="Remove section">
+                    <svg class="pwc-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <line x1="18" y1="6" x2="6" y2="18"></line>
+                      <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                  </button>
+                </div>
+                <input
+                  type="text"
+                  class="pwc-accordion-item-editor__title pwc-setting-input"
+                  value="${this.escapeHtml(title || '')}"
+                  data-index="${index}"
+                  data-name="${setting.name}"
+                  placeholder="Accordion title"
+                  ${isCustom ? 'disabled' : ''}
+                >
+              </div>
+            `;
+          }).join('');
+
+          return `
+            <div class="pwc-setting-field">
+              <label class="pwc-setting-label pwc-setting-label--mb2">
+                ${setting.label}
+              </label>
+              <div class="pwc-accordion-items-editor" data-name="${setting.name}">
+                ${accTitlesHtml}
+                <button type="button" class="pwc-accordion-item-editor__add" data-name="${setting.name}">
+                  <svg class="pwc-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="12" y1="5" x2="12" y2="19"></line>
+                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                  </svg>
+                  Add Section
+                </button>
+              </div>
+            </div>
+          `;
+        }
+
         case 'textarea':
           return `
             <div class="pwc-setting-field">
@@ -1031,7 +1094,7 @@
         case 'spacing':
           const prefix = setting.prefix || 'm';
           const spacingPresets = window.APPKIT_OPTIONS?.spacingPresets || [
-            { value: '', label: '0', px: '0px' },
+            { value: '0', label: '0', px: '0px' },
             { value: '1', label: '1', px: '2px' },
             { value: '2', label: '2', px: '4px' },
             { value: '3', label: '3', px: '8px' },
@@ -1109,6 +1172,12 @@
               <!-- Size selector dropdown (hidden by default) -->
               <div class="pwc-spacing-sizes hidden">
                 <div class="pwc-spacing-presets">
+                  <button type="button" class="pwc-spacing-preset pwc-spacing-preset--reset" data-value="" title="Reset to default">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <circle cx="12" cy="12" r="9"/>
+                      <line x1="7" y1="7" x2="17" y2="17"/>
+                    </svg>
+                  </button>
                   ${spacingPresets.map(preset => `
                     <button type="button" class="pwc-spacing-preset" data-value="${preset.value}">
                       ${preset.px}
@@ -1329,6 +1398,51 @@
         });
       });
 
+      // Accordion titles editor
+      this.querySelectorAll('.pwc-accordion-item-editor__title').forEach(input => {
+        input.addEventListener('input', () => {
+          const name = input.dataset.name;
+          const container = input.closest('.pwc-accordion-items-editor');
+          this._updateAccordionTitlesFromDOM(name, container);
+        });
+      });
+
+      this.querySelectorAll('.pwc-accordion-item-editor__remove').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const name = btn.dataset.name;
+          const editor = btn.closest('.pwc-accordion-item-editor');
+          const container = btn.closest('.pwc-accordion-items-editor');
+          editor.remove();
+          this._updateAccordionTitlesFromDOM(name, container);
+        });
+      });
+
+      this.querySelectorAll('.pwc-accordion-item-editor__add').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const name = btn.dataset.name;
+          const container = btn.closest('.pwc-accordion-items-editor');
+          const titles = this._getAccordionTitlesFromDOM(container);
+          titles.push(`Accordion Item ${titles.length + 1}`);
+          this.updateBlockAttribute(name, JSON.stringify(titles));
+          if (this.currentBlock) {
+            setTimeout(() => this.showBlockSettings(this.currentBlock), 50);
+          }
+        });
+      });
+
+      // Custom header checkboxes
+      this.querySelectorAll('.pwc-accordion-item-editor__custom-cb').forEach(cb => {
+        cb.addEventListener('change', () => {
+          const customHeaders = this._getCustomHeadersFromDOM();
+          this.updateBlockAttribute('customHeaders', JSON.stringify(customHeaders));
+
+          // Disable/enable the title input
+          const editor = cb.closest('.pwc-accordion-item-editor');
+          const titleInput = editor.querySelector('.pwc-accordion-item-editor__title');
+          titleInput.disabled = cb.checked;
+        });
+      });
+
       // Button type picker buttons
       this.querySelectorAll('.pwc-btn-type-btn').forEach(btn => {
         btn.addEventListener('click', () => {
@@ -1506,10 +1620,11 @@
             const presets = window.APPKIT_OPTIONS?.spacingPresets || [];
             const presetInfo = presets.find(p => p.value === value);
             const displayValue = presetInfo ? presetInfo.px : value;
-            sideBtn.querySelector('span').textContent = displayValue;
+            const sideLabels = { all: 'All', t: 'Top', r: 'Right', b: 'Btm', l: 'Left' };
+            sideBtn.querySelector('span').textContent = value !== '' ? displayValue : (sideLabels[activeSide] || activeSide);
 
-            // Update button styling to show it has a value
-            if (value) {
+            // Update button styling to show it has a value ('' = reset/default)
+            if (value !== '') {
               sideBtn.classList.add('pwc-spacing-side-btn--has-value');
             } else {
               sideBtn.classList.remove('pwc-spacing-side-btn--has-value');
@@ -1575,7 +1690,12 @@
         field.querySelectorAll('.pwc-spacing-side-btn').forEach(btn => {
           const btnSide = btn.dataset.side;
           if (btnSide === 'all') {
-            btn.querySelector('span').textContent = displayValue || 'All';
+            btn.querySelector('span').textContent = value !== '' ? displayValue : 'All';
+            if (value !== '') {
+              btn.classList.add('pwc-spacing-side-btn--has-value');
+            } else {
+              btn.classList.remove('pwc-spacing-side-btn--has-value');
+            }
           } else {
             btn.querySelector('span').textContent = btnSide === 't' ? 'Top' : btnSide === 'r' ? 'Right' : btnSide === 'b' ? 'Btm' : 'Left';
             btn.classList.remove('pwc-spacing-side-btn--has-value');
@@ -1781,6 +1901,29 @@
       const div = document.createElement('div');
       div.textContent = text;
       return div.innerHTML;
+    }
+
+    _getAccordionTitlesFromDOM(container) {
+      const titles = [];
+      container.querySelectorAll('.pwc-accordion-item-editor').forEach(editor => {
+        const title = editor.querySelector('.pwc-accordion-item-editor__title')?.value || '';
+        titles.push(title);
+      });
+      return titles;
+    }
+
+    _getCustomHeadersFromDOM() {
+      const result = [];
+      this.querySelectorAll('.pwc-accordion-item-editor').forEach(editor => {
+        const cb = editor.querySelector('.pwc-accordion-item-editor__custom-cb');
+        result.push(cb ? cb.checked : false);
+      });
+      return result;
+    }
+
+    _updateAccordionTitlesFromDOM(name, container) {
+      const titles = this._getAccordionTitlesFromDOM(container);
+      this.updateBlockAttribute(name, JSON.stringify(titles));
     }
 
     camelToKebab(str) {

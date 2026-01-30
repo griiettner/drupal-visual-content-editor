@@ -16,6 +16,7 @@ editor:
     js/components/blocks/layout-block.js: {}
     js/components/blocks/button.js: {}
     js/components/blocks/tag.js: {}
+    js/components/blocks/accordion.js: {}
     js/components/block-library-panel.js: {}
     js/editor.js: {}
   css:
@@ -25,6 +26,13 @@ editor:
     - core/drupal
     - core/drupalSettings
     - core/once
+
+# Block view styles - loaded for all visitors so blocks render correctly
+blocks:
+  version: 1.0
+  css:
+    theme:
+      css/blocks.css: {}
 
 # Visual Page styles - hide Drupal admin UI
 visual_page:

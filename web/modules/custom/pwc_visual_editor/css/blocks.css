@@ -1,0 +1,134 @@
+/**
+ * PWC Visual Editor - Block View Styles
+ *
+ * Loaded for all visitors (not just editors) so server-rendered
+ * blocks display correctly outside the editor canvas.
+ */
+
+/* --- Heading --- */
+.pwc-heading {
+  display: block;
+}
+
+/* --- Paragraph --- */
+.pwc-paragraph {
+  position: relative;
+}
+
+.pwc-paragraph__text {
+  margin: 0;
+}
+
+.pwc-paragraph p {
+  margin: 0;
+}
+
+.pwc-paragraph p + p {
+  margin-top: 1em;
+}
+
+.pwc-paragraph p[data-indent="1"] { padding-left: 2em; }
+.pwc-paragraph p[data-indent="2"] { padding-left: 4em; }
+.pwc-paragraph p[data-indent="3"] { padding-left: 6em; }
+.pwc-paragraph p[data-indent="4"] { padding-left: 8em; }
+
+/* --- List --- */
+.pwc-list__items {
+  position: relative;
+}
+
+.pwc-list__items.pwc-list-outside {
+  padding-left: 1.5em;
+}
+
+.pwc-list__item {
+  position: relative;
+}
+
+.pwc-list__items ul,
+.pwc-list__items ol {
+  padding-left: 1.5em;
+  margin-top: 0.25em;
+}
+
+.pwc-list__items ul { list-style-type: circle; }
+.pwc-list__items ul ul { list-style-type: square; }
+.pwc-list__items ol ol { list-style-type: lower-alpha; }
+.pwc-list__items ol ol ol { list-style-type: lower-roman; }
+
+/* --- Button --- */
+.pwc-button-wrapper {
+  position: relative;
+}
+
+.pwc-button-link {
+  text-decoration: none;
+  display: inline-block;
+}
+
+/* --- Tag --- */
+.pwc-tag-wrapper {
+  position: relative;
+}
+
+.pwc-tag-list {
+  list-style-type: none;
+  padding-inline-start: 0;
+  margin-left: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.pwc-tag-list--stacked {
+  flex-direction: column;
+}
+
+/* --- Accordion --- */
+.pwc-accordion-wrapper {
+  position: relative;
+}
+
+/* Zebra stripes */
+.pwc-accordion-wrapper--zebra .pwc-accordion-section:nth-child(even) {
+  background: #f9fafb;
+}
+
+/* --- List Styles --- */
+.pwc-list-disc { list-style-type: disc; }
+.pwc-list-circle { list-style-type: circle; }
+.pwc-list-square { list-style-type: square; }
+.pwc-list-decimal { list-style-type: decimal; }
+.pwc-list-decimal-leading-zero { list-style-type: decimal-leading-zero; }
+.pwc-list-lower-alpha { list-style-type: lower-alpha; }
+.pwc-list-upper-alpha { list-style-type: upper-alpha; }
+.pwc-list-lower-roman { list-style-type: lower-roman; }
+.pwc-list-upper-roman { list-style-type: upper-roman; }
+.pwc-list-none { list-style-type: none; }
+
+/* --- List Position --- */
+.pwc-list-outside { list-style-position: outside; }
+.pwc-list-inside { list-style-position: inside; }
+
+/* --- Text Alignment --- */
+.pwc-text-left { text-align: left; }
+.pwc-text-center { text-align: center; }
+.pwc-text-right { text-align: right; }
+.pwc-text-justify { text-align: justify; }
+
+/* --- Line Height --- */
+.pwc-leading-none { line-height: 1; }
+.pwc-leading-tight { line-height: 1.25; }
+.pwc-leading-snug { line-height: 1.375; }
+.pwc-leading-normal { line-height: 1.5; }
+.pwc-leading-relaxed { line-height: 1.625; }
+.pwc-leading-loose { line-height: 2; }
+
+/* --- Vertical Spacing (space-y) --- */
+.pwc-space-y-0 > * + * { margin-top: 0; }
+.pwc-space-y-1 > * + * { margin-top: 0.25rem; }
+.pwc-space-y-2 > * + * { margin-top: 0.5rem; }
+.pwc-space-y-3 > * + * { margin-top: 0.75rem; }
+.pwc-space-y-4 > * + * { margin-top: 1rem; }
+.pwc-space-y-6 > * + * { margin-top: 1.5rem; }
+.pwc-space-y-8 > * + * { margin-top: 2rem; }

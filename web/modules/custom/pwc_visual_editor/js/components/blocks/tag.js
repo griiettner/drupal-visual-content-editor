@@ -81,6 +81,14 @@
           ],
         },
         {
+          name: 'stacked',
+          type: 'toggle',
+          label: 'Stacked',
+          default: false,
+          tab: 'style',
+          help: 'Display tags vertically when there are multiple',
+        },
+        {
           name: 'showClose',
           type: 'toggle',
           label: 'Show Close Button',
@@ -159,6 +167,7 @@
         'margin',
         'padding',
         'custom-classes',
+        'stacked',
       ];
     }
 
@@ -179,6 +188,7 @@
       const margin = this.getAttribute('margin') || '';
       const padding = this.getAttribute('padding') || '';
       const customClasses = this.getAttribute('custom-classes') || '';
+      const stacked = this.getAttribute('stacked') === 'true';
 
       const wrapperClasses = [
         'pwc-tag-wrapper',
@@ -186,6 +196,11 @@
         margin,
         padding,
         customClasses,
+      ].filter(Boolean).join(' ');
+
+      const listClasses = [
+        'pwc-tag-list',
+        stacked ? 'pwc-tag-list--stacked' : '',
       ].filter(Boolean).join(' ');
 
       // Parse comma-separated tags
@@ -201,7 +216,7 @@
 
       this.innerHTML = `
         <div class="${wrapperClasses}">
-          <ul class="pwc-tag-list">${tagsHtml}</ul>
+          <ul class="${listClasses}">${tagsHtml}</ul>
         </div>
       `;
     }

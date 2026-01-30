@@ -441,6 +441,98 @@
     }
 
     /**
+     * Move a block across containers (top-level, layout columns, between layouts).
+     *
+     * @param {string} blockId - Block ID to move.
+     * @param {Object} target - Target location descriptor.
+     * @param {string|null} target.layoutId - Target layout block ID, or null for top-level.
+     * @param {number|null} target.columnIndex - Target column index within the layout.
+     * @param {number} target.insertIndex - Position to insert at within the target.
+     */
+    moveBlockCrossContainer(blockId, { layoutId = null, columnIndex = null, insertIndex }) {
+      const result = this.findBlockWithParent(blockId);
+      if (!result) return;
+
+      const { block, parent, index: currentIndex } = result;
+
+      // Determine source container
+      const sourceIsTopLevel = !parent;
+      const sourceLayoutId = parent ? parent.id : null;
+      const sourceColumnIndex = block.attributes?.columnIndex ?? null;
+
+      // Determine if source and target are the same container
+      if (layoutId === null && sourceIsTopLevel) {
+        // Both top-level: delegate to existing method
+        this.moveBlockToIndex(blockId, insertIndex);
+        return;
+      }
+
+      if (layoutId !== null && sourceLayoutId === layoutId) {
+        // Same layout: delegate to existing method
+        this.moveBlockInLayout(blockId, layoutId, columnIndex, insertIndex);
+        return;
+      }
+
+      // Cross-container move: remove from source, insert into target
+
+      // Remove block from source array
+      const sourceArray = parent ? parent.innerBlocks : this.blocks;
+      sourceArray.splice(currentIndex, 1);
+
+      if (layoutId === null) {
+        // Moving to top-level
+        block.attributes = block.attributes || {};
+        delete block.attributes.columnIndex;
+
+        // Insert into top-level blocks
+        const adjustedIndex = Math.min(insertIndex, this.blocks.length);
+        this.blocks.splice(adjustedIndex, 0, block);
+      } else {
+        // Moving into a layout column
+        const targetLayout = this.findBlock(layoutId);
+        if (!targetLayout) return;
+
+        targetLayout.innerBlocks = targetLayout.innerBlocks || [];
+
+        // Set the column index
+        block.attributes = block.attributes || {};
+        block.attributes.columnIndex = columnIndex;
+
+        // Calculate insertion position in innerBlocks array
+        const columnBlocks = targetLayout.innerBlocks.filter(b =>
+          (b.attributes?.columnIndex || 0) === columnIndex
+        );
+
+        let insertPosition;
+        if (insertIndex === 0 || columnBlocks.length === 0) {
+          // Insert at beginning of column
+          const firstInColumn = targetLayout.innerBlocks.findIndex(b =>
+            (b.attributes?.columnIndex || 0) === columnIndex
+          );
+          insertPosition = firstInColumn === -1 ? targetLayout.innerBlocks.length : firstInColumn;
+        } else if (insertIndex >= columnBlocks.length) {
+          // Insert at end of column
+          const lastInColumn = [...targetLayout.innerBlocks].reverse().findIndex(b =>
+            (b.attributes?.columnIndex || 0) === columnIndex
+          );
+          insertPosition = lastInColumn === -1
+            ? targetLayout.innerBlocks.length
+            : targetLayout.innerBlocks.length - lastInColumn;
+        } else {
+          // Insert after the block at insertIndex - 1 in this column
+          const blockBeforeTarget = columnBlocks[insertIndex - 1];
+          insertPosition = targetLayout.innerBlocks.findIndex(b => b.id === blockBeforeTarget.id) + 1;
+        }
+
+        targetLayout.innerBlocks.splice(insertPosition, 0, block);
+      }
+
+      this.isDirty = true;
+      this.pushHistory();
+      this.emit('blockMove', { blockId, layoutId, columnIndex, newIndex: insertIndex });
+    }
+
+    /**
      * Find a block and its parent.
      *
      * @param {string} blockId - Block ID to find.

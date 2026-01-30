@@ -17,28 +17,22 @@
   ];
 
   /**
-   * List style options for unordered lists.
+   * List style options for all list types.
    */
-  const UL_STYLE_OPTIONS = [
-    { value: '', label: 'Default' },
-    { value: 'list-disc', label: 'Disc' },
-    { value: 'list-circle', label: 'Circle' },
-    { value: 'list-square', label: 'Square' },
-    { value: 'list-none', label: 'None' },
-  ];
-
-  /**
-   * List style options for ordered lists.
-   */
-  const OL_STYLE_OPTIONS = [
-    { value: '', label: 'Default' },
-    { value: 'list-decimal', label: 'Decimal (1, 2, 3)' },
-    { value: 'list-decimal-leading-zero', label: 'Decimal Leading Zero (01, 02)' },
-    { value: 'list-lower-alpha', label: 'Lower Alpha (a, b, c)' },
-    { value: 'list-upper-alpha', label: 'Upper Alpha (A, B, C)' },
-    { value: 'list-lower-roman', label: 'Lower Roman (i, ii, iii)' },
-    { value: 'list-upper-roman', label: 'Upper Roman (I, II, III)' },
-    { value: 'list-none', label: 'None' },
+  const LIST_STYLE_OPTIONS = [
+    // Unordered styles
+    { value: 'list-disc', label: 'Disc (●)', group: 'ul' },
+    { value: 'list-circle', label: 'Circle (○)', group: 'ul' },
+    { value: 'list-square', label: 'Square (■)', group: 'ul' },
+    // Ordered styles
+    { value: 'list-decimal', label: 'Decimal (1, 2, 3)', group: 'ol' },
+    { value: 'list-decimal-leading-zero', label: 'Decimal Leading Zero (01, 02)', group: 'ol' },
+    { value: 'list-lower-alpha', label: 'Lower Alpha (a, b, c)', group: 'ol' },
+    { value: 'list-upper-alpha', label: 'Upper Alpha (A, B, C)', group: 'ol' },
+    { value: 'list-lower-roman', label: 'Lower Roman (i, ii, iii)', group: 'ol' },
+    { value: 'list-upper-roman', label: 'Upper Roman (I, II, III)', group: 'ol' },
+    // None
+    { value: 'list-none', label: 'None', group: 'both' },
   ];
 
   /**
@@ -65,26 +59,26 @@
       return [
         {
           name: 'listType',
-          type: 'select',
+          type: 'listTypePicker',
           label: 'List Type',
           default: 'ul',
           options: LIST_TYPE_OPTIONS,
         },
         {
           name: 'listStyle',
-          type: 'select',
+          type: 'listStylePicker',
           label: 'List Style',
           default: 'list-disc',
-          options: UL_STYLE_OPTIONS, // Will be dynamically updated based on listType
+          options: LIST_STYLE_OPTIONS,
         },
         {
           name: 'listPosition',
-          type: 'select',
+          type: 'markerPositionPicker',
           label: 'Marker Position',
           default: 'list-outside',
           options: [
-            { value: 'list-outside', label: 'Outside (aligned)' },
-            { value: 'list-inside', label: 'Inside (wraps under)' },
+            { value: 'list-outside', label: 'Outside' },
+            { value: 'list-inside', label: 'Inside' },
           ],
         },
         {
@@ -226,7 +220,7 @@
      */
     updateStyles() {
       const listType = this.getAttribute('list-type') || 'ul';
-      const listStyle = this.getAttribute('list-style') || (listType === 'ul' ? 'list-disc' : 'list-decimal');
+      const listStyle = this.getAttribute('list-style') || '';
       const listPosition = this.getAttribute('list-position') || 'list-outside';
       const fontSize = this.getAttribute('font-size') || '';
       const fontWeight = this.getAttribute('font-weight') || '';
@@ -267,7 +261,7 @@
     render() {
       let content = this.getAttribute('content') || '<li>List item</li>';
       const listType = this.getAttribute('list-type') || 'ul';
-      const listStyle = this.getAttribute('list-style') || (listType === 'ul' ? 'list-disc' : 'list-decimal');
+      const listStyle = this.getAttribute('list-style') || '';
       const listPosition = this.getAttribute('list-position') || 'list-outside';
       const fontSize = this.getAttribute('font-size') || '';
       const fontWeight = this.getAttribute('font-weight') || '';
@@ -308,9 +302,11 @@
       const hasContent = content && !content.includes('List item');
       const placeholderAttr = isEditing && !hasContent ? 'data-placeholder="Add list items..."' : '';
 
+      const editableListClasses = isEditing ? `${this._listClasses} pwc-editable` : this._listClasses;
+
       this.innerHTML = `
         <${listType}
-          class="${this._listClasses}"
+          class="${editableListClasses}"
           ${isEditing ? `contenteditable="true" data-editable="content"` : ''}
           ${placeholderAttr}
         >${content}</${listType}>

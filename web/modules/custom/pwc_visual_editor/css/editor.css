@@ -1,40 +1,88 @@
 /**
  * PWC Visual Editor - Editor Styles
+ *
+ * Structure:
+ * 1. Custom Elements & Resets
+ * 2. Edit Mode (body-level)
+ * 3. Drupal Overrides
+ * 4. Blocks - Base
+ * 5. Blocks - Editable (.pwc-editable)
+ * 6. Blocks - Placeholders
+ * 7. Blocks - Controls (drag handle, delete)
+ * 8. Blocks - Content (Heading, Paragraph, List)
+ * 9. Layout Block
+ * 10. Settings Panel
+ * 11. Block Library Panel
+ * 12. Drop Zones
+ * 13. Delete Confirmation Modal
+ * 14. Rich Text Toolbar
+ * 15. Edit Trigger
+ * 16. Content Region & Inner Blocks
+ * 17. Settings Panel Fields
+ * 18. Utility Classes
+ * 19. Animations
+ * 20. Print & Responsive
  */
 
 /* ==========================================================================
-   Edit Mode
+   1. Custom Elements & Resets
+   ========================================================================== */
+
+pwc-heading,
+pwc-paragraph,
+pwc-list,
+pwc-layout {
+  display: block;
+}
+
+pwc-block-toolbar,
+pwc-block-inserter {
+  display: none !important;
+}
+
+pwc-settings-panel {
+  display: block;
+  z-index: 9999;
+  position: absolute;
+}
+
+pwc-rich-text-toolbar {
+  position: absolute;
+  z-index: 101;
+  pointer-events: auto;
+}
+
+pwc-block-library-panel {
+  display: block !important;
+  position: static !important;
+  width: auto !important;
+  height: auto !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+
+/* ==========================================================================
+   2. Edit Mode (body-level)
    ========================================================================== */
 
 body.pwc-editing {
-  /* Make room for both panels: left (block library) and right (settings) */
   margin-left: 280px;
   margin-right: 320px;
   transition: margin-left 0.3s ease, margin-right 0.3s ease;
 }
 
-/* When block library is closed */
 body.pwc-editing:not(.pwc-block-library-open) {
   margin-left: 0;
 }
 
-/* When settings panel is minimized */
 body.pwc-editing.pwc-settings-minimized {
   margin-right: 0;
 }
 
-@media (max-width: 1024px) {
-  body.pwc-editing {
-    margin-left: 0;
-    margin-right: 0;
-  }
-}
-
 /* ==========================================================================
-   Hide Drupal Contextual Links (Pencil Icons)
+   3. Drupal Overrides
    ========================================================================== */
 
-/* Hide contextual links in the visual editor content area */
 [data-pwc-content-region] .contextual,
 [data-pwc-content-region] .contextual-links,
 [data-pwc-content-region] [data-contextual-id],
@@ -44,14 +92,12 @@ body.pwc-editing.pwc-settings-minimized {
   display: none !important;
 }
 
-/* Hide contextual trigger buttons (pencil icons) site-wide when visual editor is active */
 body.pwc-editing .contextual .trigger,
 body.pwc-editing .contextual-links,
 body.pwc-editing button.contextual-trigger {
   display: none !important;
 }
 
-/* Hide quick edit links */
 [data-pwc-content-region] .quickedit,
 [data-pwc-content-region] [data-quickedit-field-id],
 .pwc-editor-wrapper .quickedit {
@@ -59,7 +105,7 @@ body.pwc-editing button.contextual-trigger {
 }
 
 /* ==========================================================================
-   Block Base Styles
+   4. Blocks - Base
    ========================================================================== */
 
 .pwc-block {
@@ -77,15 +123,12 @@ body.pwc-editing button.contextual-trigger {
 }
 
 .pwc-block--selected {
-  outline: 2px solid #007cba !important;
+  outline: 1px solid rgba(0, 124, 186, 0.4) !important;
   outline-offset: 4px;
-  box-shadow: 0 0 0 4px rgba(0, 124, 186, 0.1);
-  /* Add vertical margin to push blocks above/below away when selected */
-  margin-top: 12px;
-  margin-bottom: 12px;
+  box-shadow: 0 0 25px 4px rgba(0, 124, 186, 0.2);
+  display: block;
 }
 
-/* Block being dragged for reordering */
 .pwc-block--dragging {
   opacity: 0.4 !important;
   outline: 2px dashed #007cba !important;
@@ -93,12 +136,43 @@ body.pwc-editing button.contextual-trigger {
   background: rgba(0, 124, 186, 0.05);
 }
 
-/* Make draggable blocks work properly */
 .pwc-block[draggable="true"] {
   -webkit-user-drag: element;
 }
 
-/* Block Hover Controls (drag handle + delete) */
+/* ==========================================================================
+   5. Blocks - Editable (.pwc-editable)
+   ========================================================================== */
+
+.pwc-editing .pwc-editable {
+  min-height: 1.2em;
+  border-radius: 4px;
+}
+
+.pwc-editing .pwc-editable:focus {
+  outline: 2px solid rgba(0, 124, 186, 0.4);
+  outline-offset: 2px;
+  border-radius: 4px;
+  background-color: rgba(0, 124, 186, 0.02);
+}
+
+/* ==========================================================================
+   6. Blocks - Placeholders
+   ========================================================================== */
+
+.pwc-editing .pwc-editable:empty::before,
+.pwc-editing .pwc-editable[data-placeholder] p:only-child:empty::before,
+.pwc-editing .pwc-editable[data-placeholder] li:only-child:empty::before {
+  content: attr(data-placeholder);
+  color: #9ca3af;
+  font-style: italic;
+  pointer-events: none;
+}
+
+/* ==========================================================================
+   7. Blocks - Controls (drag handle, delete)
+   ========================================================================== */
+
 .pwc-block__controls {
   position: absolute;
   top: 0;
@@ -133,6 +207,13 @@ body.pwc-editing button.contextual-trigger {
   transition: all 0.15s ease;
 }
 
+.pwc-block__drag-handle {
+  touch-action: none;
+  -webkit-user-drag: element;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
 .pwc-block__drag-handle:hover {
   background: #f3f4f6;
   color: #374151;
@@ -141,14 +222,6 @@ body.pwc-editing button.contextual-trigger {
 
 .pwc-block__drag-handle:active {
   cursor: grabbing;
-}
-
-/* Ensure drag handle is properly draggable */
-.pwc-block__drag-handle {
-  touch-action: none;
-  -webkit-user-drag: element;
-  user-select: none;
-  -webkit-user-select: none;
 }
 
 .pwc-block__delete:hover {
@@ -164,53 +237,342 @@ body.pwc-editing button.contextual-trigger {
 }
 
 /* ==========================================================================
-   Placeholder Styles
+   8. Blocks - Content (Heading, Paragraph, List)
    ========================================================================== */
 
-.pwc-placeholder {
+/* --- Heading --- */
+
+.pwc-heading {
+  /* Base heading styles if needed */
+}
+
+/* --- Paragraph --- */
+
+.pwc-paragraph {
   position: relative;
 }
 
-.pwc-placeholder::before {
-  content: attr(data-placeholder);
-  color: #9ca3af;
-  font-style: italic;
-  pointer-events: none;
+.pwc-paragraph__text {
+  margin: 0;
 }
 
-.pwc-placeholder:focus::before {
+.pwc-editing .pwc-paragraph p {
+  margin: 0;
+  min-height: 1.2em;
+}
+
+.pwc-editing .pwc-paragraph p + p {
+  margin-top: 1em;
+}
+
+.pwc-editing .pwc-paragraph p:empty,
+.pwc-editing .pwc-paragraph p br:only-child {
+  min-height: 1.5em;
+}
+
+/* --- List --- */
+
+.pwc-list__items {
+  position: relative;
+}
+
+.pwc-list__items.list-outside {
+  padding-left: 1.5em;
+}
+
+.pwc-list__item {
+  position: relative;
+}
+
+.pwc-editing .pwc-list__items li {
+  min-height: 1.2em;
+}
+
+/* ==========================================================================
+   9. Layout Block
+   ========================================================================== */
+
+pwc-layout {
+  position: relative;
+}
+
+.pwc-layout-block {
+  display: flex;
+  flex-wrap: wrap;
+  width: 100%;
+  min-height: 60px;
+}
+
+.pwc-layout-column {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-height: 60px;
+}
+
+.pwc-layout-column__content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-height: 60px;
+}
+
+/* Empty column - only visible in edit mode */
+.pwc-layout-column__empty {
   display: none;
 }
 
-/* Empty editable elements */
-[contenteditable="true"]:empty::before {
-  content: attr(data-placeholder);
+.pwc-editing .pwc-layout-column__empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 80px;
+  padding: 16px;
+  border: 2px dashed #d1d5db;
+  border-radius: 8px;
+  background: #f9fafb;
+  transition: all 0.15s ease;
+}
+
+.pwc-layout-column__empty-text {
+  font-size: 12px;
   color: #9ca3af;
-  font-style: italic;
-  pointer-events: none;
 }
 
-[contenteditable="true"]:focus:empty::before {
-  content: '';
+/* Hide empty layouts in view mode */
+.pwc-layout-block:not(:has(.pwc-block)) {
+  display: none;
 }
 
-/* ==========================================================================
-   Block Toolbar (hidden - using hover controls instead)
-   ========================================================================== */
+.pwc-editing .pwc-layout-block:not(:has(.pwc-block)) {
+  display: flex;
+}
 
-pwc-block-toolbar {
+/* Column drag-over state */
+.pwc-layout-column--drag-over {
+  background: #eff6ff;
+  outline: 2px dashed #3b82f6;
+  outline-offset: -2px;
+  border-radius: 8px;
+}
+
+.pwc-layout-column--drag-over .pwc-layout-column__empty {
+  border-color: #3b82f6;
+  background: #dbeafe;
+}
+
+.pwc-layout-column__add-btn {
+  display: none;
+}
+
+/* Layout selected state */
+pwc-layout.pwc-block--selected > .pwc-layout-block {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Hide default block controls on layouts (uses custom handle) */
+pwc-layout > .pwc-block__controls {
   display: none !important;
 }
 
-/* ==========================================================================
-   Settings Panel
-   ========================================================================== */
-
-pwc-settings-panel {
-  display: block;
-  z-index: 9999;
+/* Layout controls (drag handle + delete) */
+.pwc-layout-controls {
   position: absolute;
+  right: -40px;
+  top: 0;
+  bottom: 0;
+  width: 36px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.15s ease, visibility 0.15s ease;
+  z-index: 100;
 }
+
+pwc-layout:hover .pwc-layout-controls,
+pwc-layout.pwc-block--selected .pwc-layout-controls {
+  opacity: 1;
+  visibility: visible;
+}
+
+.pwc-layout-handle {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  cursor: grab;
+  color: #6b7280;
+  transition: all 0.15s ease;
+  -webkit-user-drag: element;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: none;
+}
+
+.pwc-layout-handle:hover {
+  background: #f3f4f6;
+  color: #374151;
+  border-color: #3b82f6;
+}
+
+.pwc-layout-handle:active {
+  cursor: grabbing;
+  background: #e0e7ff;
+}
+
+.pwc-layout-handle svg {
+  width: 18px;
+  height: 18px;
+  pointer-events: none;
+}
+
+.pwc-layout-delete {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  cursor: pointer;
+  color: #6b7280;
+  transition: all 0.15s ease;
+}
+
+.pwc-layout-delete:hover {
+  background: #fee2e2;
+  border-color: #fecaca;
+  color: #dc2626;
+}
+
+.pwc-layout-delete svg {
+  width: 18px;
+  height: 18px;
+}
+
+/* Layout being dragged */
+pwc-layout.pwc-block--dragging {
+  opacity: 0.4;
+  outline: 2px dashed #3b82f6;
+}
+
+/* Layout variations in block library */
+.pwc-layout-variation {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 12px 8px;
+  border: 2px solid #e5e7eb;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  background: #fff;
+}
+
+.pwc-layout-variation:hover {
+  border-color: #3b82f6;
+  background: #f0f9ff;
+}
+
+.pwc-layout-variation__preview {
+  display: flex;
+  width: 48px;
+  height: 36px;
+  gap: 2px;
+  margin-bottom: 6px;
+}
+
+.pwc-layout-variation__column {
+  background: #3b82f6;
+  border-radius: 2px;
+  opacity: 0.6;
+}
+
+.pwc-layout-variation:hover .pwc-layout-variation__column {
+  opacity: 1;
+}
+
+.pwc-layout-variation__label {
+  font-size: 11px;
+  color: #6b7280;
+  font-weight: 500;
+}
+
+.pwc-layout-variation:hover .pwc-layout-variation__label {
+  color: #3b82f6;
+}
+
+.pwc-layout-variations-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  padding: 12px;
+}
+
+/* Reorder drop zones */
+.pwc-drop-zone--reorder {
+  height: 30px !important;
+  margin: 8px 0 !important;
+  background: #dbeafe !important;
+  border: 3px dashed #3b82f6 !important;
+  border-radius: 6px !important;
+  transition: all 0.15s ease;
+  display: block !important;
+  position: relative !important;
+  z-index: 9999 !important;
+  pointer-events: auto !important;
+}
+
+.pwc-drop-zone--reorder.pwc-drop-zone--active {
+  height: 50px !important;
+  background: #3b82f6 !important;
+  border-style: solid !important;
+  margin: 12px 0 !important;
+}
+
+/* Drag state overrides */
+body.pwc-reordering .pwc-drop-zone--reorder,
+body.pwc-dragging-block .pwc-drop-zone--reorder {
+  pointer-events: auto !important;
+  position: relative !important;
+  z-index: 10000 !important;
+}
+
+body.pwc-reordering .pwc-layout-controls,
+body.pwc-dragging-block .pwc-layout-controls {
+  pointer-events: auto;
+}
+
+body.pwc-dragging-block .pwc-layout-column__content,
+body.pwc-reordering .pwc-layout-column__content {
+  pointer-events: auto !important;
+  position: relative;
+}
+
+/* Cross-container drop target feedback on columns */
+body.pwc-dragging-block .pwc-layout-column__content.pwc-drop-active {
+  outline: 2px dashed #93c5fd;
+  outline-offset: -2px;
+  border-radius: 4px;
+  min-height: 40px;
+}
+
+/* ==========================================================================
+   10. Settings Panel
+   ========================================================================== */
 
 .pwc-settings-panel {
   transform: translateX(0);
@@ -269,6 +631,10 @@ pwc-settings-panel {
   background: #dc2626 !important;
 }
 
+.pwc-settings-panel__save .animate-spin {
+  animation: spin 1s linear infinite;
+}
+
 .pwc-settings-panel__add-block {
   padding: 8px;
   background: #f3f4f6;
@@ -284,7 +650,6 @@ pwc-settings-panel {
   color: #007cba;
 }
 
-/* When block library is open, highlight the button */
 body.pwc-block-library-open .pwc-settings-panel__add-block {
   background: #007cba;
   color: white;
@@ -308,17 +673,7 @@ body.pwc-block-library-open .pwc-settings-panel__add-block:hover {
   background: #e5e7eb;
 }
 
-/* Spin animation for save button */
-@keyframes spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
-}
-
-.pwc-settings-panel__save .animate-spin {
-  animation: spin 1s linear infinite;
-}
-
-/* Empty Settings State */
+/* Empty settings state */
 .pwc-empty-settings {
   display: flex;
   align-items: center;
@@ -367,724 +722,15 @@ body.pwc-block-library-open .pwc-settings-panel__add-block:hover {
   line-height: 1.5;
 }
 
-/* ==========================================================================
-   Settings Panel Re-open Button
-   ========================================================================== */
-
+/* Re-open button */
 .pwc-reopen-panel {
-  animation: pwc-slide-in-right 0.2s ease-out;
-}
-
-@keyframes pwc-slide-in-right {
-  from {
-    opacity: 0;
-    transform: translateX(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
+  animation: pwc-slide-in-button 0.2s ease-out;
 }
 
 /* ==========================================================================
-   Block Inserter (hidden - using block library panel instead)
+   11. Block Library Panel
    ========================================================================== */
 
-pwc-block-inserter {
-  display: none !important;
-}
-
-/* ==========================================================================
-   Layout Block
-   ========================================================================== */
-
-.pwc-layout-block {
-  display: flex;
-  flex-wrap: wrap;
-  width: 100%;
-  min-height: 60px;
-}
-
-.pwc-layout-column {
-  display: flex;
-  flex-direction: column;
-  min-height: 60px;
-}
-
-.pwc-layout-column__content {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  min-height: 60px;
-}
-
-/* Layout column styling */
-.pwc-layout-column {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-}
-
-.pwc-layout-column__content {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  min-height: 60px;
-}
-
-/* Empty column state - only show in edit mode */
-.pwc-layout-column__empty {
-  display: none;
-}
-
-.pwc-editing .pwc-layout-column__empty {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  min-height: 80px;
-  padding: 16px;
-  border: 2px dashed #d1d5db;
-  border-radius: 8px;
-  background: #f9fafb;
-  transition: all 0.15s ease;
-}
-
-.pwc-layout-column__empty-text {
-  font-size: 12px;
-  color: #9ca3af;
-}
-
-/* Hide empty layout blocks completely when not editing */
-.pwc-layout-block:not(:has(.pwc-block)) {
-  display: none;
-}
-
-.pwc-editing .pwc-layout-block:not(:has(.pwc-block)) {
-  display: flex;
-}
-
-/* Drag over state for columns */
-.pwc-layout-column--drag-over {
-  background: #eff6ff;
-  outline: 2px dashed #3b82f6;
-  outline-offset: -2px;
-  border-radius: 8px;
-}
-
-.pwc-layout-column--drag-over .pwc-layout-column__empty {
-  border-color: #3b82f6;
-  background: #dbeafe;
-}
-
-/* Add button at bottom of column - hidden, use block library instead */
-.pwc-layout-column__add-btn {
-  display: none;
-}
-
-/* Layout block selected state */
-pwc-layout.pwc-block--selected > .pwc-layout-block {
-  outline: 2px solid #3b82f6;
-  outline-offset: 2px;
-  border-radius: 4px;
-}
-
-/* Hide default controls for layout blocks (we use custom handle) */
-pwc-layout > .pwc-block__controls {
-  display: none !important;
-}
-
-/* Ensure layout blocks have relative positioning */
-pwc-layout {
-  position: relative;
-  display: block;
-}
-
-/* Layout controls container (drag handle + delete button) */
-.pwc-layout-controls {
-  position: absolute;
-  right: -40px;
-  top: 0;
-  bottom: 0;
-  width: 36px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  opacity: 0;
-  visibility: hidden;
-  transition: opacity 0.15s ease, visibility 0.15s ease;
-  z-index: 100;
-}
-
-/* Show controls on layout hover */
-pwc-layout:hover .pwc-layout-controls,
-pwc-layout.pwc-block--selected .pwc-layout-controls {
-  opacity: 1;
-  visibility: visible;
-}
-
-/* Layout drag handle */
-.pwc-layout-handle {
-  width: 32px;
-  height: 32px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: #fff;
-  border: 1px solid #e5e7eb;
-  border-radius: 6px;
-  cursor: grab;
-  color: #6b7280;
-  transition: all 0.15s ease;
-  /* Make draggable */
-  -webkit-user-drag: element;
-  user-select: none;
-  -webkit-user-select: none;
-  touch-action: none;
-}
-
-.pwc-layout-handle:hover {
-  background: #f3f4f6;
-  color: #374151;
-  border-color: #3b82f6;
-}
-
-.pwc-layout-handle:active {
-  cursor: grabbing;
-  background: #e0e7ff;
-}
-
-.pwc-layout-handle svg {
-  width: 18px;
-  height: 18px;
-  pointer-events: none; /* Prevent SVG from capturing drag events */
-}
-
-/* Layout delete button */
-.pwc-layout-delete {
-  width: 32px;
-  height: 32px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: #fff;
-  border: 1px solid #e5e7eb;
-  border-radius: 6px;
-  cursor: pointer;
-  color: #6b7280;
-  transition: all 0.15s ease;
-}
-
-.pwc-layout-delete:hover {
-  background: #fee2e2;
-  border-color: #fecaca;
-  color: #dc2626;
-}
-
-.pwc-layout-delete svg {
-  width: 18px;
-  height: 18px;
-}
-
-/* Reorder drop zones - using correct class name */
-.pwc-drop-zone--reorder {
-  height: 30px !important;
-  margin: 8px 0 !important;
-  background: #dbeafe !important;
-  border: 3px dashed #3b82f6 !important;
-  border-radius: 6px !important;
-  transition: all 0.15s ease;
-  display: block !important;
-  position: relative !important;
-  z-index: 9999 !important;
-  pointer-events: auto !important;
-}
-
-.pwc-drop-zone--reorder.pwc-drop-zone--active {
-  height: 50px !important;
-  background: #3b82f6 !important;
-  border-style: solid !important;
-  margin: 12px 0 !important;
-}
-
-/* Layout being dragged */
-pwc-layout.pwc-block--dragging {
-  opacity: 0.4;
-  outline: 2px dashed #3b82f6;
-}
-
-/* During reordering - drop zones always receive pointer events */
-body.pwc-reordering .pwc-drop-zone--reorder,
-body.pwc-dragging-block .pwc-drop-zone--reorder {
-  pointer-events: auto !important;
-  position: relative !important;
-  z-index: 10000 !important;
-}
-
-/* Keep layout controls interactive during drag */
-body.pwc-reordering .pwc-layout-controls,
-body.pwc-dragging-block .pwc-layout-controls {
-  pointer-events: auto;
-}
-
-/* Ensure column content allows drop zones to work */
-body.pwc-dragging-block .pwc-layout-column__content,
-body.pwc-reordering .pwc-layout-column__content {
-  pointer-events: auto !important;
-  position: relative;
-}
-
-/* Layout variations preview in block library */
-.pwc-layout-variation {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 12px 8px;
-  border: 2px solid #e5e7eb;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: all 0.15s ease;
-  background: #fff;
-}
-
-.pwc-layout-variation:hover {
-  border-color: #3b82f6;
-  background: #f0f9ff;
-}
-
-.pwc-layout-variation__preview {
-  display: flex;
-  width: 48px;
-  height: 36px;
-  gap: 2px;
-  margin-bottom: 6px;
-}
-
-.pwc-layout-variation__column {
-  background: #3b82f6;
-  border-radius: 2px;
-  opacity: 0.6;
-}
-
-.pwc-layout-variation:hover .pwc-layout-variation__column {
-  opacity: 1;
-}
-
-.pwc-layout-variation__label {
-  font-size: 11px;
-  color: #6b7280;
-  font-weight: 500;
-}
-
-.pwc-layout-variation:hover .pwc-layout-variation__label {
-  color: #3b82f6;
-}
-
-/* Layout variations grid in block library */
-.pwc-layout-variations-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 8px;
-  padding: 12px;
-}
-
-/* Responsive columns */
-@media (max-width: 768px) {
-  .pwc-layout-block {
-    flex-direction: column;
-  }
-
-  .pwc-layout-column {
-    flex: 1 0 0 !important;
-  }
-}
-
-/* ==========================================================================
-   Delete Confirmation Modal
-   ========================================================================== */
-
-.pwc-delete-modal-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.5);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 10000;
-  animation: pwc-modal-fade-in 0.15s ease;
-}
-
-@keyframes pwc-modal-fade-in {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
-
-.pwc-delete-modal {
-  background: #fff;
-  border-radius: 12px;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-  width: 100%;
-  max-width: 400px;
-  margin: 16px;
-  animation: pwc-modal-scale-in 0.2s ease;
-}
-
-@keyframes pwc-modal-scale-in {
-  from {
-    opacity: 0;
-    transform: scale(0.95);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1);
-  }
-}
-
-.pwc-delete-modal__header {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 20px 24px 16px;
-}
-
-.pwc-delete-modal__icon {
-  width: 48px;
-  height: 48px;
-  border-radius: 50%;
-  background: #fee2e2;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #dc2626;
-  flex-shrink: 0;
-}
-
-.pwc-delete-modal__icon svg {
-  width: 24px;
-  height: 24px;
-}
-
-.pwc-delete-modal__title {
-  font-size: 18px;
-  font-weight: 600;
-  color: #111827;
-  margin: 0;
-}
-
-.pwc-delete-modal__body {
-  padding: 0 24px 20px;
-}
-
-.pwc-delete-modal__message {
-  font-size: 14px;
-  color: #6b7280;
-  line-height: 1.5;
-  margin: 0;
-}
-
-.pwc-delete-modal__footer {
-  display: flex;
-  justify-content: flex-end;
-  gap: 12px;
-  padding: 16px 24px;
-  background: #f9fafb;
-  border-top: 1px solid #e5e7eb;
-  border-radius: 0 0 12px 12px;
-}
-
-.pwc-delete-modal__btn {
-  padding: 10px 20px;
-  border-radius: 8px;
-  font-size: 14px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.15s ease;
-  border: none;
-}
-
-.pwc-delete-modal__btn--cancel {
-  background: #fff;
-  color: #374151;
-  border: 1px solid #d1d5db;
-}
-
-.pwc-delete-modal__btn--cancel:hover {
-  background: #f3f4f6;
-  border-color: #9ca3af;
-}
-
-.pwc-delete-modal__btn--delete {
-  background: #dc2626;
-  color: #fff;
-}
-
-.pwc-delete-modal__btn--delete:hover {
-  background: #b91c1c;
-}
-
-.pwc-inserter__popover {
-  animation: pwc-fade-in 0.15s ease;
-}
-
-@keyframes pwc-fade-in {
-  from {
-    opacity: 0;
-    transform: translateX(-50%) translateY(-4px);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(-50%) translateY(0);
-  }
-}
-
-/* ==========================================================================
-   Rich Text Toolbar
-   ========================================================================== */
-
-pwc-rich-text-toolbar {
-  position: absolute;
-  z-index: 101;
-  pointer-events: auto;
-}
-
-/* ==========================================================================
-   Edit Trigger (hover pencil on content area)
-   ========================================================================== */
-
-/* Content area that can be edited */
-.pwc-content-editable {
-  position: relative;
-}
-
-/* Show subtle border on hover when not editing */
-.pwc-content-editable:hover {
-  outline: 2px dashed rgba(0, 124, 186, 0.3);
-  outline-offset: 8px;
-}
-
-/* The edit trigger container */
-.pwc-edit-trigger {
-  position: absolute;
-  top: 12px;
-  right: 12px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 10px 16px;
-  background: #007cba;
-  color: #fff;
-  border-radius: 8px;
-  cursor: pointer;
-  opacity: 0;
-  visibility: hidden;
-  transform: translateY(-4px);
-  transition: all 0.2s ease;
-  z-index: 50;
-  box-shadow: 0 4px 12px rgba(0, 124, 186, 0.3);
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-}
-
-/* Show trigger on content hover */
-.pwc-content-editable:hover .pwc-edit-trigger {
-  opacity: 1;
-  visibility: visible;
-  transform: translateY(0);
-}
-
-.pwc-edit-trigger:hover {
-  background: #0065a1;
-  box-shadow: 0 6px 16px rgba(0, 124, 186, 0.4);
-  transform: translateY(-2px);
-}
-
-.pwc-edit-trigger:active {
-  transform: translateY(0);
-}
-
-.pwc-edit-trigger__icon {
-  width: 20px;
-  height: 20px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.pwc-edit-trigger__icon svg {
-  width: 20px;
-  height: 20px;
-}
-
-.pwc-edit-trigger__label {
-  font-size: 14px;
-  font-weight: 500;
-}
-
-/* ==========================================================================
-   Content Region
-   ========================================================================== */
-
-[data-pwc-content-region] {
-  min-height: 200px;
-  position: relative;
-}
-
-.pwc-editing [data-pwc-content-region] {
-  min-height: 400px;
-  padding: 16px 0;
-}
-
-/* ==========================================================================
-   Inner Blocks (for containers)
-   ========================================================================== */
-
-.pwc-inner-blocks {
-  min-height: 50px;
-}
-
-.pwc-inner-blocks--editing {
-  min-height: 100px;
-  border: 1px dashed transparent;
-  border-radius: 8px;
-  transition: border-color 0.15s ease;
-}
-
-.pwc-inner-blocks--editing:hover {
-  border-color: #e2e8f0;
-}
-
-.pwc-inner-blocks__empty {
-  margin: 16px 0;
-}
-
-/* ==========================================================================
-   Empty State
-   ========================================================================== */
-
-.pwc-empty-state {
-  border: 2px dashed #e2e8f0;
-  border-radius: 12px;
-  margin: 24px 0;
-}
-
-/* ==========================================================================
-   Section Header Block
-   ========================================================================== */
-
-.pwc-section-header h1[contenteditable="true"],
-.pwc-section-header h2[contenteditable="true"],
-.pwc-section-header [contenteditable="true"] {
-  min-height: 1.2em;
-  border-radius: 4px;
-  padding: 2px 4px;
-  margin: -2px -4px;
-}
-
-.pwc-section-header [contenteditable="true"]:focus {
-  outline: none;
-  background-color: rgba(0, 124, 186, 0.05);
-}
-
-/* ==========================================================================
-   Section List Block
-   ========================================================================== */
-
-.pwc-section-list__item [contenteditable="true"] {
-  min-height: 1.2em;
-  border-radius: 4px;
-  padding: 2px 4px;
-  margin: -2px -4px;
-}
-
-.pwc-section-list__item [contenteditable="true"]:focus {
-  outline: none;
-  background-color: rgba(0, 124, 186, 0.05);
-}
-
-.pwc-section-list__add-btn {
-  transition: all 0.15s ease;
-}
-
-.pwc-section-list__add-btn:hover {
-  transform: translateX(4px);
-}
-
-/* ==========================================================================
-   Section Container Block
-   ========================================================================== */
-
-.pwc-container {
-  position: relative;
-}
-
-.pwc-editing .pwc-container {
-  border: 1px dashed transparent;
-  border-radius: 8px;
-}
-
-.pwc-editing .pwc-container:hover {
-  border-color: #e2e8f0;
-}
-
-/* ==========================================================================
-   Toggle Switch
-   ========================================================================== */
-
-.pwc-toggle {
-  transition: background-color 0.2s ease;
-}
-
-.pwc-toggle span {
-  transition: transform 0.2s ease;
-}
-
-/* ==========================================================================
-   Animations
-   ========================================================================== */
-
-@keyframes pwc-slide-in-right {
-  from {
-    transform: translateX(100%);
-  }
-  to {
-    transform: translateX(0);
-  }
-}
-
-@keyframes pwc-slide-out-right {
-  from {
-    transform: translateX(0);
-  }
-  to {
-    transform: translateX(100%);
-  }
-}
-
-/* ==========================================================================
-   Print Styles
-   ========================================================================== */
-
-/* ==========================================================================
-   Block Library Panel (Gutenberg-style)
-   ========================================================================== */
-
-/* Custom element must display as block - use !important to override any theme styles */
-pwc-block-library-panel {
-  display: block !important;
-  position: static !important;
-  width: auto !important;
-  height: auto !important;
-  opacity: 1 !important;
-  visibility: visible !important;
-}
-
-/* FAB container should not affect layout */
 #pwc-block-library-toggle-container {
   position: fixed;
   right: 0;
@@ -1097,7 +743,7 @@ pwc-block-library-panel {
   pointer-events: auto;
 }
 
-/* Toggle button when panel is closed */
+/* Toggle tab (left side) */
 .pwc-block-library__toggle {
   position: fixed;
   top: 80px;
@@ -1133,6 +779,7 @@ pwc-block-library-panel {
   pointer-events: none;
 }
 
+/* Panel */
 .pwc-block-library {
   position: fixed !important;
   top: 0 !important;
@@ -1156,12 +803,11 @@ pwc-block-library-panel {
   transform: translateX(0) !important;
 }
 
-/* Header with title and action buttons */
 .pwc-block-library__header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 12px 12px;
+  padding: 12px;
   border-bottom: 1px solid #e5e7eb;
   background: #f9fafb;
 }
@@ -1267,7 +913,7 @@ pwc-block-library-panel {
   background: #007cba;
 }
 
-/* Content scrollable area */
+/* Content area */
 .pwc-block-library__content {
   flex: 1;
   overflow-y: auto;
@@ -1294,7 +940,6 @@ pwc-block-library-panel {
   gap: 8px;
 }
 
-/* Individual block item */
 .pwc-block-library__block {
   display: flex;
   flex-direction: column;
@@ -1325,15 +970,6 @@ pwc-block-library-panel {
   box-shadow: 0 0 0 2px rgba(0, 124, 186, 0.3) !important;
 }
 
-/* Cursor change during drag */
-body.pwc-dragging-block {
-  cursor: grabbing !important;
-}
-
-body.pwc-dragging-block * {
-  cursor: grabbing !important;
-}
-
 .pwc-block-library__block-icon {
   width: 32px;
   height: 32px;
@@ -1356,7 +992,6 @@ body.pwc-dragging-block * {
   line-height: 1.3;
 }
 
-/* Empty state */
 .pwc-block-library__empty {
   text-align: center;
   color: #9ca3af;
@@ -1364,15 +999,71 @@ body.pwc-dragging-block * {
   padding: 40px 20px;
 }
 
+/* FAB toggle (bottom-right) */
+.pwc-block-library-toggle {
+  position: fixed;
+  right: 24px;
+  bottom: 24px;
+  width: 56px;
+  height: 56px;
+  background: #007cba;
+  color: #fff;
+  border: none;
+  border-radius: 50%;
+  box-shadow: 0 6px 20px rgba(0, 124, 186, 0.4), 0 2px 8px rgba(0, 0, 0, 0.15);
+  cursor: pointer;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.pwc-block-library-toggle:hover {
+  background: #0065a1;
+  transform: scale(1.1);
+  box-shadow: 0 8px 28px rgba(0, 124, 186, 0.5), 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.pwc-block-library-toggle:active {
+  transform: scale(0.95);
+}
+
+.pwc-block-library-toggle svg {
+  width: 28px;
+  height: 28px;
+  transition: transform 0.3s ease;
+}
+
+body.pwc-block-library-open .pwc-block-library-toggle svg {
+  transform: rotate(45deg);
+}
+
+body.pwc-block-library-open .pwc-block-library-toggle {
+  background: #dc2626;
+}
+
+body.pwc-block-library-open .pwc-block-library-toggle:hover {
+  background: #b91c1c;
+}
+
+/* Drag cursor */
+body.pwc-dragging-block {
+  cursor: grabbing !important;
+}
+
+body.pwc-dragging-block * {
+  cursor: grabbing !important;
+}
+
 /* ==========================================================================
-   Drop Zones - Visual indicators when dragging blocks
+   12. Drop Zones
    ========================================================================== */
 
 .pwc-drop-active {
   position: relative;
 }
 
-/* Base drop zone - hidden by default, only visible during drag */
 .pwc-drop-zone {
   position: relative;
   height: 0;
@@ -1385,7 +1076,6 @@ body.pwc-dragging-block * {
   opacity: 0;
 }
 
-/* Only show drop zones when actively dragging a block */
 body.pwc-dragging-block .pwc-drop-zone {
   display: flex;
   height: 24px;
@@ -1393,7 +1083,6 @@ body.pwc-dragging-block .pwc-drop-zone {
   opacity: 1;
 }
 
-/* The blue line */
 .pwc-drop-zone::before {
   content: '';
   position: absolute;
@@ -1407,7 +1096,6 @@ body.pwc-dragging-block .pwc-drop-zone {
   transition: all 0.2s ease;
 }
 
-/* The plus icon in the middle */
 .pwc-drop-zone::after {
   content: '';
   position: relative;
@@ -1425,7 +1113,6 @@ body.pwc-dragging-block .pwc-drop-zone {
   box-shadow: 0 2px 8px rgba(0, 124, 186, 0.3);
 }
 
-/* Hover state - more prominent */
 .pwc-drop-zone:hover::before,
 .pwc-drop-zone--active::before {
   height: 4px;
@@ -1440,7 +1127,6 @@ body.pwc-dragging-block .pwc-drop-zone {
   box-shadow: 0 4px 12px rgba(0, 124, 186, 0.4);
 }
 
-/* Active state when dragging over */
 .pwc-drop-zone--active {
   height: 48px;
   background: rgba(0, 124, 186, 0.08);
@@ -1458,23 +1144,11 @@ body.pwc-dragging-block .pwc-drop-zone {
   animation: pwc-drop-pulse 0.8s ease-in-out infinite;
 }
 
-@keyframes pwc-drop-pulse {
-  0%, 100% {
-    transform: scale(1.2);
-    box-shadow: 0 4px 12px rgba(0, 124, 186, 0.4);
-  }
-  50% {
-    transform: scale(1.4);
-    box-shadow: 0 6px 20px rgba(0, 124, 186, 0.6);
-  }
-}
-
-/* First drop zone - no top margin */
 .pwc-drop-zone--first {
   margin-top: 0;
 }
 
-/* Empty state drop zone - larger area */
+/* Empty state drop zone */
 .pwc-drop-zone--empty {
   height: 120px;
   background: rgba(0, 124, 186, 0.05);
@@ -1514,23 +1188,11 @@ body.pwc-dragging-block .pwc-drop-zone {
   transform: scale(1.1);
 }
 
-/* Animation for drop zones appearing */
-@keyframes pwc-drop-zone-appear {
-  from {
-    opacity: 0;
-    transform: scaleX(0.8);
-  }
-  to {
-    opacity: 1;
-    transform: scaleX(1);
-  }
-}
-
+/* Staggered drop zone animations */
 .pwc-drop-active .pwc-drop-zone {
   animation: pwc-drop-zone-appear 0.2s ease forwards;
 }
 
-/* Stagger the animations for each drop zone */
 .pwc-drop-active .pwc-drop-zone:nth-child(1) { animation-delay: 0ms; }
 .pwc-drop-active .pwc-drop-zone:nth-child(2) { animation-delay: 30ms; }
 .pwc-drop-active .pwc-drop-zone:nth-child(3) { animation-delay: 60ms; }
@@ -1542,7 +1204,7 @@ body.pwc-dragging-block .pwc-drop-zone {
 .pwc-drop-active .pwc-drop-zone:nth-child(9) { animation-delay: 240ms; }
 .pwc-drop-active .pwc-drop-zone:nth-child(10) { animation-delay: 270ms; }
 
-/* Fade blocks slightly during drag to make drop zones more visible */
+/* Fade blocks during drag */
 .pwc-drop-active .pwc-block {
   opacity: 0.7;
   transition: opacity 0.2s ease;
@@ -1553,66 +1215,253 @@ body.pwc-dragging-block .pwc-drop-zone {
 }
 
 /* ==========================================================================
-   Block Library Toggle Button (Google-style FAB)
+   13. Delete Confirmation Modal
    ========================================================================== */
 
-.pwc-block-library-toggle {
+.pwc-delete-modal-overlay {
   position: fixed;
-  right: 24px;
-  bottom: 24px;
-  width: 56px;
-  height: 56px;
-  background: #007cba;
-  color: #fff;
-  border: none;
-  border-radius: 50%;
-  box-shadow: 0 6px 20px rgba(0, 124, 186, 0.4), 0 2px 8px rgba(0, 0, 0, 0.15);
-  cursor: pointer;
-  z-index: 100;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: 10000;
+  animation: pwc-modal-fade-in 0.15s ease;
 }
 
-.pwc-block-library-toggle:hover {
-  background: #0065a1;
-  transform: scale(1.1);
-  box-shadow: 0 8px 28px rgba(0, 124, 186, 0.5), 0 4px 12px rgba(0, 0, 0, 0.2);
+.pwc-delete-modal {
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  width: 100%;
+  max-width: 400px;
+  margin: 16px;
+  animation: pwc-modal-scale-in 0.2s ease;
 }
 
-.pwc-block-library-toggle:active {
-  transform: scale(0.95);
+.pwc-delete-modal__header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 20px 24px 16px;
 }
 
-.pwc-block-library-toggle svg {
-  width: 28px;
-  height: 28px;
-  transition: transform 0.3s ease;
+.pwc-delete-modal__icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: #fee2e2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #dc2626;
+  flex-shrink: 0;
 }
 
-/* Rotate icon when panel is open */
-body.pwc-block-library-open .pwc-block-library-toggle svg {
-  transform: rotate(45deg);
+.pwc-delete-modal__icon svg {
+  width: 24px;
+  height: 24px;
 }
 
-/* Don't hide toggle when panel is open - just change appearance */
-body.pwc-block-library-open .pwc-block-library-toggle {
+.pwc-delete-modal__title {
+  font-size: 18px;
+  font-weight: 600;
+  color: #111827;
+  margin: 0;
+}
+
+.pwc-delete-modal__body {
+  padding: 0 24px 20px;
+}
+
+.pwc-delete-modal__message {
+  font-size: 14px;
+  color: #6b7280;
+  line-height: 1.5;
+  margin: 0;
+}
+
+.pwc-delete-modal__footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  padding: 16px 24px;
+  background: #f9fafb;
+  border-top: 1px solid #e5e7eb;
+  border-radius: 0 0 12px 12px;
+}
+
+.pwc-delete-modal__btn {
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  border: none;
+}
+
+.pwc-delete-modal__btn--cancel {
+  background: #fff;
+  color: #374151;
+  border: 1px solid #d1d5db;
+}
+
+.pwc-delete-modal__btn--cancel:hover {
+  background: #f3f4f6;
+  border-color: #9ca3af;
+}
+
+.pwc-delete-modal__btn--delete {
   background: #dc2626;
+  color: #fff;
 }
 
-body.pwc-block-library-open .pwc-block-library-toggle:hover {
+.pwc-delete-modal__btn--delete:hover {
   background: #b91c1c;
 }
 
 /* ==========================================================================
-   Print Styles
+   14. Rich Text Toolbar
    ========================================================================== */
+
+.pwc-inserter__popover {
+  animation: pwc-fade-in 0.15s ease;
+}
 
 /* ==========================================================================
-   Color Swatch Field
+   15. Edit Trigger
    ========================================================================== */
 
+.pwc-content-editable {
+  position: relative;
+}
+
+.pwc-content-editable:hover {
+  outline: 2px dashed rgba(0, 124, 186, 0.3);
+  outline-offset: 8px;
+}
+
+.pwc-edit-trigger {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  background: #007cba;
+  color: #fff;
+  border-radius: 8px;
+  cursor: pointer;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-4px);
+  transition: all 0.2s ease;
+  z-index: 50;
+  box-shadow: 0 4px 12px rgba(0, 124, 186, 0.3);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+.pwc-content-editable:hover .pwc-edit-trigger {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
+.pwc-edit-trigger:hover {
+  background: #0065a1;
+  box-shadow: 0 6px 16px rgba(0, 124, 186, 0.4);
+  transform: translateY(-2px);
+}
+
+.pwc-edit-trigger:active {
+  transform: translateY(0);
+}
+
+.pwc-edit-trigger__icon {
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.pwc-edit-trigger__icon svg {
+  width: 20px;
+  height: 20px;
+}
+
+.pwc-edit-trigger__label {
+  font-size: 14px;
+  font-weight: 500;
+}
+
+/* ==========================================================================
+   16. Content Region & Inner Blocks
+   ========================================================================== */
+
+[data-pwc-content-region] {
+  min-height: 200px;
+  position: relative;
+}
+
+.pwc-editing [data-pwc-content-region] {
+  min-height: 400px;
+  padding: 16px 0;
+}
+
+.pwc-inner-blocks {
+  min-height: 50px;
+}
+
+.pwc-inner-blocks--editing {
+  min-height: 100px;
+  border: 1px dashed transparent;
+  border-radius: 8px;
+  transition: border-color 0.15s ease;
+}
+
+.pwc-inner-blocks--editing:hover {
+  border-color: #e2e8f0;
+}
+
+.pwc-inner-blocks__empty {
+  margin: 16px 0;
+}
+
+.pwc-empty-state {
+  border: 2px dashed #e2e8f0;
+  border-radius: 12px;
+  margin: 24px 0;
+}
+
+.pwc-container {
+  position: relative;
+}
+
+.pwc-editing .pwc-container {
+  border: 1px dashed transparent;
+  border-radius: 8px;
+}
+
+.pwc-editing .pwc-container:hover {
+  border-color: #e2e8f0;
+}
+
+.pwc-toggle {
+  transition: background-color 0.2s ease;
+}
+
+.pwc-toggle span {
+  transition: transform 0.2s ease;
+}
+
+/* ==========================================================================
+   17. Settings Panel Fields
+   ========================================================================== */
+
+/* Color Swatch */
 .pwc-color-swatch-grid {
   display: grid;
   grid-template-columns: repeat(8, 1fr);
@@ -1639,10 +1488,7 @@ body.pwc-block-library-open .pwc-block-library-toggle:hover {
   box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.5);
 }
 
-/* ==========================================================================
-   Radius Picker Field
-   ========================================================================== */
-
+/* Radius Picker */
 .pwc-radius-picker {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -1660,10 +1506,7 @@ body.pwc-block-library-open .pwc-block-library-toggle:hover {
   transition: all 0.15s ease;
 }
 
-/* ==========================================================================
-   Layout Picker Field
-   ========================================================================== */
-
+/* Layout Picker */
 .pwc-layout-picker {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -1686,10 +1529,7 @@ body.pwc-block-library-open .pwc-block-library-toggle:hover {
   height: 32px;
 }
 
-/* ==========================================================================
-   Gap Picker Field
-   ========================================================================== */
-
+/* Gap Picker */
 .pwc-gap-picker {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -1708,10 +1548,7 @@ body.pwc-block-library-open .pwc-block-library-toggle:hover {
   min-height: 52px;
 }
 
-/* ==========================================================================
-   Vertical Align Picker Field
-   ========================================================================== */
-
+/* Vertical Align Picker */
 .pwc-valign-picker {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -1734,10 +1571,35 @@ body.pwc-block-library-open .pwc-block-library-toggle:hover {
   height: 20px;
 }
 
-/* ==========================================================================
-   Alignment Field
-   ========================================================================== */
+/* Heading Level Picker */
+.pwc-heading-level-picker {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 4px;
+}
 
+.pwc-heading-level-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 4px;
+  border: 1px solid;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.pwc-heading-level-btn svg {
+  width: 20px;
+  height: 20px;
+}
+
+.pwc-heading-level-btn__label {
+  font-size: 12px;
+  font-weight: 600;
+}
+
+/* Alignment */
 .pwc-alignment-buttons {
   display: flex;
   gap: 4px;
@@ -1762,10 +1624,7 @@ body.pwc-block-library-open .pwc-block-library-toggle:hover {
   height: 18px;
 }
 
-/* ==========================================================================
-   Spacing Field
-   ========================================================================== */
-
+/* Spacing */
 .pwc-spacing-field {
   background: #f9fafb;
   border-radius: 8px;
@@ -1773,7 +1632,6 @@ body.pwc-block-library-open .pwc-block-library-toggle:hover {
   border: 1px solid #e5e7eb;
 }
 
-/* Side selector buttons row */
 .pwc-spacing-sides {
   display: flex;
   gap: 2px;
@@ -1823,7 +1681,6 @@ body.pwc-block-library-open .pwc-block-library-toggle:hover {
   white-space: nowrap;
 }
 
-/* Size selector dropdown */
 .pwc-spacing-sizes {
   margin-top: 8px;
   padding: 8px;
@@ -1869,104 +1726,10 @@ body.pwc-block-library-open .pwc-block-library-toggle:hover {
 }
 
 /* ==========================================================================
-   Paragraph Block
+   18. Utility Classes
    ========================================================================== */
 
-.pwc-paragraph {
-  position: relative;
-}
-
-/* Paragraph text styling */
-.pwc-paragraph__text {
-  margin: 0;
-}
-
-/* Spacing between paragraphs within the block */
-.pwc-paragraph p + p,
-.pwc-paragraph .pwc-paragraph__text + .pwc-paragraph__text {
-  margin-top: 1em;
-}
-
-/* Editable paragraph styles */
-.pwc-editing .pwc-paragraph[contenteditable="true"] {
-  min-height: 1.5em;
-  border-radius: 4px;
-  outline: none;
-  /* Note: padding and margin are controlled by Tailwind utility classes */
-}
-
-.pwc-editing .pwc-paragraph[contenteditable="true"]:focus {
-  background-color: rgba(0, 124, 186, 0.03);
-}
-
-/* Empty paragraph placeholder */
-.pwc-paragraph[data-placeholder]:empty::before,
-.pwc-paragraph[data-placeholder] p:only-child:empty::before {
-  content: attr(data-placeholder);
-  color: #9ca3af;
-  font-style: italic;
-  pointer-events: none;
-}
-
-/* Ensure proper paragraph spacing in edit mode */
-.pwc-editing .pwc-paragraph p {
-  margin: 0;
-  min-height: 1.2em;
-}
-
-.pwc-editing .pwc-paragraph p + p {
-  margin-top: 1em;
-}
-
-/* Empty paragraph needs min-height to be clickable */
-.pwc-editing .pwc-paragraph p:empty,
-.pwc-editing .pwc-paragraph p br:only-child {
-  min-height: 1.5em;
-}
-
-/* ==========================================================================
-   List Block
-   ========================================================================== */
-
-.pwc-list__items {
-  position: relative;
-}
-
-/* Proper padding for list-outside so markers aren't cut off */
-.pwc-list__items.list-outside {
-  padding-left: 1.5em;
-}
-
-.pwc-list__item {
-  position: relative;
-}
-
-/* Editable list styles */
-.pwc-editing .pwc-list__items[contenteditable="true"] {
-  min-height: 1.5em;
-  border-radius: 4px;
-  outline: none;
-}
-
-.pwc-editing .pwc-list__items[contenteditable="true"]:focus {
-  background-color: rgba(0, 124, 186, 0.03);
-}
-
-/* Empty list placeholder */
-.pwc-list__items[data-placeholder]:empty::before,
-.pwc-list__items[data-placeholder] li:only-child:empty::before {
-  content: attr(data-placeholder);
-  color: #9ca3af;
-  font-style: italic;
-  pointer-events: none;
-}
-
-/* List item styling in edit mode */
-.pwc-editing .pwc-list__items li {
-  min-height: 1.2em;
-}
-
-/* Custom list styles that Tailwind doesn't have built-in */
+/* Custom list styles not built into Tailwind */
 .list-decimal-leading-zero {
   list-style-type: decimal-leading-zero;
 }
@@ -1996,8 +1759,104 @@ body.pwc-block-library-open .pwc-block-library-toggle:hover {
 }
 
 /* ==========================================================================
-   Print Styles
+   19. Animations
    ========================================================================== */
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes pwc-slide-in-button {
+  from {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes pwc-slide-in-right {
+  from { transform: translateX(100%); }
+  to { transform: translateX(0); }
+}
+
+@keyframes pwc-slide-out-right {
+  from { transform: translateX(0); }
+  to { transform: translateX(100%); }
+}
+
+@keyframes pwc-modal-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes pwc-modal-scale-in {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes pwc-fade-in {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+}
+
+@keyframes pwc-drop-pulse {
+  0%, 100% {
+    transform: scale(1.2);
+    box-shadow: 0 4px 12px rgba(0, 124, 186, 0.4);
+  }
+  50% {
+    transform: scale(1.4);
+    box-shadow: 0 6px 20px rgba(0, 124, 186, 0.6);
+  }
+}
+
+@keyframes pwc-drop-zone-appear {
+  from {
+    opacity: 0;
+    transform: scaleX(0.8);
+  }
+  to {
+    opacity: 1;
+    transform: scaleX(1);
+  }
+}
+
+/* ==========================================================================
+   20. Print & Responsive
+   ========================================================================== */
+
+@media (max-width: 1024px) {
+  body.pwc-editing {
+    margin-left: 0;
+    margin-right: 0;
+  }
+}
+
+@media (max-width: 768px) {
+  .pwc-layout-block {
+    flex-direction: column;
+  }
+
+  .pwc-layout-column {
+    flex: 1 0 0 !important;
+  }
+}
 
 @media print {
   .pwc-edit-button,

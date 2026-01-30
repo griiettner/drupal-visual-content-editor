@@ -98,17 +98,27 @@
   // Export for settings panel
   window.TAILWIND_OPTIONS = TAILWIND_OPTIONS;
 
+  const HEADING_LEVEL_DEFAULTS = {
+    'h1': { fontSize: 'text-6xl', fontWeight: 'font-medium' },
+    'h2': { fontSize: 'text-4xl', fontWeight: 'font-medium' },
+    'h3': { fontSize: 'text-3xl', fontWeight: 'font-medium' },
+    'h4': { fontSize: 'text-xl', fontWeight: 'font-medium' },
+    'h5': { fontSize: 'text-lg', fontWeight: 'font-medium' },
+    'h6': { fontSize: 'text-base', fontWeight: 'font-medium' },
+  };
+
   class HeadingBlock extends window.PwcBaseBlock {
     static get blockName() { return 'heading'; }
     static get blockTitle() { return 'Heading'; }
     static get blockIcon() { return ''; }
     static get blockDescription() { return 'Add a heading with customizable styles using Tailwind classes.'; }
+    static get levelDefaults() { return HEADING_LEVEL_DEFAULTS; }
 
     static get blockSettings() {
       return [
         {
           name: 'level',
-          type: 'select',
+          type: 'headingLevelPicker',
           label: 'Heading Level',
           default: 'h2',
           options: [
@@ -124,14 +134,14 @@
           name: 'fontSize',
           type: 'select',
           label: 'Font Size',
-          default: '',
+          default: 'text-4xl',
           options: TAILWIND_OPTIONS.fontSize,
         },
         {
           name: 'fontWeight',
           type: 'select',
           label: 'Font Weight',
-          default: '',
+          default: 'font-medium',
           options: TAILWIND_OPTIONS.fontWeight,
         },
         {
@@ -251,8 +261,9 @@
      */
     updateStyles() {
       const level = this.getAttribute('level') || 'h2';
-      const fontSize = this.getAttribute('font-size') || '';
-      const fontWeight = this.getAttribute('font-weight') || '';
+      const defaults = HEADING_LEVEL_DEFAULTS[level] || HEADING_LEVEL_DEFAULTS['h2'];
+      const fontSize = this.getAttribute('font-size') || defaults.fontSize;
+      const fontWeight = this.getAttribute('font-weight') || defaults.fontWeight;
       const lineHeight = this.getAttribute('line-height') || '';
       const textAlign = this.getAttribute('text-align') || '';
       const textColor = this.getAttribute('text-color') || '';
@@ -289,8 +300,9 @@
     render() {
       const content = this.getAttribute('content') || 'Heading';
       const level = this.getAttribute('level') || 'h2';
-      const fontSize = this.getAttribute('font-size') || '';
-      const fontWeight = this.getAttribute('font-weight') || '';
+      const defaults = HEADING_LEVEL_DEFAULTS[level] || HEADING_LEVEL_DEFAULTS['h2'];
+      const fontSize = this.getAttribute('font-size') || defaults.fontSize;
+      const fontWeight = this.getAttribute('font-weight') || defaults.fontWeight;
       const lineHeight = this.getAttribute('line-height') || '';
       const textAlign = this.getAttribute('text-align') || '';
       const textColor = this.getAttribute('text-color') || '';
@@ -317,9 +329,11 @@
       // Only add placeholder attribute when editing and content is empty/default
       const placeholderAttr = isEditing && !hasContent ? 'data-placeholder="Enter heading..."' : '';
 
+      const editableClass = isEditing ? `${classes} pwc-editable` : classes;
+
       this.innerHTML = `
         <${level}
-          class="${classes}"
+          class="${editableClass}"
           ${isEditing ? `contenteditable="true" data-editable="content"` : ''}
           ${placeholderAttr}
         >${content}</${level}>

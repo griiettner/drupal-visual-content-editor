@@ -319,69 +319,86 @@
 
     /**
      * Create drop zones for reordering blocks.
+     * Creates drop zones at ALL valid positions: top-level and all layout columns.
      */
     createReorderDropZones() {
-      // Check if we're inside a layout column
       const parentInfo = this.getParentLayoutInfo();
 
-      if (parentInfo) {
-        this.createColumnReorderDropZones(parentInfo);
-      } else {
-        this.createTopLevelReorderDropZones();
+      // Always create top-level drop zones
+      this.createTopLevelReorderDropZones();
+
+      // Create drop zones in all layout columns (unless dragging a layout block)
+      if (this.tagName.toLowerCase() !== 'pwc-layout') {
+        this.createAllColumnDropZones(parentInfo);
       }
+
+      // Setup event listeners for all drop zones
+      this.setupReorderDropZoneListeners();
     }
 
     /**
-     * Create drop zones for reordering within a layout column.
+     * Create drop zones in ALL layout columns across the document.
+     *
+     * @param {Object|null} currentParentInfo - Parent layout info of the dragged block, if any.
      */
-    createColumnReorderDropZones(parentInfo) {
-      const { layoutId, columnIndex, columnElement } = parentInfo;
-      if (!columnElement) return;
+    createAllColumnDropZones(currentParentInfo) {
+      const allLayouts = document.querySelectorAll('pwc-layout');
+      this._allColumnDragHandlers = [];
 
-      // Add drop zone class to column
-      columnElement.classList.add('pwc-drop-active');
+      allLayouts.forEach(layoutEl => {
+        const layoutId = layoutEl.getAttribute('block-id');
+        // Only select this layout's own columns, not columns of nested layouts
+        const columns = layoutEl.querySelectorAll(':scope > .pwc-layout-block > .pwc-layout-column');
 
-      // Get all blocks in this column
-      const blocks = Array.from(columnElement.querySelectorAll(':scope > .pwc-block'));
-      const currentIndex = blocks.indexOf(this);
+        columns.forEach(column => {
+          const columnIndex = parseInt(column.dataset.columnIndex, 10);
+          const columnContent = column.querySelector('.pwc-layout-column__content');
+          if (!columnContent) return;
 
-      // Add a delegated event handler on the column content for drag events
-      this._columnDragHandler = this._createColumnDragHandler(columnElement, layoutId, columnIndex);
-      columnElement.addEventListener('dragover', this._columnDragHandler, true);
-      columnElement.addEventListener('drop', this._columnDragHandler, true);
+          // Mark the column as an active drop target
+          columnContent.classList.add('pwc-drop-active');
 
-      // Create drop zone at beginning if not already first
-      if (currentIndex > 0 || currentIndex === -1) {
-        if (blocks.length > 0) {
-          this.createDropZone(columnElement, 0, blocks[0], 'before', layoutId, columnIndex);
-        }
-      }
+          // Get all blocks in this column
+          const blocks = Array.from(columnContent.querySelectorAll(':scope > .pwc-block'));
 
-      // Create drop zones between blocks
-      for (let i = 0; i < blocks.length - 1; i++) {
-        if (i + 1 === currentIndex || i + 1 === currentIndex + 1) {
-          continue;
-        }
-        this.createDropZone(columnElement, i + 1, blocks[i], 'after', layoutId, columnIndex);
-      }
+          // Determine the current index of the dragged block within this column
+          const currentIndex = blocks.indexOf(this);
 
-      // Create drop zone at end if not already last
-      if (currentIndex < blocks.length - 1 || currentIndex === -1) {
-        if (blocks.length > 0) {
-          this.createDropZone(columnElement, blocks.length, blocks[blocks.length - 1], 'after', layoutId, columnIndex);
-        } else {
-          // Empty column - create a single drop zone
-          const dropZone = document.createElement('div');
-          dropZone.className = 'pwc-drop-zone pwc-drop-zone--reorder pwc-drop-zone--first';
-          dropZone.dataset.insertIndex = '0';
-          dropZone.dataset.layoutId = layoutId;
-          dropZone.dataset.columnIndex = String(columnIndex);
-          columnElement.appendChild(dropZone);
-        }
-      }
+          // Create drop zone at beginning
+          if (currentIndex !== 0) {
+            if (blocks.length > 0) {
+              this.createDropZone(columnContent, 0, blocks[0], 'before', layoutId, columnIndex);
+            } else {
+              // Empty column - create a single drop zone
+              const dropZone = document.createElement('div');
+              dropZone.className = 'pwc-drop-zone pwc-drop-zone--reorder pwc-drop-zone--first';
+              dropZone.dataset.insertIndex = '0';
+              dropZone.dataset.layoutId = layoutId;
+              dropZone.dataset.columnIndex = String(columnIndex);
+              columnContent.appendChild(dropZone);
+            }
+          }
 
-      // Setup drop zone event listeners
-      this.setupReorderDropZoneListeners();
+          // Create drop zones between blocks
+          for (let i = 0; i < blocks.length - 1; i++) {
+            if (currentIndex >= 0 && (i + 1 === currentIndex || i + 1 === currentIndex + 1)) {
+              continue;
+            }
+            this.createDropZone(columnContent, i + 1, blocks[i], 'after', layoutId, columnIndex);
+          }
+
+          // Create drop zone at end
+          if (blocks.length > 0 && currentIndex < blocks.length - 1) {
+            this.createDropZone(columnContent, blocks.length, blocks[blocks.length - 1], 'after', layoutId, columnIndex);
+          }
+
+          // Add delegated drag handler on column content
+          const handler = this._createContentRegionDragHandler(columnContent);
+          columnContent.addEventListener('dragover', handler, true);
+          columnContent.addEventListener('drop', handler, true);
+          this._allColumnDragHandlers.push({ element: columnContent, handler });
+        });
+      });
     }
 
     /**
@@ -399,13 +416,13 @@
       const currentIndex = blocks.indexOf(this);
 
       // Create drop zone at beginning (position 0) if we're not already first
-      if (currentIndex > 0) {
+      if (currentIndex !== 0) {
         this.createDropZone(contentRegion, 0, blocks[0], 'before');
       }
 
       // Create drop zones between blocks
       for (let i = 0; i < blocks.length - 1; i++) {
-        if (i + 1 === currentIndex || i + 1 === currentIndex + 1) {
+        if (currentIndex >= 0 && (i + 1 === currentIndex || i + 1 === currentIndex + 1)) {
           continue;
         }
         this.createDropZone(contentRegion, i + 1, blocks[i], 'after');
@@ -420,9 +437,6 @@
       this._contentRegionDragHandler = this._createContentRegionDragHandler(contentRegion);
       contentRegion.addEventListener('dragover', this._contentRegionDragHandler, true);
       contentRegion.addEventListener('drop', this._contentRegionDragHandler, true);
-
-      // Setup drop zone event listeners
-      this.setupReorderDropZoneListeners();
     }
 
     /**
@@ -449,7 +463,15 @@
           });
         } else if (e.type === 'drop') {
           const newIndex = parseInt(dropZone.dataset.insertIndex, 10);
-          window.pwcEditorState.moveBlockToIndex(blockId, newIndex);
+          const targetLayoutId = dropZone.dataset.layoutId || null;
+          const targetColumnIndex = dropZone.dataset.columnIndex !== undefined
+            ? parseInt(dropZone.dataset.columnIndex, 10) : null;
+
+          window.pwcEditorState.moveBlockCrossContainer(blockId, {
+            layoutId: targetLayoutId,
+            columnIndex: targetColumnIndex,
+            insertIndex: newIndex,
+          });
 
           // Clean up
           self.removeReorderDropZones();
@@ -518,16 +540,15 @@
           e.stopImmediatePropagation();
 
           const newIndex = parseInt(zone.dataset.insertIndex, 10);
-          const layoutId = zone.dataset.layoutId;
-          const columnIndex = zone.dataset.columnIndex !== undefined ? parseInt(zone.dataset.columnIndex, 10) : null;
+          const targetLayoutId = zone.dataset.layoutId || null;
+          const targetColumnIndex = zone.dataset.columnIndex !== undefined
+            ? parseInt(zone.dataset.columnIndex, 10) : null;
 
-          if (layoutId) {
-            // Reordering within a layout column
-            window.pwcEditorState.moveBlockInLayout(blockId, layoutId, columnIndex, newIndex);
-          } else {
-            // Top-level reordering
-            window.pwcEditorState.moveBlockToIndex(blockId, newIndex);
-          }
+          window.pwcEditorState.moveBlockCrossContainer(blockId, {
+            layoutId: targetLayoutId,
+            columnIndex: targetColumnIndex,
+            insertIndex: newIndex,
+          });
 
           // Clean up
           self.removeReorderDropZones();
@@ -548,40 +569,6 @@
     }
 
     /**
-     * Create a delegated handler for column drag events.
-     */
-    _createColumnDragHandler(columnElement, layoutId, columnIndex) {
-      const self = this;
-      const blockId = this.blockId;
-
-      return function(e) {
-        // Check if we're over a drop zone
-        const dropZone = e.target.closest('.pwc-drop-zone--reorder');
-        if (!dropZone) return; // Not over a drop zone
-
-        e.preventDefault();
-        e.stopPropagation();
-        e.stopImmediatePropagation();
-
-        if (e.type === 'dragover') {
-          e.dataTransfer.dropEffect = 'move';
-          // Add active class to this zone, remove from others
-          document.querySelectorAll('.pwc-drop-zone--reorder').forEach(z => {
-            z.classList.toggle('pwc-drop-zone--active', z === dropZone);
-          });
-        } else if (e.type === 'drop') {
-          const newIndex = parseInt(dropZone.dataset.insertIndex, 10);
-          window.pwcEditorState.moveBlockInLayout(blockId, layoutId, columnIndex, newIndex);
-
-          // Clean up
-          self.removeReorderDropZones();
-          self.classList.remove('pwc-block--dragging');
-          document.body.classList.remove('pwc-dragging-block');
-        }
-      };
-    }
-
-    /**
      * Remove reorder drop zones.
      */
     removeReorderDropZones() {
@@ -597,16 +584,16 @@
         }
       }
 
-      // Remove column drag handler if set
-      if (this._columnDragHandler) {
-        document.querySelectorAll('.pwc-layout-column__content').forEach(col => {
-          col.removeEventListener('dragover', this._columnDragHandler, true);
-          col.removeEventListener('drop', this._columnDragHandler, true);
+      // Remove all cross-container column drag handlers
+      if (this._allColumnDragHandlers) {
+        this._allColumnDragHandlers.forEach(({ element, handler }) => {
+          element.removeEventListener('dragover', handler, true);
+          element.removeEventListener('drop', handler, true);
         });
-        this._columnDragHandler = null;
+        this._allColumnDragHandlers = null;
       }
 
-      // Also remove from any columns
+      // Remove pwc-drop-active from all column content elements
       document.querySelectorAll('.pwc-layout-column__content.pwc-drop-active').forEach(col => {
         col.classList.remove('pwc-drop-active');
       });

@@ -218,7 +218,10 @@
         }
 
         this.classList.add('pwc-block--dragging');
-        document.body.classList.add('pwc-reordering');
+        document.body.classList.add('pwc-dragging-block');
+
+        // Mark drag as started
+        this._dragStarted = true;
 
         // Create drop zones
         setTimeout(() => this.createReorderDropZones(), 10);
@@ -226,10 +229,13 @@
 
       // Drag end
       this.addEventListener('dragend', (e) => {
-        this.classList.remove('pwc-block--dragging');
-        document.body.classList.remove('pwc-reordering');
-        this.removeReorderDropZones();
+        if (this._dragStarted) {
+          this.classList.remove('pwc-block--dragging');
+          document.body.classList.remove('pwc-dragging-block');
+          this.removeReorderDropZones();
+        }
         this._dragFromLayoutHandle = false;
+        this._dragStarted = false;
       });
     }
 
@@ -408,156 +414,6 @@
           this.showDeleteConfirmation('Are you sure you want to delete this container and all its contents? This action cannot be undone.');
         });
       }
-    }
-
-    /**
-     * Create drop zones for reordering this layout.
-     * Uses the same class names as base block for consistency.
-     */
-    createReorderDropZones() {
-      const contentRegion = document.querySelector('[data-pwc-content-region]');
-      if (!contentRegion) {
-        return;
-      }
-
-      // Add drop-active class to content region
-      contentRegion.classList.add('pwc-drop-active');
-
-      // Get all top-level blocks (direct children that are pwc-* elements)
-      const blocks = Array.from(contentRegion.children).filter(el =>
-        el.tagName && el.tagName.toLowerCase().startsWith('pwc-')
-      );
-      const currentIndex = blocks.indexOf(this);
-
-      // Create drop zone at beginning if not already first
-      if (currentIndex > 0 && blocks.length > 0) {
-        const firstZone = document.createElement('div');
-        firstZone.className = 'pwc-drop-zone pwc-drop-zone--reorder pwc-drop-zone--first';
-        firstZone.dataset.insertIndex = '0';
-        contentRegion.insertBefore(firstZone, blocks[0]);
-      }
-
-      // Create drop zones between blocks (skip adjacent to current position)
-      for (let i = 0; i < blocks.length - 1; i++) {
-        if (i + 1 === currentIndex || i + 1 === currentIndex + 1) {
-          continue;
-        }
-        const zone = document.createElement('div');
-        zone.className = 'pwc-drop-zone pwc-drop-zone--reorder';
-        zone.dataset.insertIndex = String(i + 1);
-        blocks[i].after(zone);
-      }
-
-      // Create drop zone at end if not already last
-      if (currentIndex < blocks.length - 1 && blocks.length > 0) {
-        const endZone = document.createElement('div');
-        endZone.className = 'pwc-drop-zone pwc-drop-zone--reorder';
-        endZone.dataset.insertIndex = String(blocks.length);
-        blocks[blocks.length - 1].after(endZone);
-      }
-
-      // Add delegated event handler on content region
-      this._contentRegionDragHandler = this._createLayoutDragHandler(contentRegion);
-      contentRegion.addEventListener('dragover', this._contentRegionDragHandler, true);
-      contentRegion.addEventListener('drop', this._contentRegionDragHandler, true);
-
-      // Set up drop zone listeners
-      this.setupReorderDropZoneListeners();
-    }
-
-    /**
-     * Create a delegated handler for content region drag events (layout reordering).
-     */
-    _createLayoutDragHandler(contentRegion) {
-      const self = this;
-      const blockId = this.blockId;
-
-      return function(e) {
-        // Check if we're over a drop zone
-        const dropZone = e.target.closest('.pwc-drop-zone--reorder');
-        if (!dropZone) return; // Not over a drop zone
-
-        e.preventDefault();
-        e.stopPropagation();
-        e.stopImmediatePropagation();
-
-        if (e.type === 'dragover') {
-          e.dataTransfer.dropEffect = 'move';
-          // Add active class to this zone, remove from others
-          document.querySelectorAll('.pwc-drop-zone--reorder').forEach(z => {
-            z.classList.toggle('pwc-drop-zone--active', z === dropZone);
-          });
-        } else if (e.type === 'drop') {
-          const newIndex = parseInt(dropZone.dataset.insertIndex, 10);
-          window.pwcEditorState.moveBlockToIndex(blockId, newIndex);
-
-          // Clean up
-          self.removeReorderDropZones();
-          self.classList.remove('pwc-block--dragging');
-          document.body.classList.remove('pwc-reordering');
-        }
-      };
-    }
-
-    /**
-     * Set up listeners for reorder drop zones.
-     */
-    setupReorderDropZoneListeners() {
-      const zones = document.querySelectorAll('.pwc-drop-zone--reorder');
-
-      zones.forEach(zone => {
-        // Use capture phase for reliability
-        const dragoverHandler = (e) => {
-          e.preventDefault();
-          e.stopPropagation();
-          e.stopImmediatePropagation();
-          e.dataTransfer.dropEffect = 'move';
-          zone.classList.add('pwc-drop-zone--active');
-        };
-
-        const dragleaveHandler = (e) => {
-          if (!zone.contains(e.relatedTarget)) {
-            zone.classList.remove('pwc-drop-zone--active');
-          }
-        };
-
-        const dropHandler = (e) => {
-          e.preventDefault();
-          e.stopPropagation();
-          e.stopImmediatePropagation();
-          const targetIndex = parseInt(zone.dataset.insertIndex, 10);
-          window.pwcEditorState.moveBlockToIndex(this.blockId, targetIndex);
-          zone.classList.remove('pwc-drop-zone--active');
-
-          // Clean up
-          this.removeReorderDropZones();
-          this.classList.remove('pwc-block--dragging');
-          document.body.classList.remove('pwc-reordering');
-        };
-
-        zone.addEventListener('dragover', dragoverHandler, true);
-        zone.addEventListener('dragleave', dragleaveHandler, true);
-        zone.addEventListener('drop', dropHandler.bind(this), true);
-      });
-    }
-
-    /**
-     * Remove reorder drop zones.
-     */
-    removeReorderDropZones() {
-      const contentRegion = document.querySelector('[data-pwc-content-region]');
-      if (contentRegion) {
-        contentRegion.classList.remove('pwc-drop-active');
-
-        // Remove content region drag handler
-        if (this._contentRegionDragHandler) {
-          contentRegion.removeEventListener('dragover', this._contentRegionDragHandler, true);
-          contentRegion.removeEventListener('drop', this._contentRegionDragHandler, true);
-          this._contentRegionDragHandler = null;
-        }
-      }
-
-      document.querySelectorAll('.pwc-drop-zone--reorder').forEach(zone => zone.remove());
     }
 
     getColumnBlocks(columnIndex) {

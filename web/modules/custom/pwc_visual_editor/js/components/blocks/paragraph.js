@@ -275,9 +275,11 @@
       const hasContent = content && !content.includes('Enter your text here...');
       const placeholderAttr = isEditing && !hasContent ? 'data-placeholder="Write your paragraph..."' : '';
 
+      const editableContainerClasses = isEditing ? `${containerClasses} pwc-editable` : containerClasses;
+
       this.innerHTML = `
         <div
-          class="${containerClasses}"
+          class="${editableContainerClasses}"
           ${isEditing ? `contenteditable="true" data-editable="content"` : ''}
           ${placeholderAttr}
         >${content}</div>

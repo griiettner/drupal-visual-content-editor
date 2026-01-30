@@ -494,7 +494,7 @@ function pwc_visual_editor_render_list(array $attributes): string {
   $listClasses = ['pwc-list__items'];
 
   // List style
-  $listStyle = $attributes['listStyle'] ?? ($listType === 'ul' ? 'list-disc' : 'list-decimal');
+  $listStyle = $attributes['listStyle'] ?? '';
   if (!empty($listStyle)) {
     $listClasses[] = htmlspecialchars($listStyle);
   }

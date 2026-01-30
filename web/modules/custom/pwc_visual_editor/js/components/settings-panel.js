@@ -288,9 +288,23 @@
           `;
 
         case 'select':
+          // For heading blocks, enrich the "Default" label with the resolved value
+          const levelDefs = this.currentBlock?.constructor?.levelDefaults;
+          const currentLevel = this.currentBlock?.getAttribute?.('level') || 'h2';
+          const currentLevelDef = levelDefs?.[currentLevel];
+
           const options = (setting.options || []).map(opt => {
+            let label = opt.label;
+            // Show resolved default in the label, e.g. "Default (4XL)"
+            if (opt.value === '' && currentLevelDef && opt.label === 'Default') {
+              const resolvedValue = currentLevelDef[setting.name];
+              if (resolvedValue) {
+                const resolvedOpt = (setting.options || []).find(o => o.value === resolvedValue);
+                label = resolvedOpt ? `Default (${resolvedOpt.label})` : `Default (${resolvedValue})`;
+              }
+            }
             const selected = opt.value === value ? 'selected' : '';
-            return `<option value="${opt.value}" ${selected}>${opt.label}</option>`;
+            return `<option value="${opt.value}" ${selected}>${label}</option>`;
           }).join('');
 
           return `
@@ -575,6 +589,223 @@
               ${setting.help ? `<p class="mt-1 text-xs text-gray-500">${setting.help}</p>` : ''}
             </div>
           `;
+
+        case 'listTypePicker': {
+          const listTypeIcons = {
+            'ul': `<svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="4" cy="6" r="1.5" fill="currentColor" stroke="none"></circle>
+              <circle cx="4" cy="12" r="1.5" fill="currentColor" stroke="none"></circle>
+              <circle cx="4" cy="18" r="1.5" fill="currentColor" stroke="none"></circle>
+              <line x1="9" y1="6" x2="21" y2="6"></line>
+              <line x1="9" y1="12" x2="21" y2="12"></line>
+              <line x1="9" y1="18" x2="21" y2="18"></line>
+            </svg>`,
+            'ol': `<svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <text x="2" y="8" font-size="7" fill="currentColor" stroke="none" font-family="sans-serif">1.</text>
+              <text x="2" y="14" font-size="7" fill="currentColor" stroke="none" font-family="sans-serif">2.</text>
+              <text x="2" y="20" font-size="7" fill="currentColor" stroke="none" font-family="sans-serif">3.</text>
+              <line x1="13" y1="6" x2="21" y2="6"></line>
+              <line x1="13" y1="12" x2="21" y2="12"></line>
+              <line x1="13" y1="18" x2="21" y2="18"></line>
+            </svg>`,
+          };
+
+          const listTypeButtons = (setting.options || []).map(opt => {
+            const isSelected = value === opt.value;
+            return `
+              <button
+                type="button"
+                class="pwc-list-type-btn flex-1 flex flex-col items-center gap-1 p-3 rounded-lg border-2 transition-all ${isSelected ? 'bg-blue-50 border-blue-500 text-blue-600' : 'bg-white border-gray-200 text-gray-500 hover:border-blue-300 hover:bg-blue-50'}"
+                data-value="${opt.value}"
+                data-name="${setting.name}"
+                title="${opt.label}"
+              >
+                ${listTypeIcons[opt.value] || ''}
+                <span class="text-xs font-medium">${opt.value === 'ul' ? 'Bullets' : 'Numbers'}</span>
+              </button>
+            `;
+          }).join('');
+
+          return `
+            <div class="pwc-setting-field">
+              <label class="block text-sm font-medium text-gray-700 mb-2">
+                ${setting.label}
+              </label>
+              <div class="pwc-list-type-picker flex gap-2" data-name="${setting.name}">
+                ${listTypeButtons}
+              </div>
+            </div>
+          `;
+        }
+
+        case 'listStylePicker': {
+          // Filter options based on current list type
+          const currentListType = this.currentBlock?.getAttribute('list-type') || 'ul';
+          const filteredStyleOptions = (setting.options || []).filter(opt => {
+            if (!opt.group || opt.group === 'both') return true;
+            return opt.group === currentListType;
+          });
+
+          const listStyleIcons = {
+            'list-disc': `<svg class="w-6 h-6" viewBox="0 0 24 24" fill="none">
+              <circle cx="12" cy="12" r="5" fill="currentColor"></circle>
+            </svg>`,
+            'list-circle': `<svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="5"></circle>
+            </svg>`,
+            'list-square': `<svg class="w-6 h-6" viewBox="0 0 24 24" fill="none">
+              <rect x="7" y="7" width="10" height="10" fill="currentColor"></rect>
+            </svg>`,
+            'list-decimal': `<svg class="w-6 h-6" viewBox="0 0 24 24" fill="none">
+              <text x="12" y="16" font-size="14" fill="currentColor" stroke="none" font-family="sans-serif" text-anchor="middle" font-weight="600">1</text>
+            </svg>`,
+            'list-decimal-leading-zero': `<svg class="w-6 h-6" viewBox="0 0 24 24" fill="none">
+              <text x="12" y="16" font-size="12" fill="currentColor" stroke="none" font-family="sans-serif" text-anchor="middle" font-weight="600">01</text>
+            </svg>`,
+            'list-lower-alpha': `<svg class="w-6 h-6" viewBox="0 0 24 24" fill="none">
+              <text x="12" y="16" font-size="14" fill="currentColor" stroke="none" font-family="sans-serif" text-anchor="middle" font-weight="600">a</text>
+            </svg>`,
+            'list-upper-alpha': `<svg class="w-6 h-6" viewBox="0 0 24 24" fill="none">
+              <text x="12" y="16" font-size="14" fill="currentColor" stroke="none" font-family="sans-serif" text-anchor="middle" font-weight="600">A</text>
+            </svg>`,
+            'list-lower-roman': `<svg class="w-6 h-6" viewBox="0 0 24 24" fill="none">
+              <text x="12" y="16" font-size="12" fill="currentColor" stroke="none" font-family="sans-serif" text-anchor="middle" font-weight="600">iv</text>
+            </svg>`,
+            'list-upper-roman': `<svg class="w-6 h-6" viewBox="0 0 24 24" fill="none">
+              <text x="12" y="16" font-size="12" fill="currentColor" stroke="none" font-family="sans-serif" text-anchor="middle" font-weight="600">IV</text>
+            </svg>`,
+            'list-none': `<svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" opacity="0.4">
+              <line x1="5" y1="5" x2="19" y2="19"></line>
+              <line x1="19" y1="5" x2="5" y2="19"></line>
+            </svg>`,
+          };
+
+          const listStyleButtons = filteredStyleOptions.map(opt => {
+            const isSelected = value === opt.value;
+            return `
+              <button
+                type="button"
+                class="pwc-list-style-btn flex flex-col items-center justify-center p-2 rounded-lg border-2 transition-all ${isSelected ? 'bg-blue-50 border-blue-500 text-blue-600' : 'bg-white border-gray-200 text-gray-500 hover:border-blue-300 hover:bg-blue-50'}"
+                data-value="${opt.value}"
+                data-name="${setting.name}"
+                title="${opt.label}"
+              >
+                ${listStyleIcons[opt.value] || `<span class="text-xs font-medium">${opt.label}</span>`}
+              </button>
+            `;
+          }).join('');
+
+          return `
+            <div class="pwc-setting-field">
+              <label class="block text-sm font-medium text-gray-700 mb-2">
+                ${setting.label}
+              </label>
+              <div class="pwc-list-style-picker grid grid-cols-4 gap-1" data-name="${setting.name}">
+                ${listStyleButtons}
+              </div>
+            </div>
+          `;
+        }
+
+        case 'markerPositionPicker': {
+          const markerPosIcons = {
+            'list-outside': `<svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <circle cx="3" cy="6" r="1.5" fill="currentColor" stroke="none"></circle>
+              <circle cx="3" cy="12" r="1.5" fill="currentColor" stroke="none"></circle>
+              <line x1="8" y1="6" x2="21" y2="6"></line>
+              <line x1="8" y1="8" x2="18" y2="8"></line>
+              <line x1="8" y1="12" x2="21" y2="12"></line>
+              <line x1="8" y1="14" x2="16" y2="14"></line>
+              <rect x="7" y="4" width="15" height="12" rx="1" stroke-dasharray="2 2" opacity="0.3"></rect>
+            </svg>`,
+            'list-inside': `<svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <circle cx="6" cy="6" r="1.5" fill="currentColor" stroke="none"></circle>
+              <circle cx="6" cy="12" r="1.5" fill="currentColor" stroke="none"></circle>
+              <line x1="10" y1="6" x2="21" y2="6"></line>
+              <line x1="4" y1="8" x2="18" y2="8"></line>
+              <line x1="10" y1="12" x2="21" y2="12"></line>
+              <line x1="4" y1="14" x2="16" y2="14"></line>
+              <rect x="3" y="4" width="19" height="12" rx="1" stroke-dasharray="2 2" opacity="0.3"></rect>
+            </svg>`,
+          };
+
+          const markerPosButtons = (setting.options || []).map(opt => {
+            const isSelected = value === opt.value;
+            return `
+              <button
+                type="button"
+                class="pwc-marker-pos-btn flex-1 flex flex-col items-center gap-1 p-3 rounded-lg border-2 transition-all ${isSelected ? 'bg-blue-50 border-blue-500 text-blue-600' : 'bg-white border-gray-200 text-gray-500 hover:border-blue-300 hover:bg-blue-50'}"
+                data-value="${opt.value}"
+                data-name="${setting.name}"
+                title="${opt.label}"
+              >
+                ${markerPosIcons[opt.value] || ''}
+                <span class="text-xs font-medium">${opt.label}</span>
+              </button>
+            `;
+          }).join('');
+
+          return `
+            <div class="pwc-setting-field">
+              <label class="block text-sm font-medium text-gray-700 mb-2">
+                ${setting.label}
+              </label>
+              <div class="pwc-marker-pos-picker flex gap-2" data-name="${setting.name}">
+                ${markerPosButtons}
+              </div>
+            </div>
+          `;
+        }
+
+        case 'headingLevelPicker': {
+          const headingLevelIcons = {
+            'h1': `<svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M4 4v7h7V4h2v16h-2v-7H4v7H2V4h2zm14.5 0c.28 0 .5.22.5.5v15a.5.5 0 0 1-1 0V5.7l-1.86 1.39a.5.5 0 1 1-.6-.8l2.5-1.87c.13-.1.28-.15.43-.15h.03z"/>
+            </svg>`,
+            'h2': `<svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M4 4v7h7V4h2v16h-2v-7H4v7H2V4h2zm11.5 2a2.5 2.5 0 0 1 2.45 2h.05v.5a.5.5 0 0 1-1 0V8.5a1.5 1.5 0 0 0-2.87-.6.5.5 0 1 1-.92-.4A2.5 2.5 0 0 1 15.5 6zM14 13.5c0-.42.12-.8.34-1.13l3.33-4.87H15.5a.5.5 0 0 1 0-1h3a.5.5 0 0 1 .41.79L15.3 12.7a1.5 1.5 0 0 1 .2-.02 1.5 1.5 0 1 1 0 3h-1a.5.5 0 0 1 0-1h1a.5.5 0 1 0 0-1c-.83 0-1.5-.67-1.5-1.18z"/>
+            </svg>`,
+            'h3': `<svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M4 4v7h7V4h2v16h-2v-7H4v7H2V4h2zm11 2.5a.5.5 0 0 1 .5-.5h4a.5.5 0 0 1 .4.8L17.5 10l.5.01a2.5 2.5 0 0 1 0 5H16a.5.5 0 0 1 0-1h2a1.5 1.5 0 0 0 0-3h-1.5a.5.5 0 0 1-.4-.8L18.5 7h-3a.5.5 0 0 1-.5-.5z"/>
+            </svg>`,
+            'h4': `<svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M4 4v7h7V4h2v16h-2v-7H4v7H2V4h2zm11 1.5a.5.5 0 0 1 .94-.24l2.5 5A.5.5 0 0 1 18 11h-2.5v4.5a.5.5 0 0 1-1 0V11H14a.5.5 0 0 1 0-1h.5V5.5zm1 .87V10H17.6l-1.6-3.63z"/>
+            </svg>`,
+            'h5': `<svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M4 4v7h7V4h2v16h-2v-7H4v7H2V4h2zm11 1.5a.5.5 0 0 1 .5-.5h4a.5.5 0 0 1 0 1h-3.5l-.5 3h1.5a2.5 2.5 0 0 1 0 5H15a.5.5 0 0 1 0-1h2.5a1.5 1.5 0 0 0 0-3H16a.5.5 0 0 1-.49-.6l.5-3.4a.5.5 0 0 1-.01-.5z"/>
+            </svg>`,
+            'h6': `<svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M4 4v7h7V4h2v16h-2v-7H4v7H2V4h2zm13 1.5a.5.5 0 0 1 .86-.35l2 2a.5.5 0 0 1-.7.7L17.5 6.22V9.5a3 3 0 1 1-1 0V5.5zm-.5 5a2 2 0 1 0 2 0 2 2 0 0 0-2 0z"/>
+            </svg>`,
+          };
+
+          const headingLevelButtons = (setting.options || []).map(opt => {
+            const isSelected = value === opt.value;
+            return `
+              <button
+                type="button"
+                class="pwc-heading-level-btn ${isSelected ? 'bg-blue-50 border-blue-500 text-blue-600' : 'bg-white border-gray-200 text-gray-500 hover:border-blue-400 hover:bg-blue-50'}"
+                data-value="${opt.value}"
+                data-name="${setting.name}"
+                title="${opt.label}"
+              >
+                ${headingLevelIcons[opt.value] || `<span class="pwc-heading-level-btn__label">${opt.label}</span>`}
+              </button>
+            `;
+          }).join('');
+
+          return `
+            <div class="pwc-setting-field">
+              <label class="block text-sm font-medium text-gray-700 mb-2">
+                ${setting.label}
+              </label>
+              <div class="pwc-heading-level-picker" data-name="${setting.name}">
+                ${headingLevelButtons}
+              </div>
+              ${setting.help ? `<p class="mt-1 text-xs text-gray-500">${setting.help}</p>` : ''}
+            </div>
+          `;
+        }
 
         case 'alignment':
           const alignmentOptions = setting.options || [
@@ -886,6 +1117,108 @@
             b.classList.remove('bg-blue-50', 'border-blue-500', 'text-blue-600');
             b.classList.add('bg-white', 'border-gray-200', 'text-gray-500');
           });
+          btn.classList.remove('bg-white', 'border-gray-200', 'text-gray-500');
+          btn.classList.add('bg-blue-50', 'border-blue-500', 'text-blue-600');
+
+          this.updateBlockAttribute(name, value);
+        });
+      });
+
+      // List type picker buttons
+      this.querySelectorAll('.pwc-list-type-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const name = btn.dataset.name;
+          const value = btn.dataset.value;
+          const container = btn.closest('.pwc-list-type-picker');
+
+          container.querySelectorAll('.pwc-list-type-btn').forEach(b => {
+            b.classList.remove('bg-blue-50', 'border-blue-500', 'text-blue-600');
+            b.classList.add('bg-white', 'border-gray-200', 'text-gray-500');
+          });
+
+          btn.classList.remove('bg-white', 'border-gray-200', 'text-gray-500');
+          btn.classList.add('bg-blue-50', 'border-blue-500', 'text-blue-600');
+
+          this.updateBlockAttribute(name, value);
+
+          // Set appropriate default style for the new list type
+          this.updateBlockAttribute('listStyle', value === 'ol' ? 'list-decimal' : 'list-disc');
+
+          // Re-render the settings to update the style picker for the new type
+          if (this.currentBlock) {
+            setTimeout(() => this.showBlockSettings(this.currentBlock), 50);
+          }
+        });
+      });
+
+      // List style picker buttons
+      this.querySelectorAll('.pwc-list-style-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const name = btn.dataset.name;
+          const value = btn.dataset.value;
+          const container = btn.closest('.pwc-list-style-picker');
+
+          const isAlreadySelected = btn.classList.contains('bg-blue-50');
+
+          container.querySelectorAll('.pwc-list-style-btn').forEach(b => {
+            b.classList.remove('bg-blue-50', 'border-blue-500', 'text-blue-600');
+            b.classList.add('bg-white', 'border-gray-200', 'text-gray-500');
+          });
+
+          if (!isAlreadySelected) {
+            btn.classList.remove('bg-white', 'border-gray-200', 'text-gray-500');
+            btn.classList.add('bg-blue-50', 'border-blue-500', 'text-blue-600');
+            this.updateBlockAttribute(name, value);
+          } else {
+            this.updateBlockAttribute(name, '');
+          }
+        });
+      });
+
+      // Heading level picker buttons
+      this.querySelectorAll('.pwc-heading-level-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const name = btn.dataset.name;
+          const value = btn.dataset.value;
+          const container = btn.closest('.pwc-heading-level-picker');
+
+          // Update visual selection
+          container.querySelectorAll('.pwc-heading-level-btn').forEach(b => {
+            b.classList.remove('bg-blue-50', 'border-blue-500', 'text-blue-600');
+            b.classList.add('bg-white', 'border-gray-200', 'text-gray-500');
+          });
+          btn.classList.remove('bg-white', 'border-gray-200', 'text-gray-500');
+          btn.classList.add('bg-blue-50', 'border-blue-500', 'text-blue-600');
+
+          this.updateBlockAttribute(name, value);
+
+          // Reset font size and weight to Default so the level's
+          // built-in defaults take effect via the render fallback
+          const levelDefaults = this.currentBlock?.constructor?.levelDefaults;
+          if (levelDefaults && levelDefaults[value]) {
+            this.updateBlockAttribute('fontSize', '');
+            this.updateBlockAttribute('fontWeight', '');
+          }
+
+          // Re-render settings panel to reflect the updated values
+          if (this.currentBlock) {
+            setTimeout(() => this.showBlockSettings(this.currentBlock), 50);
+          }
+        });
+      });
+
+      // Marker position picker buttons
+      this.querySelectorAll('.pwc-marker-pos-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const name = btn.dataset.name;
+          const value = btn.dataset.value;
+          const container = btn.closest('.pwc-marker-pos-picker');
+
+          container.querySelectorAll('.pwc-marker-pos-btn').forEach(b => {
+            b.classList.remove('bg-blue-50', 'border-blue-500', 'text-blue-600');
+            b.classList.add('bg-white', 'border-gray-200', 'text-gray-500');
+          });
+
           btn.classList.remove('bg-white', 'border-gray-200', 'text-gray-500');
           btn.classList.add('bg-blue-50', 'border-blue-500', 'text-blue-600');
 

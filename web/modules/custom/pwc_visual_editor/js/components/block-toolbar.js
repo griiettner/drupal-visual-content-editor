@@ -32,30 +32,30 @@
 
     render() {
       this.innerHTML = `
-        <div class="pwc-toolbar flex items-center gap-1 bg-gray-900 text-white rounded-md px-2 py-1.5 shadow-lg text-sm">
+        <div class="pwc-toolbar">
           <!-- Drag Handle -->
           <button
             type="button"
-            class="pwc-toolbar__btn p-1.5 hover:bg-gray-700 rounded cursor-grab"
+            class="pwc-toolbar__btn"
             data-action="drag"
             title="Drag to reorder"
           >
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg class="pwc-toolbar__icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8h16M4 16h16"></path>
             </svg>
           </button>
 
           <!-- Divider -->
-          <div class="w-px h-4 bg-gray-600"></div>
+          <div class="pwc-toolbar__divider"></div>
 
           <!-- Move Up -->
           <button
             type="button"
-            class="pwc-toolbar__btn p-1.5 hover:bg-gray-700 rounded"
+            class="pwc-toolbar__btn"
             data-action="move-up"
             title="Move up (Alt+↑)"
           >
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg class="pwc-toolbar__icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"></path>
             </svg>
           </button>
@@ -63,32 +63,32 @@
           <!-- Move Down -->
           <button
             type="button"
-            class="pwc-toolbar__btn p-1.5 hover:bg-gray-700 rounded"
+            class="pwc-toolbar__btn"
             data-action="move-down"
             title="Move down (Alt+↓)"
           >
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg class="pwc-toolbar__icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
             </svg>
           </button>
 
           <!-- Divider -->
-          <div class="w-px h-4 bg-gray-600"></div>
+          <div class="pwc-toolbar__divider"></div>
 
           <!-- Block Type Label -->
-          <span class="pwc-toolbar__label px-2 text-gray-300 select-none"></span>
+          <span class="pwc-toolbar__label"></span>
 
           <!-- Divider -->
-          <div class="w-px h-4 bg-gray-600"></div>
+          <div class="pwc-toolbar__divider"></div>
 
           <!-- Delete -->
           <button
             type="button"
-            class="pwc-toolbar__btn p-1.5 hover:bg-red-600 rounded"
+            class="pwc-toolbar__btn pwc-toolbar__btn--danger"
             data-action="delete"
             title="Delete block"
           >
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg class="pwc-toolbar__icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
             </svg>
           </button>
@@ -96,11 +96,11 @@
           <!-- More Options -->
           <button
             type="button"
-            class="pwc-toolbar__btn p-1.5 hover:bg-gray-700 rounded"
+            class="pwc-toolbar__btn"
             data-action="more"
             title="More options"
           >
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg class="pwc-toolbar__icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h.01M12 12h.01M19 12h.01M6 12a1 1 0 11-2 0 1 1 0 012 0zm7 0a1 1 0 11-2 0 1 1 0 012 0zm7 0a1 1 0 11-2 0 1 1 0 012 0z"></path>
             </svg>
           </button>

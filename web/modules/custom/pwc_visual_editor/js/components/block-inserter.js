@@ -22,16 +22,16 @@
 
     render() {
       this.innerHTML = `
-        <div class="pwc-inserter relative py-3">
+        <div class="pwc-inserter">
           <!-- Line with + button - always visible -->
-          <div class="pwc-inserter__line relative h-10 flex items-center justify-center">
-            <div class="absolute inset-x-0 top-1/2 -translate-y-1/2 h-px bg-gray-200"></div>
+          <div class="pwc-inserter__line">
+            <div class="pwc-inserter__rule"></div>
             <button
               type="button"
-              class="pwc-inserter__btn relative w-10 h-10 bg-blue-600 text-white rounded-full flex items-center justify-center hover:bg-blue-700 shadow-md transition-all z-10"
+              class="pwc-inserter__btn"
               title="Add block"
             >
-              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg class="pwc-inserter__icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
               </svg>
             </button>

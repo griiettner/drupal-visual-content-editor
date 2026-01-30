@@ -60,35 +60,35 @@
 
     render() {
       this.innerHTML = `
-        <aside class="pwc-settings-panel fixed right-0 top-0 h-full w-80 bg-white border-l border-gray-200 shadow-lg transform transition-transform duration-300 z-50 overflow-hidden flex flex-col">
+        <aside class="pwc-settings-panel">
           <!-- Header with Add Block, Save, and Close buttons -->
-          <div class="pwc-settings-panel__header flex items-center justify-between px-4 py-3 border-b border-gray-200 bg-gray-50">
-            <h2 class="text-sm font-semibold text-gray-900">Settings</h2>
-            <div class="pwc-settings-panel__actions flex items-center gap-2">
+          <div class="pwc-settings-panel__header">
+            <h2>Settings</h2>
+            <div class="pwc-settings-panel__actions">
               <button
                 type="button"
-                class="pwc-settings-panel__add-block p-2 bg-gray-100 text-gray-700 rounded hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                class="pwc-settings-panel__add-block"
                 title="Add Block (Open Block Library)"
               >
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg class="pwc-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
                 </svg>
               </button>
               <button
                 type="button"
-                class="pwc-settings-panel__save p-2 bg-blue-600 text-white rounded hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                class="pwc-settings-panel__save"
                 title="Save Changes"
               >
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg class="pwc-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                 </svg>
               </button>
               <button
                 type="button"
-                class="pwc-settings-panel__close p-2 hover:bg-gray-200 rounded"
+                class="pwc-settings-panel__close"
                 title="Close Editor"
               >
-                <svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg class="pwc-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                 </svg>
               </button>
@@ -96,7 +96,7 @@
           </div>
 
           <!-- Content -->
-          <div class="pwc-settings-panel__content flex-1 overflow-y-auto p-4">
+          <div class="pwc-settings-panel__content">
             <!-- Dynamic content goes here -->
           </div>
         </aside>
@@ -152,7 +152,7 @@
      */
     minimize() {
       this._isMinimized = true;
-      this.querySelector('.pwc-settings-panel').classList.add('translate-x-full');
+      this.querySelector('.pwc-settings-panel').classList.add('pwc-settings-panel--hidden');
       document.body.classList.add('pwc-settings-minimized');
 
       // Show the re-open button
@@ -166,10 +166,10 @@
       if (this._reopenButton) return;
 
       this._reopenButton = document.createElement('button');
-      this._reopenButton.className = 'pwc-reopen-panel fixed right-4 top-4 z-50 p-3 bg-white border border-gray-200 rounded-lg shadow-lg hover:bg-gray-50 transition-all';
+      this._reopenButton.className = 'pwc-reopen-panel';
       this._reopenButton.title = 'Open Settings Panel';
       this._reopenButton.innerHTML = `
-        <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <svg class="pwc-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
         </svg>
@@ -203,7 +203,7 @@
       const blockInfo = window.pwcBlockRegistry.get(block.blockType);
 
       if (!blockInfo) {
-        content.innerHTML = '<p class="text-gray-500">Unknown block type</p>';
+        content.innerHTML = '<p class="pwc-text-muted">Unknown block type</p>';
         return;
       }
 
@@ -211,15 +211,15 @@
       const tabDefs = {
         typography: {
           label: 'Typography',
-          icon: `<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 7V4h16v3M9 20h6M12 4v16"/></svg>`,
+          icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 7V4h16v3M9 20h6M12 4v16"/></svg>`,
         },
         layout: {
           label: 'Layout',
-          icon: `<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>`,
+          icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>`,
         },
         style: {
           label: 'Style',
-          icon: `<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01"/></svg>`,
+          icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01"/></svg>`,
         },
       };
 
@@ -242,21 +242,21 @@
 
       let html = `
         <!-- Block Type Header -->
-        <div class="mb-4">
-          <div class="flex items-center gap-3 mb-2">
-            <span class="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center text-xl text-gray-600">
+        <div class="pwc-block-header">
+          <div class="pwc-block-header__row">
+            <span class="pwc-block-header__icon">
               ${blockInfo.icon}
             </span>
-            <div>
-              <h3 class="font-medium text-gray-900">${blockInfo.title}</h3>
-              <p class="text-xs text-gray-500">${blockInfo.description}</p>
+            <div class="pwc-block-header__info">
+              <h3 class="pwc-block-header__title">${blockInfo.title}</h3>
+              <p class="pwc-block-header__desc">${blockInfo.description}</p>
             </div>
           </div>
         </div>
       `;
 
       if (availableTabs.length === 0) {
-        html += '<p class="text-gray-500 text-sm">No settings available for this block.</p>';
+        html += '<p class="pwc-text-muted">No settings available for this block.</p>';
         content.innerHTML = html;
         return;
       }
@@ -281,7 +281,7 @@
       availableTabs.forEach(tabKey => {
         const isActive = tabKey === this._activeTab;
         html += `<div class="pwc-settings-tab-content ${isActive ? 'pwc-settings-tab-content--active' : ''}" data-tab-content="${tabKey}">`;
-        html += `<div class="space-y-4">`;
+        html += `<div class="pwc-settings-fields">`;
         settingsByTab[tabKey].forEach(setting => {
           const currentValue = block.getAttribute(this.camelToKebab(setting.name)) || setting.default || '';
           html += this.renderSettingField(setting, currentValue);
@@ -309,7 +309,7 @@
         case 'text':
           return `
             <div class="pwc-setting-field">
-              <label for="${id}" class="block text-sm font-medium text-gray-700 mb-1">
+              <label for="${id}" class="pwc-setting-label">
                 ${setting.label}
               </label>
               <input
@@ -318,16 +318,16 @@
                 name="${setting.name}"
                 value="${this.escapeHtml(value)}"
                 placeholder="${setting.placeholder || ''}"
-                class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                class="pwc-setting-input"
               >
-              ${setting.help ? `<p class="mt-1 text-xs text-gray-500">${setting.help}</p>` : ''}
+              ${setting.help ? `<p class="pwc-setting-help">${setting.help}</p>` : ''}
             </div>
           `;
 
         case 'textarea':
           return `
             <div class="pwc-setting-field">
-              <label for="${id}" class="block text-sm font-medium text-gray-700 mb-1">
+              <label for="${id}" class="pwc-setting-label">
                 ${setting.label}
               </label>
               <textarea
@@ -335,9 +335,9 @@
                 name="${setting.name}"
                 rows="${setting.rows || 3}"
                 placeholder="${setting.placeholder || ''}"
-                class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-y"
+                class="pwc-setting-textarea"
               >${this.escapeHtml(value)}</textarea>
-              ${setting.help ? `<p class="mt-1 text-xs text-gray-500">${setting.help}</p>` : ''}
+              ${setting.help ? `<p class="pwc-setting-help">${setting.help}</p>` : ''}
             </div>
           `;
 
@@ -363,17 +363,17 @@
 
           return `
             <div class="pwc-setting-field">
-              <label for="${id}" class="block text-sm font-medium text-gray-700 mb-1">
+              <label for="${id}" class="pwc-setting-label">
                 ${setting.label}
               </label>
               <select
                 id="${id}"
                 name="${setting.name}"
-                class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                class="pwc-setting-select"
               >
                 ${options}
               </select>
-              ${setting.help ? `<p class="mt-1 text-xs text-gray-500">${setting.help}</p>` : ''}
+              ${setting.help ? `<p class="pwc-setting-help">${setting.help}</p>` : ''}
             </div>
           `;
 
@@ -381,8 +381,8 @@
         case 'boolean':
           const checked = value === 'true' || value === true ? 'checked' : '';
           return `
-            <div class="pwc-setting-field flex items-center justify-between py-2">
-              <label for="${id}" class="text-sm font-medium text-gray-700">
+            <div class="pwc-setting-field pwc-setting-field--toggle">
+              <label for="${id}" class="pwc-setting-label">
                 ${setting.label}
               </label>
               <button
@@ -391,10 +391,10 @@
                 name="${setting.name}"
                 role="switch"
                 aria-checked="${!!checked}"
-                class="pwc-toggle relative w-11 h-6 rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 ${checked ? 'bg-blue-600' : 'bg-gray-200'}"
+                class="pwc-toggle ${checked ? 'pwc-toggle--checked' : ''}"
                 data-checked="${!!checked}"
               >
-                <span class="absolute left-1 top-1 w-4 h-4 bg-white rounded-full shadow transition-transform ${checked ? 'translate-x-5' : ''}"></span>
+                <span></span>
               </button>
             </div>
           `;
@@ -402,26 +402,26 @@
         case 'color':
           return `
             <div class="pwc-setting-field">
-              <label for="${id}" class="block text-sm font-medium text-gray-700 mb-1">
+              <label for="${id}" class="pwc-setting-label">
                 ${setting.label}
               </label>
-              <div class="flex gap-2">
+              <div class="pwc-setting-color-group">
                 <input
                   type="color"
                   id="${id}"
                   name="${setting.name}"
                   value="${value || '#ffffff'}"
-                  class="w-10 h-10 border border-gray-300 rounded cursor-pointer"
+                  class="pwc-setting-color-input"
                 >
                 <input
                   type="text"
                   id="${id}-text"
                   value="${value || ''}"
                   placeholder="#ffffff"
-                  class="flex-1 border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  class="pwc-setting-color-text"
                 >
               </div>
-              ${setting.help ? `<p class="mt-1 text-xs text-gray-500">${setting.help}</p>` : ''}
+              ${setting.help ? `<p class="pwc-setting-help">${setting.help}</p>` : ''}
             </div>
           `;
 
@@ -440,7 +440,7 @@
             return `
               <button
                 type="button"
-                class="pwc-color-swatch w-6 h-6 rounded border-2 ${isSelected ? 'border-blue-500 ring-2 ring-blue-300' : 'border-gray-300 hover:border-gray-400'}"
+                class="pwc-color-swatch ${isSelected ? 'pwc-color-swatch--selected' : ''}"
                 style="${bgStyle}"
                 data-value="${colorValue}"
                 data-name="${setting.name}"
@@ -451,13 +451,13 @@
 
           return `
             <div class="pwc-setting-field">
-              <label class="block text-sm font-medium text-gray-700 mb-2">
+              <label class="pwc-setting-label pwc-setting-label--mb2">
                 ${setting.label}
               </label>
-              <div class="pwc-color-swatch-grid grid grid-cols-8 gap-1" data-name="${setting.name}">
+              <div class="pwc-color-swatch-grid" data-name="${setting.name}">
                 ${colorSwatches}
               </div>
-              ${setting.help ? `<p class="mt-1 text-xs text-gray-500">${setting.help}</p>` : ''}
+              ${setting.help ? `<p class="pwc-setting-help">${setting.help}</p>` : ''}
             </div>
           `;
 
@@ -468,26 +468,26 @@
             return `
               <button
                 type="button"
-                class="pwc-radius-picker-btn flex flex-col items-center justify-center p-2 rounded-lg border-2 transition-all ${isSelected ? 'bg-blue-50 border-blue-500 text-blue-600' : 'bg-white border-gray-200 text-gray-500 hover:border-blue-300 hover:bg-blue-50'}"
+                class="pwc-radius-picker-btn ${isSelected ? 'pwc-picker-btn--selected' : ''}"
                 data-value="${opt.value}"
                 data-name="${setting.name}"
                 title="${opt.preview}"
               >
-                <div class="w-6 h-6 border-2 border-current ${opt.value || 'rounded-none'}" style="border-radius: ${opt.value ? '' : '0'}"></div>
-                <span class="text-[10px] font-medium mt-1">${opt.label}</span>
+                <div class="pwc-radius-picker-btn__preview ${opt.value || ''}" style="border-radius: ${opt.value ? '' : '0'}"></div>
+                <span class="pwc-radius-picker-btn__label">${opt.label}</span>
               </button>
             `;
           }).join('');
 
           return `
             <div class="pwc-setting-field">
-              <label class="block text-sm font-medium text-gray-700 mb-2">
+              <label class="pwc-setting-label pwc-setting-label--mb2">
                 ${setting.label}
               </label>
-              <div class="pwc-radius-picker grid grid-cols-4 gap-2" data-name="${setting.name}">
+              <div class="pwc-radius-picker" data-name="${setting.name}">
                 ${radiusButtons}
               </div>
-              ${setting.help ? `<p class="mt-1 text-xs text-gray-500">${setting.help}</p>` : ''}
+              ${setting.help ? `<p class="pwc-setting-help">${setting.help}</p>` : ''}
             </div>
           `;
 
@@ -498,26 +498,26 @@
             return `
               <button
                 type="button"
-                class="pwc-border-width-picker-btn flex flex-col items-center justify-center p-2 rounded-lg border-2 transition-all ${isSelected ? 'bg-blue-50 border-blue-500 text-blue-600' : 'bg-white border-gray-200 text-gray-500 hover:border-blue-300 hover:bg-blue-50'}"
+                class="pwc-border-width-picker-btn ${isSelected ? 'pwc-picker-btn--selected' : ''}"
                 data-value="${opt.value}"
                 data-name="${setting.name}"
                 title="${opt.px}"
               >
-                <span class="text-sm font-semibold">${opt.label}</span>
-                <span class="text-[10px] text-gray-400">${opt.px}</span>
+                <span class="pwc-border-width-picker-btn__value">${opt.label}</span>
+                <span class="pwc-border-width-picker-btn__px">${opt.px}</span>
               </button>
             `;
           }).join('');
 
           return `
             <div class="pwc-setting-field">
-              <label class="block text-sm font-medium text-gray-700 mb-2">
+              <label class="pwc-setting-label pwc-setting-label--mb2">
                 ${setting.label}
               </label>
-              <div class="pwc-border-width-picker grid grid-cols-5 gap-2" data-name="${setting.name}">
+              <div class="pwc-border-width-picker" data-name="${setting.name}">
                 ${borderWidthButtons}
               </div>
-              ${setting.help ? `<p class="mt-1 text-xs text-gray-500">${setting.help}</p>` : ''}
+              ${setting.help ? `<p class="pwc-setting-help">${setting.help}</p>` : ''}
             </div>
           `;
 
@@ -536,28 +536,28 @@
             return `
               <button
                 type="button"
-                class="pwc-layout-picker-btn flex flex-col items-center gap-1 p-2 rounded-lg border-2 transition-all ${isSelected ? 'bg-blue-50 border-blue-500 text-blue-600' : 'bg-white border-gray-200 text-gray-500 hover:border-blue-300 hover:bg-blue-50'}"
+                class="pwc-layout-picker-btn ${isSelected ? 'pwc-picker-btn--selected' : ''}"
                 data-value="${opt.value}"
                 data-name="${setting.name}"
                 title="${opt.label}"
               >
-                <svg class="w-12 h-8" viewBox="0 0 48 32">
+                <svg viewBox="0 0 48 32">
                   ${columnRects}
                 </svg>
-                <span class="text-[10px] font-medium">${opt.label}</span>
+                <span class="pwc-layout-picker-btn__label">${opt.label}</span>
               </button>
             `;
           }).join('');
 
           return `
             <div class="pwc-setting-field">
-              <label class="block text-sm font-medium text-gray-700 mb-2">
+              <label class="pwc-setting-label pwc-setting-label--mb2">
                 ${setting.label}
               </label>
-              <div class="pwc-layout-picker grid grid-cols-3 gap-2" data-name="${setting.name}">
+              <div class="pwc-layout-picker" data-name="${setting.name}">
                 ${layoutButtons}
               </div>
-              ${setting.help ? `<p class="mt-1 text-xs text-gray-500">${setting.help}</p>` : ''}
+              ${setting.help ? `<p class="pwc-setting-help">${setting.help}</p>` : ''}
             </div>
           `;
 
@@ -568,48 +568,48 @@
             return `
               <button
                 type="button"
-                class="pwc-gap-picker-btn flex flex-col items-center justify-center p-2 rounded-lg border-2 transition-all ${isSelected ? 'bg-blue-50 border-blue-500 text-blue-600' : 'bg-white border-gray-200 text-gray-500 hover:border-blue-300 hover:bg-blue-50'}"
+                class="pwc-gap-picker-btn ${isSelected ? 'pwc-picker-btn--selected' : ''}"
                 data-value="${opt.value}"
                 data-name="${setting.name}"
                 title="${opt.px}"
               >
-                <span class="text-sm font-semibold">${opt.label}</span>
-                <span class="text-[10px] text-gray-400">${opt.px}</span>
+                <span class="pwc-gap-picker-btn__value">${opt.label}</span>
+                <span class="pwc-gap-picker-btn__px">${opt.px}</span>
               </button>
             `;
           }).join('');
 
           return `
             <div class="pwc-setting-field">
-              <label class="block text-sm font-medium text-gray-700 mb-2">
+              <label class="pwc-setting-label pwc-setting-label--mb2">
                 ${setting.label}
               </label>
-              <div class="pwc-gap-picker grid grid-cols-4 gap-2" data-name="${setting.name}">
+              <div class="pwc-gap-picker" data-name="${setting.name}">
                 ${gapButtons}
               </div>
-              ${setting.help ? `<p class="mt-1 text-xs text-gray-500">${setting.help}</p>` : ''}
+              ${setting.help ? `<p class="pwc-setting-help">${setting.help}</p>` : ''}
             </div>
           `;
 
         case 'verticalAlignPicker':
           const vAlignOptions = setting.options || [];
           const vAlignIcons = {
-            'align-top': `<svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            'align-top': `<svg class="pwc-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <rect x="4" y="4" width="16" height="16" rx="1" stroke-opacity="0.3"/>
               <rect x="7" y="4" width="4" height="8" rx="1" fill="currentColor"/>
               <rect x="13" y="4" width="4" height="12" rx="1" fill="currentColor"/>
             </svg>`,
-            'align-middle': `<svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            'align-middle': `<svg class="pwc-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <rect x="4" y="4" width="16" height="16" rx="1" stroke-opacity="0.3"/>
               <rect x="7" y="8" width="4" height="8" rx="1" fill="currentColor"/>
               <rect x="13" y="6" width="4" height="12" rx="1" fill="currentColor"/>
             </svg>`,
-            'align-bottom': `<svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            'align-bottom': `<svg class="pwc-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <rect x="4" y="4" width="16" height="16" rx="1" stroke-opacity="0.3"/>
               <rect x="7" y="12" width="4" height="8" rx="1" fill="currentColor"/>
               <rect x="13" y="8" width="4" height="12" rx="1" fill="currentColor"/>
             </svg>`,
-            'align-stretch': `<svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            'align-stretch': `<svg class="pwc-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <rect x="4" y="4" width="16" height="16" rx="1" stroke-opacity="0.3"/>
               <rect x="7" y="4" width="4" height="16" rx="1" fill="currentColor"/>
               <rect x="13" y="4" width="4" height="16" rx="1" fill="currentColor"/>
@@ -621,32 +621,32 @@
             return `
               <button
                 type="button"
-                class="pwc-valign-picker-btn flex flex-col items-center gap-1 p-2 rounded-lg border-2 transition-all ${isSelected ? 'bg-blue-50 border-blue-500 text-blue-600' : 'bg-white border-gray-200 text-gray-500 hover:border-blue-300 hover:bg-blue-50'}"
+                class="pwc-valign-picker-btn ${isSelected ? 'pwc-picker-btn--selected' : ''}"
                 data-value="${opt.value}"
                 data-name="${setting.name}"
                 title="${opt.label}"
               >
                 ${vAlignIcons[opt.icon] || ''}
-                <span class="text-[10px] font-medium">${opt.label}</span>
+                <span class="pwc-valign-picker-btn__label">${opt.label}</span>
               </button>
             `;
           }).join('');
 
           return `
             <div class="pwc-setting-field">
-              <label class="block text-sm font-medium text-gray-700 mb-2">
+              <label class="pwc-setting-label pwc-setting-label--mb2">
                 ${setting.label}
               </label>
-              <div class="pwc-valign-picker grid grid-cols-4 gap-2" data-name="${setting.name}">
+              <div class="pwc-valign-picker" data-name="${setting.name}">
                 ${vAlignButtons}
               </div>
-              ${setting.help ? `<p class="mt-1 text-xs text-gray-500">${setting.help}</p>` : ''}
+              ${setting.help ? `<p class="pwc-setting-help">${setting.help}</p>` : ''}
             </div>
           `;
 
         case 'listTypePicker': {
           const listTypeIcons = {
-            'ul': `<svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            'ul': `<svg class="pwc-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <circle cx="4" cy="6" r="1.5" fill="currentColor" stroke="none"></circle>
               <circle cx="4" cy="12" r="1.5" fill="currentColor" stroke="none"></circle>
               <circle cx="4" cy="18" r="1.5" fill="currentColor" stroke="none"></circle>
@@ -654,7 +654,7 @@
               <line x1="9" y1="12" x2="21" y2="12"></line>
               <line x1="9" y1="18" x2="21" y2="18"></line>
             </svg>`,
-            'ol': `<svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            'ol': `<svg class="pwc-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <text x="2" y="8" font-size="7" fill="currentColor" stroke="none" font-family="sans-serif">1.</text>
               <text x="2" y="14" font-size="7" fill="currentColor" stroke="none" font-family="sans-serif">2.</text>
               <text x="2" y="20" font-size="7" fill="currentColor" stroke="none" font-family="sans-serif">3.</text>
@@ -669,23 +669,23 @@
             return `
               <button
                 type="button"
-                class="pwc-list-type-btn flex-1 flex flex-col items-center gap-1 p-3 rounded-lg border-2 transition-all ${isSelected ? 'bg-blue-50 border-blue-500 text-blue-600' : 'bg-white border-gray-200 text-gray-500 hover:border-blue-300 hover:bg-blue-50'}"
+                class="pwc-list-type-btn ${isSelected ? 'pwc-picker-btn--selected' : ''}"
                 data-value="${opt.value}"
                 data-name="${setting.name}"
                 title="${opt.label}"
               >
                 ${listTypeIcons[opt.value] || ''}
-                <span class="text-xs font-medium">${opt.value === 'ul' ? 'Bullets' : 'Numbers'}</span>
+                <span class="pwc-list-type-btn__label">${opt.value === 'ul' ? 'Bullets' : 'Numbers'}</span>
               </button>
             `;
           }).join('');
 
           return `
             <div class="pwc-setting-field">
-              <label class="block text-sm font-medium text-gray-700 mb-2">
+              <label class="pwc-setting-label pwc-setting-label--mb2">
                 ${setting.label}
               </label>
-              <div class="pwc-list-type-picker flex gap-2" data-name="${setting.name}">
+              <div class="pwc-list-type-picker" data-name="${setting.name}">
                 ${listTypeButtons}
               </div>
             </div>
@@ -701,34 +701,34 @@
           });
 
           const listStyleIcons = {
-            'list-disc': `<svg class="w-6 h-6" viewBox="0 0 24 24" fill="none">
+            'list-disc': `<svg class="pwc-icon" viewBox="0 0 24 24" fill="none">
               <circle cx="12" cy="12" r="5" fill="currentColor"></circle>
             </svg>`,
-            'list-circle': `<svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            'list-circle': `<svg class="pwc-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <circle cx="12" cy="12" r="5"></circle>
             </svg>`,
-            'list-square': `<svg class="w-6 h-6" viewBox="0 0 24 24" fill="none">
+            'list-square': `<svg class="pwc-icon" viewBox="0 0 24 24" fill="none">
               <rect x="7" y="7" width="10" height="10" fill="currentColor"></rect>
             </svg>`,
-            'list-decimal': `<svg class="w-6 h-6" viewBox="0 0 24 24" fill="none">
+            'list-decimal': `<svg class="pwc-icon" viewBox="0 0 24 24" fill="none">
               <text x="12" y="16" font-size="14" fill="currentColor" stroke="none" font-family="sans-serif" text-anchor="middle" font-weight="600">1</text>
             </svg>`,
-            'list-decimal-leading-zero': `<svg class="w-6 h-6" viewBox="0 0 24 24" fill="none">
+            'list-decimal-leading-zero': `<svg class="pwc-icon" viewBox="0 0 24 24" fill="none">
               <text x="12" y="16" font-size="12" fill="currentColor" stroke="none" font-family="sans-serif" text-anchor="middle" font-weight="600">01</text>
             </svg>`,
-            'list-lower-alpha': `<svg class="w-6 h-6" viewBox="0 0 24 24" fill="none">
+            'list-lower-alpha': `<svg class="pwc-icon" viewBox="0 0 24 24" fill="none">
               <text x="12" y="16" font-size="14" fill="currentColor" stroke="none" font-family="sans-serif" text-anchor="middle" font-weight="600">a</text>
             </svg>`,
-            'list-upper-alpha': `<svg class="w-6 h-6" viewBox="0 0 24 24" fill="none">
+            'list-upper-alpha': `<svg class="pwc-icon" viewBox="0 0 24 24" fill="none">
               <text x="12" y="16" font-size="14" fill="currentColor" stroke="none" font-family="sans-serif" text-anchor="middle" font-weight="600">A</text>
             </svg>`,
-            'list-lower-roman': `<svg class="w-6 h-6" viewBox="0 0 24 24" fill="none">
+            'list-lower-roman': `<svg class="pwc-icon" viewBox="0 0 24 24" fill="none">
               <text x="12" y="16" font-size="12" fill="currentColor" stroke="none" font-family="sans-serif" text-anchor="middle" font-weight="600">iv</text>
             </svg>`,
-            'list-upper-roman': `<svg class="w-6 h-6" viewBox="0 0 24 24" fill="none">
+            'list-upper-roman': `<svg class="pwc-icon" viewBox="0 0 24 24" fill="none">
               <text x="12" y="16" font-size="12" fill="currentColor" stroke="none" font-family="sans-serif" text-anchor="middle" font-weight="600">IV</text>
             </svg>`,
-            'list-none': `<svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" opacity="0.4">
+            'list-none': `<svg class="pwc-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" opacity="0.4">
               <line x1="5" y1="5" x2="19" y2="19"></line>
               <line x1="19" y1="5" x2="5" y2="19"></line>
             </svg>`,
@@ -739,22 +739,22 @@
             return `
               <button
                 type="button"
-                class="pwc-list-style-btn flex flex-col items-center justify-center p-2 rounded-lg border-2 transition-all ${isSelected ? 'bg-blue-50 border-blue-500 text-blue-600' : 'bg-white border-gray-200 text-gray-500 hover:border-blue-300 hover:bg-blue-50'}"
+                class="pwc-list-style-btn ${isSelected ? 'pwc-picker-btn--selected' : ''}"
                 data-value="${opt.value}"
                 data-name="${setting.name}"
                 title="${opt.label}"
               >
-                ${listStyleIcons[opt.value] || `<span class="text-xs font-medium">${opt.label}</span>`}
+                ${listStyleIcons[opt.value] || `<span class="pwc-list-style-btn__label">${opt.label}</span>`}
               </button>
             `;
           }).join('');
 
           return `
             <div class="pwc-setting-field">
-              <label class="block text-sm font-medium text-gray-700 mb-2">
+              <label class="pwc-setting-label pwc-setting-label--mb2">
                 ${setting.label}
               </label>
-              <div class="pwc-list-style-picker grid grid-cols-4 gap-1" data-name="${setting.name}">
+              <div class="pwc-list-style-picker" data-name="${setting.name}">
                 ${listStyleButtons}
               </div>
             </div>
@@ -763,7 +763,7 @@
 
         case 'markerPositionPicker': {
           const markerPosIcons = {
-            'list-outside': `<svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            'list-outside': `<svg class="pwc-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
               <circle cx="3" cy="6" r="1.5" fill="currentColor" stroke="none"></circle>
               <circle cx="3" cy="12" r="1.5" fill="currentColor" stroke="none"></circle>
               <line x1="8" y1="6" x2="21" y2="6"></line>
@@ -772,7 +772,7 @@
               <line x1="8" y1="14" x2="16" y2="14"></line>
               <rect x="7" y="4" width="15" height="12" rx="1" stroke-dasharray="2 2" opacity="0.3"></rect>
             </svg>`,
-            'list-inside': `<svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            'list-inside': `<svg class="pwc-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
               <circle cx="6" cy="6" r="1.5" fill="currentColor" stroke="none"></circle>
               <circle cx="6" cy="12" r="1.5" fill="currentColor" stroke="none"></circle>
               <line x1="10" y1="6" x2="21" y2="6"></line>
@@ -788,23 +788,23 @@
             return `
               <button
                 type="button"
-                class="pwc-marker-pos-btn flex-1 flex flex-col items-center gap-1 p-3 rounded-lg border-2 transition-all ${isSelected ? 'bg-blue-50 border-blue-500 text-blue-600' : 'bg-white border-gray-200 text-gray-500 hover:border-blue-300 hover:bg-blue-50'}"
+                class="pwc-marker-pos-btn ${isSelected ? 'pwc-picker-btn--selected' : ''}"
                 data-value="${opt.value}"
                 data-name="${setting.name}"
                 title="${opt.label}"
               >
                 ${markerPosIcons[opt.value] || ''}
-                <span class="text-xs font-medium">${opt.label}</span>
+                <span class="pwc-marker-pos-btn__label">${opt.label}</span>
               </button>
             `;
           }).join('');
 
           return `
             <div class="pwc-setting-field">
-              <label class="block text-sm font-medium text-gray-700 mb-2">
+              <label class="pwc-setting-label pwc-setting-label--mb2">
                 ${setting.label}
               </label>
-              <div class="pwc-marker-pos-picker flex gap-2" data-name="${setting.name}">
+              <div class="pwc-marker-pos-picker" data-name="${setting.name}">
                 ${markerPosButtons}
               </div>
             </div>
@@ -813,22 +813,22 @@
 
         case 'headingLevelPicker': {
           const headingLevelIcons = {
-            'h1': `<svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
+            'h1': `<svg class="pwc-icon" viewBox="0 0 24 24" fill="currentColor">
               <path d="M4 4v7h7V4h2v16h-2v-7H4v7H2V4h2zm14.5 0c.28 0 .5.22.5.5v15a.5.5 0 0 1-1 0V5.7l-1.86 1.39a.5.5 0 1 1-.6-.8l2.5-1.87c.13-.1.28-.15.43-.15h.03z"/>
             </svg>`,
-            'h2': `<svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
+            'h2': `<svg class="pwc-icon" viewBox="0 0 24 24" fill="currentColor">
               <path d="M4 4v7h7V4h2v16h-2v-7H4v7H2V4h2zm11.5 2a2.5 2.5 0 0 1 2.45 2h.05v.5a.5.5 0 0 1-1 0V8.5a1.5 1.5 0 0 0-2.87-.6.5.5 0 1 1-.92-.4A2.5 2.5 0 0 1 15.5 6zM14 13.5c0-.42.12-.8.34-1.13l3.33-4.87H15.5a.5.5 0 0 1 0-1h3a.5.5 0 0 1 .41.79L15.3 12.7a1.5 1.5 0 0 1 .2-.02 1.5 1.5 0 1 1 0 3h-1a.5.5 0 0 1 0-1h1a.5.5 0 1 0 0-1c-.83 0-1.5-.67-1.5-1.18z"/>
             </svg>`,
-            'h3': `<svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
+            'h3': `<svg class="pwc-icon" viewBox="0 0 24 24" fill="currentColor">
               <path d="M4 4v7h7V4h2v16h-2v-7H4v7H2V4h2zm11 2.5a.5.5 0 0 1 .5-.5h4a.5.5 0 0 1 .4.8L17.5 10l.5.01a2.5 2.5 0 0 1 0 5H16a.5.5 0 0 1 0-1h2a1.5 1.5 0 0 0 0-3h-1.5a.5.5 0 0 1-.4-.8L18.5 7h-3a.5.5 0 0 1-.5-.5z"/>
             </svg>`,
-            'h4': `<svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
+            'h4': `<svg class="pwc-icon" viewBox="0 0 24 24" fill="currentColor">
               <path d="M4 4v7h7V4h2v16h-2v-7H4v7H2V4h2zm11 1.5a.5.5 0 0 1 .94-.24l2.5 5A.5.5 0 0 1 18 11h-2.5v4.5a.5.5 0 0 1-1 0V11H14a.5.5 0 0 1 0-1h.5V5.5zm1 .87V10H17.6l-1.6-3.63z"/>
             </svg>`,
-            'h5': `<svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
+            'h5': `<svg class="pwc-icon" viewBox="0 0 24 24" fill="currentColor">
               <path d="M4 4v7h7V4h2v16h-2v-7H4v7H2V4h2zm11 1.5a.5.5 0 0 1 .5-.5h4a.5.5 0 0 1 0 1h-3.5l-.5 3h1.5a2.5 2.5 0 0 1 0 5H15a.5.5 0 0 1 0-1h2.5a1.5 1.5 0 0 0 0-3H16a.5.5 0 0 1-.49-.6l.5-3.4a.5.5 0 0 1-.01-.5z"/>
             </svg>`,
-            'h6': `<svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
+            'h6': `<svg class="pwc-icon" viewBox="0 0 24 24" fill="currentColor">
               <path d="M4 4v7h7V4h2v16h-2v-7H4v7H2V4h2zm13 1.5a.5.5 0 0 1 .86-.35l2 2a.5.5 0 0 1-.7.7L17.5 6.22V9.5a3 3 0 1 1-1 0V5.5zm-.5 5a2 2 0 1 0 2 0 2 2 0 0 0-2 0z"/>
             </svg>`,
           };
@@ -838,7 +838,7 @@
             return `
               <button
                 type="button"
-                class="pwc-heading-level-btn ${isSelected ? 'bg-blue-50 border-blue-500 text-blue-600' : 'bg-white border-gray-200 text-gray-500 hover:border-blue-400 hover:bg-blue-50'}"
+                class="pwc-heading-level-btn ${isSelected ? 'pwc-picker-btn--selected' : ''}"
                 data-value="${opt.value}"
                 data-name="${setting.name}"
                 title="${opt.label}"
@@ -850,13 +850,13 @@
 
           return `
             <div class="pwc-setting-field">
-              <label class="block text-sm font-medium text-gray-700 mb-2">
+              <label class="pwc-setting-label pwc-setting-label--mb2">
                 ${setting.label}
               </label>
               <div class="pwc-heading-level-picker" data-name="${setting.name}">
                 ${headingLevelButtons}
               </div>
-              ${setting.help ? `<p class="mt-1 text-xs text-gray-500">${setting.help}</p>` : ''}
+              ${setting.help ? `<p class="pwc-setting-help">${setting.help}</p>` : ''}
             </div>
           `;
         }
@@ -871,22 +871,22 @@
           ];
 
           const alignIcons = {
-            'align-left': `<svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            'align-left': `<svg class="pwc-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <line x1="3" y1="6" x2="21" y2="6"></line>
               <line x1="3" y1="12" x2="15" y2="12"></line>
               <line x1="3" y1="18" x2="18" y2="18"></line>
             </svg>`,
-            'align-center': `<svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            'align-center': `<svg class="pwc-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <line x1="3" y1="6" x2="21" y2="6"></line>
               <line x1="6" y1="12" x2="18" y2="12"></line>
               <line x1="4" y1="18" x2="20" y2="18"></line>
             </svg>`,
-            'align-right': `<svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            'align-right': `<svg class="pwc-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <line x1="3" y1="6" x2="21" y2="6"></line>
               <line x1="9" y1="12" x2="21" y2="12"></line>
               <line x1="6" y1="18" x2="21" y2="18"></line>
             </svg>`,
-            'align-justify': `<svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            'align-justify': `<svg class="pwc-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <line x1="3" y1="6" x2="21" y2="6"></line>
               <line x1="3" y1="12" x2="21" y2="12"></line>
               <line x1="3" y1="18" x2="21" y2="18"></line>
@@ -900,7 +900,7 @@
             return `
               <button
                 type="button"
-                class="pwc-align-btn flex-1 p-2 rounded border transition-all ${isSelected ? 'bg-blue-100 border-blue-500 text-blue-600' : 'bg-white border-gray-200 text-gray-600 hover:border-blue-400 hover:bg-blue-50'}"
+                class="pwc-align-btn ${isSelected ? 'pwc-align-btn--selected' : ''}"
                 data-value="${opt.value}"
                 data-name="${setting.name}"
                 title="${opt.label}"
@@ -912,13 +912,13 @@
 
           return `
             <div class="pwc-setting-field">
-              <label class="block text-sm font-medium text-gray-700 mb-2">
+              <label class="pwc-setting-label pwc-setting-label--mb2">
                 ${setting.label}
               </label>
-              <div class="pwc-alignment-buttons flex gap-1" data-name="${setting.name}">
+              <div class="pwc-alignment-buttons" data-name="${setting.name}">
                 ${alignButtons}
               </div>
-              ${setting.help ? `<p class="mt-1 text-xs text-gray-500">${setting.help}</p>` : ''}
+              ${setting.help ? `<p class="pwc-setting-help">${setting.help}</p>` : ''}
             </div>
           `;
 
@@ -942,22 +942,22 @@
 
           // Side button icons - box with highlighted edge
           const sideIcons = {
-            all: `<svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            all: `<svg class="pwc-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <rect x="4" y="4" width="16" height="16" rx="1" fill="currentColor" fill-opacity="0.15"/>
             </svg>`,
-            t: `<svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            t: `<svg class="pwc-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
               <rect x="4" y="4" width="16" height="16" rx="1"/>
               <line x1="4" y1="4" x2="20" y2="4" stroke-width="3"/>
             </svg>`,
-            r: `<svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            r: `<svg class="pwc-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
               <rect x="4" y="4" width="16" height="16" rx="1"/>
               <line x1="20" y1="4" x2="20" y2="20" stroke-width="3"/>
             </svg>`,
-            b: `<svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            b: `<svg class="pwc-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
               <rect x="4" y="4" width="16" height="16" rx="1"/>
               <line x1="4" y1="20" x2="20" y2="20" stroke-width="3"/>
             </svg>`,
-            l: `<svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            l: `<svg class="pwc-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
               <rect x="4" y="4" width="16" height="16" rx="1"/>
               <line x1="4" y1="4" x2="4" y2="20" stroke-width="3"/>
             </svg>`,
@@ -973,56 +973,56 @@
 
           return `
             <div class="pwc-setting-field pwc-spacing-field" data-name="${setting.name}" data-prefix="${prefix}">
-              <label class="block text-sm font-medium text-gray-700 mb-2">
+              <label class="pwc-setting-label pwc-setting-label--mb2">
                 ${setting.label}
               </label>
 
               <!-- Side selector buttons -->
-              <div class="pwc-spacing-sides flex gap-1 p-1 bg-gray-100 rounded-lg">
-                <button type="button" class="pwc-spacing-side-btn flex-1 flex flex-col items-center gap-0.5 p-2 rounded transition-all ${spacingState.all ? 'bg-blue-100 text-blue-600' : 'hover:bg-gray-200 text-gray-600'}" data-side="all" title="All sides">
+              <div class="pwc-spacing-sides">
+                <button type="button" class="pwc-spacing-side-btn ${spacingState.all ? 'pwc-spacing-side-btn--has-value' : ''}" data-side="all" title="All sides">
                   ${sideIcons.all}
-                  <span class="text-[10px] font-medium">${getDisplayValue('all') || 'All'}</span>
+                  <span>${getDisplayValue('all') || 'All'}</span>
                 </button>
-                <button type="button" class="pwc-spacing-side-btn flex-1 flex flex-col items-center gap-0.5 p-2 rounded transition-all ${spacingState.t ? 'bg-blue-100 text-blue-600' : 'hover:bg-gray-200 text-gray-600'}" data-side="t" title="Top">
+                <button type="button" class="pwc-spacing-side-btn ${spacingState.t ? 'pwc-spacing-side-btn--has-value' : ''}" data-side="t" title="Top">
                   ${sideIcons.t}
-                  <span class="text-[10px] font-medium">${getDisplayValue('t') || 'Top'}</span>
+                  <span>${getDisplayValue('t') || 'Top'}</span>
                 </button>
-                <button type="button" class="pwc-spacing-side-btn flex-1 flex flex-col items-center gap-0.5 p-2 rounded transition-all ${spacingState.r ? 'bg-blue-100 text-blue-600' : 'hover:bg-gray-200 text-gray-600'}" data-side="r" title="Right">
+                <button type="button" class="pwc-spacing-side-btn ${spacingState.r ? 'pwc-spacing-side-btn--has-value' : ''}" data-side="r" title="Right">
                   ${sideIcons.r}
-                  <span class="text-[10px] font-medium">${getDisplayValue('r') || 'Right'}</span>
+                  <span>${getDisplayValue('r') || 'Right'}</span>
                 </button>
-                <button type="button" class="pwc-spacing-side-btn flex-1 flex flex-col items-center gap-0.5 p-2 rounded transition-all ${spacingState.b ? 'bg-blue-100 text-blue-600' : 'hover:bg-gray-200 text-gray-600'}" data-side="b" title="Bottom">
+                <button type="button" class="pwc-spacing-side-btn ${spacingState.b ? 'pwc-spacing-side-btn--has-value' : ''}" data-side="b" title="Bottom">
                   ${sideIcons.b}
-                  <span class="text-[10px] font-medium">${getDisplayValue('b') || 'Btm'}</span>
+                  <span>${getDisplayValue('b') || 'Btm'}</span>
                 </button>
-                <button type="button" class="pwc-spacing-side-btn flex-1 flex flex-col items-center gap-0.5 p-2 rounded transition-all ${spacingState.l ? 'bg-blue-100 text-blue-600' : 'hover:bg-gray-200 text-gray-600'}" data-side="l" title="Left">
+                <button type="button" class="pwc-spacing-side-btn ${spacingState.l ? 'pwc-spacing-side-btn--has-value' : ''}" data-side="l" title="Left">
                   ${sideIcons.l}
-                  <span class="text-[10px] font-medium">${getDisplayValue('l') || 'Left'}</span>
+                  <span>${getDisplayValue('l') || 'Left'}</span>
                 </button>
               </div>
 
               <!-- Size selector dropdown (hidden by default) -->
-              <div class="pwc-spacing-sizes hidden mt-2 p-2 bg-white border border-gray-200 rounded-lg shadow-sm">
-                <div class="pwc-spacing-presets flex flex-wrap gap-1">
+              <div class="pwc-spacing-sizes hidden">
+                <div class="pwc-spacing-presets">
                   ${spacingPresets.map(preset => `
-                    <button type="button" class="pwc-spacing-preset px-2 py-1.5 text-xs font-medium rounded border bg-white border-gray-200 hover:border-blue-400 hover:bg-blue-50 transition-all" data-value="${preset.value}">
+                    <button type="button" class="pwc-spacing-preset" data-value="${preset.value}">
                       ${preset.px}
                     </button>
                   `).join('')}
                 </div>
               </div>
 
-              ${setting.help ? `<p class="mt-2 text-xs text-gray-500">${setting.help}</p>` : ''}
+              ${setting.help ? `<p class="pwc-setting-help">${setting.help}</p>` : ''}
             </div>
           `;
 
         default:
           return `
             <div class="pwc-setting-field">
-              <label class="block text-sm font-medium text-gray-700 mb-1">
+              <label class="pwc-setting-label">
                 ${setting.label}
               </label>
-              <p class="text-gray-500 text-sm">Unknown field type: ${setting.type}</p>
+              <p class="pwc-text-muted">Unknown field type: ${setting.type}</p>
             </div>
           `;
       }
@@ -1074,9 +1074,7 @@
 
           toggle.setAttribute('data-checked', newValue);
           toggle.setAttribute('aria-checked', newValue);
-          toggle.classList.toggle('bg-blue-600', newValue);
-          toggle.classList.toggle('bg-gray-200', !newValue);
-          toggle.querySelector('span').classList.toggle('translate-x-5', newValue);
+          toggle.classList.toggle('pwc-toggle--checked', newValue);
 
           this.updateBlockAttribute(toggle.getAttribute('name'), newValue);
         });
@@ -1091,11 +1089,9 @@
 
           // Update visual selection
           grid.querySelectorAll('.pwc-color-swatch').forEach(s => {
-            s.classList.remove('border-blue-500', 'ring-2', 'ring-blue-300');
-            s.classList.add('border-gray-300');
+            s.classList.remove('pwc-color-swatch--selected');
           });
-          swatch.classList.remove('border-gray-300');
-          swatch.classList.add('border-blue-500', 'ring-2', 'ring-blue-300');
+          swatch.classList.add('pwc-color-swatch--selected');
 
           this.updateBlockAttribute(name, value);
         });
@@ -1108,13 +1104,10 @@
           const value = btn.dataset.value;
           const container = btn.closest('.pwc-radius-picker');
 
-          // Update visual selection
           container.querySelectorAll('.pwc-radius-picker-btn').forEach(b => {
-            b.classList.remove('bg-blue-50', 'border-blue-500', 'text-blue-600');
-            b.classList.add('bg-white', 'border-gray-200', 'text-gray-500');
+            b.classList.remove('pwc-picker-btn--selected');
           });
-          btn.classList.remove('bg-white', 'border-gray-200', 'text-gray-500');
-          btn.classList.add('bg-blue-50', 'border-blue-500', 'text-blue-600');
+          btn.classList.add('pwc-picker-btn--selected');
 
           this.updateBlockAttribute(name, value);
         });
@@ -1127,13 +1120,10 @@
           const value = btn.dataset.value;
           const container = btn.closest('.pwc-border-width-picker');
 
-          // Update visual selection
           container.querySelectorAll('.pwc-border-width-picker-btn').forEach(b => {
-            b.classList.remove('bg-blue-50', 'border-blue-500', 'text-blue-600');
-            b.classList.add('bg-white', 'border-gray-200', 'text-gray-500');
+            b.classList.remove('pwc-picker-btn--selected');
           });
-          btn.classList.remove('bg-white', 'border-gray-200', 'text-gray-500');
-          btn.classList.add('bg-blue-50', 'border-blue-500', 'text-blue-600');
+          btn.classList.add('pwc-picker-btn--selected');
 
           this.updateBlockAttribute(name, value);
         });
@@ -1146,13 +1136,10 @@
           const value = btn.dataset.value;
           const container = btn.closest('.pwc-layout-picker');
 
-          // Update visual selection
           container.querySelectorAll('.pwc-layout-picker-btn').forEach(b => {
-            b.classList.remove('bg-blue-50', 'border-blue-500', 'text-blue-600');
-            b.classList.add('bg-white', 'border-gray-200', 'text-gray-500');
+            b.classList.remove('pwc-picker-btn--selected');
           });
-          btn.classList.remove('bg-white', 'border-gray-200', 'text-gray-500');
-          btn.classList.add('bg-blue-50', 'border-blue-500', 'text-blue-600');
+          btn.classList.add('pwc-picker-btn--selected');
 
           this.updateBlockAttribute(name, value);
         });
@@ -1165,13 +1152,10 @@
           const value = btn.dataset.value;
           const container = btn.closest('.pwc-gap-picker');
 
-          // Update visual selection
           container.querySelectorAll('.pwc-gap-picker-btn').forEach(b => {
-            b.classList.remove('bg-blue-50', 'border-blue-500', 'text-blue-600');
-            b.classList.add('bg-white', 'border-gray-200', 'text-gray-500');
+            b.classList.remove('pwc-picker-btn--selected');
           });
-          btn.classList.remove('bg-white', 'border-gray-200', 'text-gray-500');
-          btn.classList.add('bg-blue-50', 'border-blue-500', 'text-blue-600');
+          btn.classList.add('pwc-picker-btn--selected');
 
           this.updateBlockAttribute(name, value);
         });
@@ -1184,13 +1168,10 @@
           const value = btn.dataset.value;
           const container = btn.closest('.pwc-valign-picker');
 
-          // Update visual selection
           container.querySelectorAll('.pwc-valign-picker-btn').forEach(b => {
-            b.classList.remove('bg-blue-50', 'border-blue-500', 'text-blue-600');
-            b.classList.add('bg-white', 'border-gray-200', 'text-gray-500');
+            b.classList.remove('pwc-picker-btn--selected');
           });
-          btn.classList.remove('bg-white', 'border-gray-200', 'text-gray-500');
-          btn.classList.add('bg-blue-50', 'border-blue-500', 'text-blue-600');
+          btn.classList.add('pwc-picker-btn--selected');
 
           this.updateBlockAttribute(name, value);
         });
@@ -1204,12 +1185,10 @@
           const container = btn.closest('.pwc-list-type-picker');
 
           container.querySelectorAll('.pwc-list-type-btn').forEach(b => {
-            b.classList.remove('bg-blue-50', 'border-blue-500', 'text-blue-600');
-            b.classList.add('bg-white', 'border-gray-200', 'text-gray-500');
+            b.classList.remove('pwc-picker-btn--selected');
           });
 
-          btn.classList.remove('bg-white', 'border-gray-200', 'text-gray-500');
-          btn.classList.add('bg-blue-50', 'border-blue-500', 'text-blue-600');
+          btn.classList.add('pwc-picker-btn--selected');
 
           this.updateBlockAttribute(name, value);
 
@@ -1230,16 +1209,14 @@
           const value = btn.dataset.value;
           const container = btn.closest('.pwc-list-style-picker');
 
-          const isAlreadySelected = btn.classList.contains('bg-blue-50');
+          const isAlreadySelected = btn.classList.contains('pwc-picker-btn--selected');
 
           container.querySelectorAll('.pwc-list-style-btn').forEach(b => {
-            b.classList.remove('bg-blue-50', 'border-blue-500', 'text-blue-600');
-            b.classList.add('bg-white', 'border-gray-200', 'text-gray-500');
+            b.classList.remove('pwc-picker-btn--selected');
           });
 
           if (!isAlreadySelected) {
-            btn.classList.remove('bg-white', 'border-gray-200', 'text-gray-500');
-            btn.classList.add('bg-blue-50', 'border-blue-500', 'text-blue-600');
+            btn.classList.add('pwc-picker-btn--selected');
             this.updateBlockAttribute(name, value);
           } else {
             this.updateBlockAttribute(name, '');
@@ -1254,13 +1231,10 @@
           const value = btn.dataset.value;
           const container = btn.closest('.pwc-heading-level-picker');
 
-          // Update visual selection
           container.querySelectorAll('.pwc-heading-level-btn').forEach(b => {
-            b.classList.remove('bg-blue-50', 'border-blue-500', 'text-blue-600');
-            b.classList.add('bg-white', 'border-gray-200', 'text-gray-500');
+            b.classList.remove('pwc-picker-btn--selected');
           });
-          btn.classList.remove('bg-white', 'border-gray-200', 'text-gray-500');
-          btn.classList.add('bg-blue-50', 'border-blue-500', 'text-blue-600');
+          btn.classList.add('pwc-picker-btn--selected');
 
           this.updateBlockAttribute(name, value);
 
@@ -1287,12 +1261,9 @@
           const container = btn.closest('.pwc-marker-pos-picker');
 
           container.querySelectorAll('.pwc-marker-pos-btn').forEach(b => {
-            b.classList.remove('bg-blue-50', 'border-blue-500', 'text-blue-600');
-            b.classList.add('bg-white', 'border-gray-200', 'text-gray-500');
+            b.classList.remove('pwc-picker-btn--selected');
           });
-
-          btn.classList.remove('bg-white', 'border-gray-200', 'text-gray-500');
-          btn.classList.add('bg-blue-50', 'border-blue-500', 'text-blue-600');
+          btn.classList.add('pwc-picker-btn--selected');
 
           this.updateBlockAttribute(name, value);
         });
@@ -1306,18 +1277,15 @@
           const container = btn.closest('.pwc-alignment-buttons');
 
           // Check if clicking the already selected button (toggle off)
-          const isAlreadySelected = btn.classList.contains('bg-blue-100');
+          const isAlreadySelected = btn.classList.contains('pwc-align-btn--selected');
 
           // Update visual selection
           container.querySelectorAll('.pwc-align-btn').forEach(b => {
-            b.classList.remove('bg-blue-100', 'border-blue-500', 'text-blue-600');
-            b.classList.add('bg-white', 'border-gray-200', 'text-gray-600');
+            b.classList.remove('pwc-align-btn--selected');
           });
 
           if (!isAlreadySelected) {
-            // Select this button
-            btn.classList.remove('bg-white', 'border-gray-200', 'text-gray-600');
-            btn.classList.add('bg-blue-100', 'border-blue-500', 'text-blue-600');
+            btn.classList.add('pwc-align-btn--selected');
             this.updateBlockAttribute(name, value);
           } else {
             // Toggle off - clear the alignment
@@ -1338,7 +1306,7 @@
 
           // Close any open size panels and deactivate buttons
           field.querySelectorAll('.pwc-spacing-side-btn').forEach(btn => {
-            btn.classList.remove('pwc-spacing-side-btn--active', 'bg-white', 'shadow-sm');
+            btn.classList.remove('pwc-spacing-side-btn--active');
           });
 
           if (isActive) {
@@ -1347,16 +1315,16 @@
             sizesPanel.removeAttribute('data-active-side');
           } else {
             // Show the panel and mark this button as active
-            sideBtn.classList.add('pwc-spacing-side-btn--active', 'bg-white', 'shadow-sm');
+            sideBtn.classList.add('pwc-spacing-side-btn--active');
             sizesPanel.classList.remove('hidden');
             sizesPanel.setAttribute('data-active-side', side);
 
             // Highlight the currently selected value for this side
             const currentValue = this.getSpacingSideValue(field, side);
             sizesPanel.querySelectorAll('.pwc-spacing-preset').forEach(preset => {
-              preset.classList.remove('bg-blue-100', 'border-blue-500', 'text-blue-700');
+              preset.classList.remove('pwc-spacing-preset--selected');
               if (preset.dataset.value === currentValue) {
-                preset.classList.add('bg-blue-100', 'border-blue-500', 'text-blue-700');
+                preset.classList.add('pwc-spacing-preset--selected');
               }
             });
           }
@@ -1375,9 +1343,9 @@
 
           // Update visual selection
           sizesPanel.querySelectorAll('.pwc-spacing-preset').forEach(p => {
-            p.classList.remove('bg-blue-100', 'border-blue-500', 'text-blue-700');
+            p.classList.remove('pwc-spacing-preset--selected');
           });
-          preset.classList.add('bg-blue-100', 'border-blue-500', 'text-blue-700');
+          preset.classList.add('pwc-spacing-preset--selected');
 
           // Update the side button to show the new value
           const sideBtn = field.querySelector(`.pwc-spacing-side-btn[data-side="${activeSide}"]`);
@@ -1389,11 +1357,9 @@
 
             // Update button styling to show it has a value
             if (value) {
-              sideBtn.classList.add('bg-blue-100', 'text-blue-600');
-              sideBtn.classList.remove('text-gray-600');
+              sideBtn.classList.add('pwc-spacing-side-btn--has-value');
             } else {
-              sideBtn.classList.remove('bg-blue-100', 'text-blue-600');
-              sideBtn.classList.add('text-gray-600');
+              sideBtn.classList.remove('pwc-spacing-side-btn--has-value');
             }
           }
 
@@ -1459,8 +1425,7 @@
             btn.querySelector('span').textContent = displayValue || 'All';
           } else {
             btn.querySelector('span').textContent = btnSide === 't' ? 'Top' : btnSide === 'r' ? 'Right' : btnSide === 'b' ? 'Btm' : 'Left';
-            btn.classList.remove('bg-blue-100', 'text-blue-600');
-            btn.classList.add('text-gray-600');
+            btn.classList.remove('pwc-spacing-side-btn--has-value');
           }
         });
       } else {
@@ -1472,8 +1437,7 @@
         const allBtn = field.querySelector('.pwc-spacing-side-btn[data-side="all"]');
         if (allBtn) {
           allBtn.querySelector('span').textContent = 'All';
-          allBtn.classList.remove('bg-blue-100', 'text-blue-600');
-          allBtn.classList.add('text-gray-600');
+          allBtn.classList.remove('pwc-spacing-side-btn--has-value');
         }
       }
 
@@ -1598,9 +1562,9 @@
         saveBtn.disabled = true;
         // Show spinning indicator
         saveBtn.innerHTML = `
-          <svg class="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
-            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+          <svg class="pwc-icon pwc-spin" fill="none" viewBox="0 0 24 24">
+            <circle class="pwc-spin__track" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="pwc-spin__arc" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
           </svg>
         `;
 
@@ -1612,33 +1576,29 @@
 
         // Show success checkmark
         saveBtn.innerHTML = `
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg class="pwc-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
           </svg>
         `;
-        saveBtn.classList.remove('bg-blue-600', 'hover:bg-blue-700');
-        saveBtn.classList.add('bg-green-600');
+        saveBtn.classList.add('pwc-settings-panel__save--success');
 
         setTimeout(() => {
           saveBtn.innerHTML = originalHtml;
-          saveBtn.classList.remove('bg-green-600');
-          saveBtn.classList.add('bg-blue-600', 'hover:bg-blue-700');
+          saveBtn.classList.remove('pwc-settings-panel__save--success');
         }, 2000);
 
       } catch (error) {
         // Show error X
         saveBtn.innerHTML = `
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg class="pwc-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
           </svg>
         `;
-        saveBtn.classList.remove('bg-blue-600', 'hover:bg-blue-700');
-        saveBtn.classList.add('bg-red-600');
+        saveBtn.classList.add('pwc-settings-panel__save--error');
 
         setTimeout(() => {
           saveBtn.innerHTML = originalHtml;
-          saveBtn.classList.remove('bg-red-600');
-          saveBtn.classList.add('bg-blue-600', 'hover:bg-blue-700');
+          saveBtn.classList.remove('pwc-settings-panel__save--error');
         }, 3000);
       } finally {
         saveBtn.disabled = false;
@@ -1648,7 +1608,7 @@
     show() {
       this._isMinimized = false;
       this.style.display = 'block';
-      this.querySelector('.pwc-settings-panel').classList.remove('translate-x-full');
+      this.querySelector('.pwc-settings-panel').classList.remove('pwc-settings-panel--hidden');
       document.body.classList.remove('pwc-settings-minimized');
       this.hideReopenButton();
     }
@@ -1657,7 +1617,7 @@
       this._isMinimized = false;
       this.hideReopenButton();
       document.body.classList.remove('pwc-settings-minimized');
-      this.querySelector('.pwc-settings-panel')?.classList.add('translate-x-full');
+      this.querySelector('.pwc-settings-panel')?.classList.add('pwc-settings-panel--hidden');
       setTimeout(() => {
         this.style.display = 'none';
       }, 300);

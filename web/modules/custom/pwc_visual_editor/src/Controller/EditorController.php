@@ -39,10 +39,24 @@ class EditorController extends ControllerBase {
           [
             [
               '#type' => 'html_tag',
-              '#tag' => 'script',
-              '#attributes' => ['src' => 'https://cdn.tailwindcss.com'],
+              '#tag' => 'link',
+              '#attributes' => [
+                'rel' => 'stylesheet',
+                'href' => 'https://appkitcdn.pwc.com/appkit4/cdn/styles/4.10.3/appkit.min.css',
+              ],
             ],
-            'tailwind_cdn',
+            'appkit4_css',
+          ],
+          [
+            [
+              '#type' => 'html_tag',
+              '#tag' => 'script',
+              '#attributes' => [
+                'type' => 'module',
+                'src' => 'https://appkitcdn.pwc.com/appkit4/cdn/web-components/1.15.0/dist/appkit4/appkit4.esm.js',
+              ],
+            ],
+            'appkit4_js',
           ],
         ],
       ],
@@ -96,10 +110,24 @@ class EditorController extends ControllerBase {
           [
             [
               '#type' => 'html_tag',
-              '#tag' => 'script',
-              '#attributes' => ['src' => 'https://cdn.tailwindcss.com'],
+              '#tag' => 'link',
+              '#attributes' => [
+                'rel' => 'stylesheet',
+                'href' => 'https://appkitcdn.pwc.com/appkit4/cdn/styles/4.10.3/appkit.min.css',
+              ],
             ],
-            'tailwind_cdn',
+            'appkit4_css',
+          ],
+          [
+            [
+              '#type' => 'html_tag',
+              '#tag' => 'script',
+              '#attributes' => [
+                'type' => 'module',
+                'src' => 'https://appkitcdn.pwc.com/appkit4/cdn/web-components/1.15.0/dist/appkit4/appkit4.esm.js',
+              ],
+            ],
+            'appkit4_js',
           ],
         ],
       ],

@@ -10,32 +10,32 @@
 #}
 <div class="pwc-visual-editor-page pwc-editing" data-pwc-node-id="{{ node.id }}">
   <!-- Page Header -->
-  <div class="pwc-page-header bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between sticky top-0 z-40">
-    <div class="flex items-center gap-4">
-      <a href="{{ path('entity.node.canonical', {'node': node.id}) }}" class="text-gray-500 hover:text-gray-700" title="View page">
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+  <div class="pwc-page-header">
+    <div class="pwc-page-header__left">
+      <a href="{{ path('entity.node.canonical', {'node': node.id}) }}" class="pwc-page-header__back" title="View page">
+        <svg class="pwc-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
         </svg>
       </a>
       <input
         type="text"
         id="pwc-page-title"
-        class="text-xl font-semibold text-gray-900 border-none focus:outline-none focus:ring-0 bg-transparent"
+        class="pwc-page-header__title"
         placeholder="Enter page title..."
         value="{{ node.label }}"
       >
     </div>
-    <div class="flex items-center gap-3">
-      <span id="pwc-save-status" class="text-sm text-gray-500 hidden">
+    <div class="pwc-page-header__right">
+      <span id="pwc-save-status" class="pwc-page-header__status hidden">
         Saving...
       </span>
-      <a href="{{ path('entity.node.canonical', {'node': node.id}) }}" class="px-4 py-2 text-sm text-gray-600 hover:text-gray-800">
+      <a href="{{ path('entity.node.canonical', {'node': node.id}) }}" class="pwc-page-header__cancel">
         Cancel
       </a>
       <button
         type="button"
         id="pwc-save-btn"
-        class="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+        class="pwc-page-header__save"
       >
         Save Changes
       </button>
@@ -43,10 +43,10 @@
   </div>
 
   <!-- Editor Canvas -->
-  <div class="pwc-editor-canvas min-h-screen bg-gray-50 pb-20">
-    <div class="max-w-4xl mx-auto px-6 py-8">
+  <div class="pwc-editor-canvas">
+    <div class="pwc-editor-canvas__inner">
       <!-- Debug: Show content from Twig for debugging -->
-      <div id="pwc-debug-info" class="mb-4 p-4 bg-yellow-100 border border-yellow-400 rounded text-sm font-mono">
+      <div id="pwc-debug-info" class="pwc-debug-info">
         <strong>Debug Info (remove later):</strong><br>
         <strong>FROM TWIG (PHP):</strong><br>
         - Node ID: {{ node.id }}<br>
@@ -59,7 +59,7 @@
         {% else %}
         - Blocks: NOT DEFINED<br>
         {% endif %}
-        <hr class="my-2">
+        <hr>
         <strong>FROM JAVASCRIPT:</strong> <span id="js-debug-output">Loading...</span>
       </div>
       <script>
@@ -81,7 +81,7 @@
       </script>
 
       <!-- Content Region -->
-      <div class="pwc-editor-wrapper bg-white rounded-lg shadow-sm border border-gray-200 p-8" data-pwc-content-region="true" data-node-id="{{ node.id }}">
+      <div class="pwc-editor-wrapper" data-pwc-content-region="true" data-node-id="{{ node.id }}">
         <!-- Existing blocks will be rendered here -->
       </div>
     </div>

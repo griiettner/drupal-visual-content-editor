@@ -45,16 +45,30 @@ function pwc_visual_editor_page_attachments(array &$attachments) {
   // Check if user can edit
   $canEdit = \Drupal::currentUser()->hasPermission('use pwc visual editor') && $node->access('update');
 
-  // Add Tailwind CSS via CDN for all visual pages (temporary - will be replaced with compiled CSS)
+  // Appkit4 CSS
+  $attachments['#attached']['html_head'][] = [
+    [
+      '#type' => 'html_tag',
+      '#tag' => 'link',
+      '#attributes' => [
+        'rel' => 'stylesheet',
+        'href' => 'https://appkitcdn.pwc.com/appkit4/cdn/styles/4.10.3/appkit.min.css',
+      ],
+    ],
+    'appkit4_css',
+  ];
+
+  // Appkit4 Web Components (ESM)
   $attachments['#attached']['html_head'][] = [
     [
       '#type' => 'html_tag',
       '#tag' => 'script',
       '#attributes' => [
-        'src' => 'https://cdn.tailwindcss.com',
+        'type' => 'module',
+        'src' => 'https://appkitcdn.pwc.com/appkit4/cdn/web-components/1.15.0/dist/appkit4/appkit4.esm.js',
       ],
     ],
-    'tailwind_cdn',
+    'appkit4_js',
   ];
 
   // Only attach editor library and settings if user can edit

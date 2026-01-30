@@ -332,6 +332,11 @@
         this.createAllColumnDropZones(parentInfo);
       }
 
+      // Create drop zones in all accordion sections (unless dragging an accordion block)
+      if (this.tagName.toLowerCase() !== 'pwc-accordion') {
+        this.createAllAccordionSectionDropZones();
+      }
+
       // Setup event listeners for all drop zones
       this.setupReorderDropZoneListeners();
     }
@@ -397,6 +402,70 @@
           columnContent.addEventListener('dragover', handler, true);
           columnContent.addEventListener('drop', handler, true);
           this._allColumnDragHandlers.push({ element: columnContent, handler });
+        });
+      });
+    }
+
+    /**
+     * Create drop zones in ALL accordion sections across the document.
+     */
+    createAllAccordionSectionDropZones() {
+      const allAccordions = document.querySelectorAll('pwc-accordion');
+      if (!this._allColumnDragHandlers) {
+        this._allColumnDragHandlers = [];
+      }
+
+      allAccordions.forEach(accordionEl => {
+        const accordionId = accordionEl.getAttribute('block-id');
+        const sections = accordionEl.querySelectorAll(':scope .pwc-accordion-section__body');
+
+        sections.forEach(sectionBody => {
+          const sectionIndex = parseInt(sectionBody.dataset.accordionIndex, 10);
+          const sectionContent = sectionBody.querySelector('.pwc-accordion-section__content');
+          if (!sectionContent) return;
+
+          // Mark the section as an active drop target
+          sectionContent.classList.add('pwc-drop-active');
+
+          // Get all blocks in this section
+          const blocks = Array.from(sectionContent.querySelectorAll(':scope > .pwc-block'));
+
+          // Determine the current index of the dragged block within this section
+          const currentIndex = blocks.indexOf(this);
+
+          // Create drop zone at beginning
+          if (currentIndex !== 0) {
+            if (blocks.length > 0) {
+              this.createDropZone(sectionContent, 0, blocks[0], 'before', accordionId, sectionIndex);
+            } else {
+              // Empty section - create a single drop zone
+              const dropZone = document.createElement('div');
+              dropZone.className = 'pwc-drop-zone pwc-drop-zone--reorder pwc-drop-zone--first';
+              dropZone.dataset.insertIndex = '0';
+              dropZone.dataset.layoutId = accordionId;
+              dropZone.dataset.columnIndex = String(sectionIndex);
+              sectionContent.appendChild(dropZone);
+            }
+          }
+
+          // Create drop zones between blocks
+          for (let i = 0; i < blocks.length - 1; i++) {
+            if (currentIndex >= 0 && (i + 1 === currentIndex || i + 1 === currentIndex + 1)) {
+              continue;
+            }
+            this.createDropZone(sectionContent, i + 1, blocks[i], 'after', accordionId, sectionIndex);
+          }
+
+          // Create drop zone at end
+          if (blocks.length > 0 && currentIndex < blocks.length - 1) {
+            this.createDropZone(sectionContent, blocks.length, blocks[blocks.length - 1], 'after', accordionId, sectionIndex);
+          }
+
+          // Add delegated drag handler on section content
+          const handler = this._createContentRegionDragHandler(sectionContent);
+          sectionContent.addEventListener('dragover', handler, true);
+          sectionContent.addEventListener('drop', handler, true);
+          this._allColumnDragHandlers.push({ element: sectionContent, handler });
         });
       });
     }
@@ -593,8 +662,11 @@
         this._allColumnDragHandlers = null;
       }
 
-      // Remove pwc-drop-active from all column content elements
+      // Remove pwc-drop-active from all column content and accordion section elements
       document.querySelectorAll('.pwc-layout-column__content.pwc-drop-active').forEach(col => {
+        col.classList.remove('pwc-drop-active');
+      });
+      document.querySelectorAll('.pwc-accordion-section__content.pwc-drop-active').forEach(col => {
         col.classList.remove('pwc-drop-active');
       });
 

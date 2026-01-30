@@ -328,26 +328,11 @@
           let accTitles;
           try { accTitles = JSON.parse(value || '[]'); } catch { accTitles = []; }
 
-          // Read customHeaders from the block
-          let accCustomHeaders = [];
-          if (this.currentBlock) {
-            const chVal = this.currentBlock.getAttribute('custom-headers') || '[]';
-            try { accCustomHeaders = JSON.parse(chVal); } catch { accCustomHeaders = []; }
-          }
-
           const accTitlesHtml = accTitles.map((title, index) => {
-            const isCustom = accCustomHeaders[index] === true;
             return `
               <div class="pwc-accordion-item-editor" data-index="${index}">
                 <div class="pwc-accordion-item-editor__header">
                   <span class="pwc-accordion-item-editor__number">${index + 1}</span>
-                  <label class="pwc-accordion-item-editor__custom-toggle">
-                    <input type="checkbox"
-                           class="pwc-accordion-item-editor__custom-cb"
-                           data-index="${index}"
-                           ${isCustom ? 'checked' : ''}>
-                    <span>Custom</span>
-                  </label>
                   <button type="button" class="pwc-accordion-item-editor__remove" data-index="${index}" data-name="${setting.name}" title="Remove section">
                     <svg class="pwc-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                       <line x1="18" y1="6" x2="6" y2="18"></line>
@@ -362,7 +347,6 @@
                   data-index="${index}"
                   data-name="${setting.name}"
                   placeholder="Accordion title"
-                  ${isCustom ? 'disabled' : ''}
                 >
               </div>
             `;
@@ -1430,19 +1414,6 @@
         });
       });
 
-      // Custom header checkboxes
-      this.querySelectorAll('.pwc-accordion-item-editor__custom-cb').forEach(cb => {
-        cb.addEventListener('change', () => {
-          const customHeaders = this._getCustomHeadersFromDOM();
-          this.updateBlockAttribute('customHeaders', JSON.stringify(customHeaders));
-
-          // Disable/enable the title input
-          const editor = cb.closest('.pwc-accordion-item-editor');
-          const titleInput = editor.querySelector('.pwc-accordion-item-editor__title');
-          titleInput.disabled = cb.checked;
-        });
-      });
-
       // Button type picker buttons
       this.querySelectorAll('.pwc-btn-type-btn').forEach(btn => {
         btn.addEventListener('click', () => {
@@ -1910,15 +1881,6 @@
         titles.push(title);
       });
       return titles;
-    }
-
-    _getCustomHeadersFromDOM() {
-      const result = [];
-      this.querySelectorAll('.pwc-accordion-item-editor').forEach(editor => {
-        const cb = editor.querySelector('.pwc-accordion-item-editor__custom-cb');
-        result.push(cb ? cb.checked : false);
-      });
-      return result;
     }
 
     _updateAccordionTitlesFromDOM(name, container) {

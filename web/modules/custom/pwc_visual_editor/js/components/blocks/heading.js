@@ -121,6 +121,7 @@
           type: 'headingLevelPicker',
           label: 'Heading Level',
           default: 'h2',
+          tab: 'typography',
           options: [
             { value: 'h1', label: 'H1' },
             { value: 'h2', label: 'H2' },
@@ -134,14 +135,16 @@
           name: 'fontSize',
           type: 'select',
           label: 'Font Size',
-          default: 'text-4xl',
+          default: '',
+          tab: 'typography',
           options: TAILWIND_OPTIONS.fontSize,
         },
         {
           name: 'fontWeight',
           type: 'select',
           label: 'Font Weight',
-          default: 'font-medium',
+          default: '',
+          tab: 'typography',
           options: TAILWIND_OPTIONS.fontWeight,
         },
         {
@@ -149,6 +152,7 @@
           type: 'select',
           label: 'Line Height',
           default: '',
+          tab: 'typography',
           options: [
             { value: '', label: 'Default' },
             { value: 'leading-none', label: 'None (1)' },
@@ -164,6 +168,7 @@
           type: 'alignment',
           label: 'Alignment',
           default: '',
+          tab: 'typography',
           options: [
             { value: '', label: 'None', icon: 'align-left' },
             { value: 'text-left', label: 'Left', icon: 'align-left' },
@@ -177,6 +182,7 @@
           type: 'colorSwatch',
           label: 'Text Color',
           default: '',
+          tab: 'style',
           colors: TAILWIND_COLORS,
         },
         {
@@ -184,6 +190,7 @@
           type: 'spacing',
           label: 'Margin',
           default: '',
+          tab: 'layout',
           prefix: 'm',
         },
         {
@@ -191,6 +198,7 @@
           type: 'spacing',
           label: 'Padding',
           default: '',
+          tab: 'layout',
           prefix: 'p',
         },
         {
@@ -198,6 +206,7 @@
           type: 'text',
           label: 'Custom Tailwind Classes',
           default: '',
+          tab: 'style',
           placeholder: 'e.g., tracking-wide uppercase',
           help: 'Add any additional Tailwind utility classes',
         },

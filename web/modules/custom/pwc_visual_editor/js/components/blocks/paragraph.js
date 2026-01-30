@@ -54,6 +54,7 @@
           type: 'select',
           label: 'Font Size',
           default: '',
+          tab: 'typography',
           options: window.TAILWIND_OPTIONS?.fontSize || [],
         },
         {
@@ -61,6 +62,7 @@
           type: 'select',
           label: 'Font Weight',
           default: '',
+          tab: 'typography',
           options: window.TAILWIND_OPTIONS?.fontWeight || [],
         },
         {
@@ -68,6 +70,7 @@
           type: 'select',
           label: 'Line Height',
           default: '',
+          tab: 'typography',
           options: LINE_HEIGHT_OPTIONS,
         },
         {
@@ -75,6 +78,7 @@
           type: 'alignment',
           label: 'Alignment',
           default: '',
+          tab: 'typography',
           options: [
             { value: '', label: 'None', icon: 'align-left' },
             { value: 'text-left', label: 'Left', icon: 'align-left' },
@@ -88,6 +92,7 @@
           type: 'colorSwatch',
           label: 'Text Color',
           default: '',
+          tab: 'style',
           colors: window.TAILWIND_OPTIONS?.colors || [],
         },
         {
@@ -95,6 +100,7 @@
           type: 'select',
           label: 'Paragraph Gap',
           default: 'space-y-4',
+          tab: 'layout',
           options: PARAGRAPH_GAP_OPTIONS,
         },
         {
@@ -102,6 +108,7 @@
           type: 'spacing',
           label: 'Margin',
           default: '',
+          tab: 'layout',
           prefix: 'm',
         },
         {
@@ -109,6 +116,7 @@
           type: 'spacing',
           label: 'Padding',
           default: '',
+          tab: 'layout',
           prefix: 'p',
         },
         {
@@ -116,6 +124,7 @@
           type: 'text',
           label: 'Custom Tailwind Classes',
           default: '',
+          tab: 'style',
           placeholder: 'e.g., prose max-w-none',
           help: 'Add any additional Tailwind utility classes',
         },
@@ -385,8 +394,14 @@
 
       // Replace <p> and <p ...> with <p class="...">
       // Always replace existing classes to avoid duplication
-      return content.replace(/<p(\s+[^>]*)?>|<p>/g, (match) => {
-        return `<p class="${classes}">`;
+      // Preserve non-class attributes (e.g. data-indent)
+      return content.replace(/<p(\s[^>]*)?>|<p>/g, (match, existingAttrs) => {
+        let otherAttrs = '';
+        if (existingAttrs) {
+          otherAttrs = existingAttrs.replace(/\s*class="[^"]*"/, '').trim();
+          if (otherAttrs) otherAttrs = ' ' + otherAttrs;
+        }
+        return `<p class="${classes}"${otherAttrs}>`;
       });
     }
 
@@ -453,6 +468,14 @@
           }
 
           // Trigger input event to save
+          this.syncContent(editableDiv);
+        } else if (e.key === 'Tab') {
+          e.preventDefault();
+          if (e.shiftKey) {
+            this.handleParagraphOutdent();
+          } else {
+            this.handleParagraphIndent();
+          }
           this.syncContent(editableDiv);
         }
       });
@@ -547,9 +570,11 @@
         return;
       }
 
-      // Create new paragraph with same classes
+      // Create new paragraph with same classes and indent
       const newP = document.createElement('p');
       newP.className = currentP.className || this._paragraphClasses;
+      const indent = currentP.getAttribute('data-indent');
+      if (indent) newP.setAttribute('data-indent', indent);
       newP.innerHTML = '<br>'; // Empty paragraph needs <br> to be visible/clickable
 
       // Insert after current paragraph
@@ -561,6 +586,54 @@
       newRange.collapse(true);
       selection.removeAllRanges();
       selection.addRange(newRange);
+    }
+
+    /**
+     * Handle Tab key - increase paragraph indent level.
+     */
+    handleParagraphIndent() {
+      const selection = window.getSelection();
+      if (!selection.rangeCount) return;
+
+      const range = selection.getRangeAt(0);
+
+      let currentP = range.startContainer;
+      while (currentP && currentP.tagName !== 'P') {
+        currentP = currentP.parentElement;
+      }
+      if (!currentP) return;
+
+      const maxIndent = 4;
+      const currentIndent = parseInt(currentP.getAttribute('data-indent') || '0', 10);
+      if (currentIndent >= maxIndent) return;
+
+      currentP.setAttribute('data-indent', currentIndent + 1);
+    }
+
+    /**
+     * Handle Shift+Tab - decrease paragraph indent level.
+     */
+    handleParagraphOutdent() {
+      const selection = window.getSelection();
+      if (!selection.rangeCount) return;
+
+      const range = selection.getRangeAt(0);
+
+      let currentP = range.startContainer;
+      while (currentP && currentP.tagName !== 'P') {
+        currentP = currentP.parentElement;
+      }
+      if (!currentP) return;
+
+      const currentIndent = parseInt(currentP.getAttribute('data-indent') || '0', 10);
+      if (currentIndent <= 0) return;
+
+      const newIndent = currentIndent - 1;
+      if (newIndent === 0) {
+        currentP.removeAttribute('data-indent');
+      } else {
+        currentP.setAttribute('data-indent', newIndent);
+      }
     }
 
     /**

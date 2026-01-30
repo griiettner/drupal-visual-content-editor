@@ -62,6 +62,7 @@
           type: 'listTypePicker',
           label: 'List Type',
           default: 'ul',
+          tab: 'typography',
           options: LIST_TYPE_OPTIONS,
         },
         {
@@ -69,6 +70,7 @@
           type: 'listStylePicker',
           label: 'List Style',
           default: 'list-disc',
+          tab: 'typography',
           options: LIST_STYLE_OPTIONS,
         },
         {
@@ -76,6 +78,7 @@
           type: 'markerPositionPicker',
           label: 'Marker Position',
           default: 'list-outside',
+          tab: 'typography',
           options: [
             { value: 'list-outside', label: 'Outside' },
             { value: 'list-inside', label: 'Inside' },
@@ -86,6 +89,7 @@
           type: 'select',
           label: 'Font Size',
           default: '',
+          tab: 'typography',
           options: window.TAILWIND_OPTIONS?.fontSize || [],
         },
         {
@@ -93,6 +97,7 @@
           type: 'select',
           label: 'Font Weight',
           default: '',
+          tab: 'typography',
           options: window.TAILWIND_OPTIONS?.fontWeight || [],
         },
         {
@@ -100,6 +105,7 @@
           type: 'select',
           label: 'Line Height',
           default: '',
+          tab: 'typography',
           options: window.TAILWIND_LINE_HEIGHT_OPTIONS || [],
         },
         {
@@ -107,6 +113,7 @@
           type: 'alignment',
           label: 'Alignment',
           default: '',
+          tab: 'typography',
           options: [
             { value: '', label: 'None', icon: 'align-left' },
             { value: 'text-left', label: 'Left', icon: 'align-left' },
@@ -119,6 +126,7 @@
           type: 'colorSwatch',
           label: 'Text Color',
           default: '',
+          tab: 'style',
           colors: window.TAILWIND_OPTIONS?.colors || [],
         },
         {
@@ -126,6 +134,7 @@
           type: 'select',
           label: 'Item Gap',
           default: 'space-y-2',
+          tab: 'layout',
           options: ITEM_GAP_OPTIONS,
         },
         {
@@ -133,6 +142,7 @@
           type: 'spacing',
           label: 'Margin',
           default: '',
+          tab: 'layout',
           prefix: 'm',
         },
         {
@@ -140,6 +150,7 @@
           type: 'spacing',
           label: 'Padding',
           default: '',
+          tab: 'layout',
           prefix: 'p',
         },
         {
@@ -147,6 +158,7 @@
           type: 'text',
           label: 'Custom Tailwind Classes',
           default: '',
+          tab: 'style',
           placeholder: 'e.g., marker:text-blue-500',
           help: 'Add any additional Tailwind utility classes',
         },
@@ -364,6 +376,14 @@
             this.handleEnterKey();
           }
           this.syncContent(editableList);
+        } else if (e.key === 'Tab') {
+          e.preventDefault();
+          if (e.shiftKey) {
+            this.handleOutdent();
+          } else {
+            this.handleIndent();
+          }
+          this.syncContent(editableList);
         } else if (e.key === 'Backspace') {
           this.handleBackspaceKey(e);
         }
@@ -534,6 +554,139 @@
     }
 
     /**
+     * Handle Tab key - indent current list item into a nested list.
+     */
+    handleIndent() {
+      const selection = window.getSelection();
+      if (!selection.rangeCount) return;
+
+      const range = selection.getRangeAt(0);
+
+      // Find current list item
+      let currentLi = range.startContainer;
+      while (currentLi && currentLi.tagName !== 'LI') {
+        currentLi = currentLi.parentElement;
+      }
+      if (!currentLi) return;
+
+      // Must have a previous sibling to indent under
+      const prevLi = currentLi.previousElementSibling;
+      if (!prevLi) return;
+
+      // Save cursor position
+      const cursorOffset = range.startOffset;
+      const cursorNode = range.startContainer;
+
+      // Determine list type from parent
+      const parentList = currentLi.parentElement;
+      const listTag = parentList.tagName.toLowerCase();
+
+      // Find existing nested list at end of previous li
+      let nestedList = null;
+      for (let i = prevLi.children.length - 1; i >= 0; i--) {
+        const child = prevLi.children[i];
+        if (child.tagName === 'UL' || child.tagName === 'OL') {
+          nestedList = child;
+          break;
+        }
+      }
+
+      if (!nestedList) {
+        nestedList = document.createElement(listTag);
+        prevLi.appendChild(nestedList);
+      }
+
+      // Move current li into nested list
+      nestedList.appendChild(currentLi);
+
+      // Restore cursor
+      try {
+        const newRange = document.createRange();
+        newRange.setStart(cursorNode, cursorOffset);
+        newRange.collapse(true);
+        selection.removeAllRanges();
+        selection.addRange(newRange);
+      } catch (_) {
+        const newRange = document.createRange();
+        newRange.setStart(currentLi, 0);
+        newRange.collapse(true);
+        selection.removeAllRanges();
+        selection.addRange(newRange);
+      }
+    }
+
+    /**
+     * Handle Shift+Tab - outdent current list item from nested list.
+     */
+    handleOutdent() {
+      const selection = window.getSelection();
+      if (!selection.rangeCount) return;
+
+      const range = selection.getRangeAt(0);
+
+      // Find current list item
+      let currentLi = range.startContainer;
+      while (currentLi && currentLi.tagName !== 'LI') {
+        currentLi = currentLi.parentElement;
+      }
+      if (!currentLi) return;
+
+      // The parent list (ul/ol containing this li)
+      const parentList = currentLi.parentElement;
+      if (!parentList) return;
+
+      // The grandparent should be a li (meaning we're in a nested list)
+      const grandparentLi = parentList.parentElement;
+      if (!grandparentLi || grandparentLi.tagName !== 'LI') return;
+
+      // The outer list
+      const outerList = grandparentLi.parentElement;
+      if (!outerList) return;
+
+      // Save cursor position
+      const cursorOffset = range.startOffset;
+      const cursorNode = range.startContainer;
+
+      // Collect siblings after current li in the nested list
+      const siblingsAfter = [];
+      let nextSibling = currentLi.nextElementSibling;
+      while (nextSibling) {
+        siblingsAfter.push(nextSibling);
+        nextSibling = nextSibling.nextElementSibling;
+      }
+
+      // Move current li after the grandparent li in the outer list
+      outerList.insertBefore(currentLi, grandparentLi.nextSibling);
+
+      // If there were siblings after, create a new nested list under currentLi
+      if (siblingsAfter.length > 0) {
+        const newNestedList = document.createElement(parentList.tagName.toLowerCase());
+        siblingsAfter.forEach(sib => newNestedList.appendChild(sib));
+        currentLi.appendChild(newNestedList);
+      }
+
+      // Clean up empty nested list
+      if (parentList.children.length === 0) {
+        parentList.remove();
+      }
+
+      // Restore cursor
+      try {
+        const newRange = document.createRange();
+        newRange.setStart(cursorNode, cursorOffset);
+        newRange.collapse(true);
+        selection.removeAllRanges();
+        selection.addRange(newRange);
+      } catch (_) {
+        const newRange = document.createRange();
+        newRange.setStart(currentLi, 0);
+        newRange.collapse(true);
+        selection.removeAllRanges();
+        selection.addRange(newRange);
+      }
+    }
+
+    /**
      * Check if cursor is at the start of an element.
      */
     isCursorAtStartOfElement(range, element) {
@@ -633,16 +786,8 @@
     syncContent(editableList) {
       this._isInlineEditing = true;
 
-      // Get the list items HTML
-      let content = '';
-      editableList.querySelectorAll('li').forEach(li => {
-        content += li.outerHTML;
-      });
-
-      // If no list items, use the innerHTML directly
-      if (!content) {
-        content = editableList.innerHTML;
-      }
+      // Use innerHTML to preserve nested list structure
+      const content = editableList.innerHTML;
 
       this.setAttribute('content', content);
       window.pwcEditorState.updateBlock(this.blockId, {

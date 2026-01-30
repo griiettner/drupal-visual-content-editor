@@ -16,6 +16,7 @@
       this._unsubscribeEditMode = null;
       this._isMinimized = false;
       this._reopenButton = null;
+      this._activeTab = null;
     }
 
     connectedCallback() {
@@ -206,9 +207,42 @@
         return;
       }
 
+      // Tab definitions with labels and SVG icons
+      const tabDefs = {
+        typography: {
+          label: 'Typography',
+          icon: `<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 7V4h16v3M9 20h6M12 4v16"/></svg>`,
+        },
+        layout: {
+          label: 'Layout',
+          icon: `<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>`,
+        },
+        style: {
+          label: 'Style',
+          icon: `<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01"/></svg>`,
+        },
+      };
+
+      // Collect unique tabs that have settings
+      const tabOrder = ['typography', 'layout', 'style'];
+      const settingsByTab = {};
+      if (blockInfo.settings && blockInfo.settings.length > 0) {
+        blockInfo.settings.forEach(setting => {
+          const tab = setting.tab || 'style';
+          if (!settingsByTab[tab]) settingsByTab[tab] = [];
+          settingsByTab[tab].push(setting);
+        });
+      }
+      const availableTabs = tabOrder.filter(t => settingsByTab[t] && settingsByTab[t].length > 0);
+
+      // If active tab is not valid for this block, reset to first available
+      if (!this._activeTab || !availableTabs.includes(this._activeTab)) {
+        this._activeTab = availableTabs[0] || null;
+      }
+
       let html = `
         <!-- Block Type Header -->
-        <div class="mb-6">
+        <div class="mb-4">
           <div class="flex items-center gap-3 mb-2">
             <span class="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center text-xl text-gray-600">
               ${blockInfo.icon}
@@ -219,22 +253,42 @@
             </div>
           </div>
         </div>
-
-        <!-- Settings Fields -->
-        <div class="space-y-4">
       `;
 
-      // Generate fields from block settings
-      if (blockInfo.settings && blockInfo.settings.length > 0) {
-        blockInfo.settings.forEach(setting => {
+      if (availableTabs.length === 0) {
+        html += '<p class="text-gray-500 text-sm">No settings available for this block.</p>';
+        content.innerHTML = html;
+        return;
+      }
+
+      // Render tab buttons
+      html += `<div class="pwc-settings-tabs">`;
+      availableTabs.forEach(tabKey => {
+        const def = tabDefs[tabKey];
+        const isActive = tabKey === this._activeTab;
+        html += `
+          <button type="button"
+            class="pwc-settings-tab-btn ${isActive ? 'pwc-settings-tab-btn--active' : ''}"
+            data-tab="${tabKey}">
+            ${def.icon}
+            <span>${def.label}</span>
+          </button>
+        `;
+      });
+      html += `</div>`;
+
+      // Render tab content sections
+      availableTabs.forEach(tabKey => {
+        const isActive = tabKey === this._activeTab;
+        html += `<div class="pwc-settings-tab-content ${isActive ? 'pwc-settings-tab-content--active' : ''}" data-tab-content="${tabKey}">`;
+        html += `<div class="space-y-4">`;
+        settingsByTab[tabKey].forEach(setting => {
           const currentValue = block.getAttribute(this.camelToKebab(setting.name)) || setting.default || '';
           html += this.renderSettingField(setting, currentValue);
         });
-      } else {
-        html += '<p class="text-gray-500 text-sm">No settings available for this block.</p>';
-      }
+        html += `</div></div>`;
+      });
 
-      html += '</div>';
       content.innerHTML = html;
 
       // Set up field change listeners
@@ -978,6 +1032,24 @@
      * Set up event listeners for setting fields.
      */
     setupFieldListeners() {
+      // Tab switching
+      this.querySelectorAll('.pwc-settings-tab-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const tab = btn.dataset.tab;
+          this._activeTab = tab;
+
+          // Update active button
+          this.querySelectorAll('.pwc-settings-tab-btn').forEach(b => {
+            b.classList.toggle('pwc-settings-tab-btn--active', b.dataset.tab === tab);
+          });
+
+          // Show/hide content
+          this.querySelectorAll('.pwc-settings-tab-content').forEach(c => {
+            c.classList.toggle('pwc-settings-tab-content--active', c.dataset.tabContent === tab);
+          });
+        });
+      });
+
       // Text and textarea inputs
       this.querySelectorAll('input[type="text"], textarea, select').forEach(input => {
         input.addEventListener('input', () => {

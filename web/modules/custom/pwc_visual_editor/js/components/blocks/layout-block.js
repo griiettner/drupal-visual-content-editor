@@ -64,6 +64,7 @@
           name: 'layout',
           type: 'layoutPicker',
           label: 'Layout',
+          tab: 'layout',
           options: [
             { value: '100', label: 'Full', columns: [1] },
             { value: '50-50', label: '50/50', columns: [1, 1] },
@@ -78,6 +79,7 @@
           name: 'gap',
           type: 'gapPicker',
           label: 'Column Gap',
+          tab: 'layout',
           options: [
             { value: 'none', label: '0', px: '0px' },
             { value: 'small', label: 'S', px: '8px' },
@@ -90,6 +92,7 @@
           name: 'verticalAlign',
           type: 'verticalAlignPicker',
           label: 'Vertical Alignment',
+          tab: 'layout',
           options: [
             { value: 'top', label: 'Top', icon: 'align-top' },
             { value: 'center', label: 'Center', icon: 'align-middle' },
@@ -103,6 +106,7 @@
           type: 'spacing',
           label: 'Margin',
           default: '',
+          tab: 'layout',
           prefix: 'm',
         },
         {
@@ -110,6 +114,7 @@
           type: 'spacing',
           label: 'Padding',
           default: '',
+          tab: 'layout',
           prefix: 'p',
         },
         {
@@ -117,6 +122,7 @@
           type: 'colorSwatch',
           label: 'Background Color',
           default: '',
+          tab: 'style',
           colors: window.TAILWIND_OPTIONS?.colors || [],
           colorType: 'bg',
         },
@@ -124,6 +130,7 @@
           name: 'borderWidth',
           type: 'borderWidthPicker',
           label: 'Border Width',
+          tab: 'style',
           options: [
             { value: '', label: '0', px: '0px' },
             { value: 'border', label: '1', px: '1px' },
@@ -138,6 +145,7 @@
           type: 'colorSwatch',
           label: 'Border Color',
           default: '',
+          tab: 'style',
           colors: window.TAILWIND_OPTIONS?.colors || [],
           colorType: 'border',
         },
@@ -145,6 +153,7 @@
           name: 'borderRadius',
           type: 'radiusPicker',
           label: 'Border Radius',
+          tab: 'style',
           options: [
             { value: '', label: 'None', preview: '0' },
             { value: 'rounded-sm', label: 'S', preview: '2px' },

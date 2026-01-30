@@ -347,6 +347,12 @@ function pwc_visual_editor_render_block(array $block): string {
     case 'layout':
       return pwc_visual_editor_render_layout($attributes, $innerBlocks);
 
+    case 'button':
+      return pwc_visual_editor_render_button($attributes);
+
+    case 'tag':
+      return pwc_visual_editor_render_tag($attributes);
+
     default:
       // Unknown block type - render as comment for debugging
       return '<!-- Unknown block type: ' . htmlspecialchars($type) . ' -->';
@@ -878,12 +884,154 @@ function pwc_visual_editor_sanitize_paragraph_attributes(string $html): string {
 }
 
 /**
- * Render a layout block with columns.
+ * Render a button block.
+ *
+ * @param array $attributes
+ *   Block attributes.
+ *
+ * @return string
+ *   Rendered HTML.
+ */
+function pwc_visual_editor_render_button(array $attributes): string {
+  $label = htmlspecialchars($attributes['label'] ?? 'Button');
+  $btnType = $attributes['btnType'] ?? 'primary';
+
+  // Validate button type
+  $validTypes = ['primary', 'secondary', 'tertiary', 'text', 'negative'];
+  if (!in_array($btnType, $validTypes)) {
+    $btnType = 'primary';
+  }
+
+  $icon = htmlspecialchars($attributes['icon'] ?? '');
+  $compact = !empty($attributes['compact']) && $attributes['compact'] !== 'false';
+  $rounded = !empty($attributes['rounded']) && $attributes['rounded'] !== 'false';
+  $url = $attributes['url'] ?? '';
+  $target = !empty($attributes['target']) && $attributes['target'] !== 'false';
+
+  // Build wrapper classes
+  $wrapperClasses = ['pwc-button-wrapper'];
+
+  if (!empty($attributes['textAlign'])) {
+    $wrapperClasses[] = htmlspecialchars($attributes['textAlign']);
+  }
+  if (!empty($attributes['margin'])) {
+    $wrapperClasses[] = htmlspecialchars($attributes['margin']);
+  }
+  if (!empty($attributes['padding'])) {
+    $wrapperClasses[] = htmlspecialchars($attributes['padding']);
+  }
+  if (!empty($attributes['customClasses'])) {
+    $wrapperClasses[] = htmlspecialchars($attributes['customClasses']);
+  }
+
+  $wrapperClassString = implode(' ', array_filter($wrapperClasses));
+
+  // Build <apw-button> attributes
+  $btnAttrs = 'btn-type="' . htmlspecialchars($btnType) . '" label="' . $label . '" type="button"';
+  if ($icon) {
+    $btnAttrs .= ' icon="' . $icon . '"';
+  }
+  if ($compact) {
+    $btnAttrs .= ' compact="true"';
+  }
+  if ($rounded) {
+    $btnAttrs .= ' rounded="true"';
+  }
+
+  $buttonHtml = "<apw-button {$btnAttrs}></apw-button>";
+
+  // Wrap in link if URL provided
+  if (!empty($url)) {
+    // Validate URL - only allow http, https, mailto, tel
+    $scheme = parse_url($url, PHP_URL_SCHEME);
+    $allowedSchemes = ['http', 'https', 'mailto', 'tel', NULL];
+    if (!in_array($scheme, $allowedSchemes)) {
+      $url = '#';
+    }
+    $safeUrl = htmlspecialchars($url, ENT_QUOTES, 'UTF-8');
+    $targetAttr = $target ? ' target="_blank" rel="noopener noreferrer"' : '';
+    $buttonHtml = "<a href=\"{$safeUrl}\" class=\"pwc-button-link\"{$targetAttr}>{$buttonHtml}</a>";
+  }
+
+  return "<div class=\"{$wrapperClassString}\">{$buttonHtml}</div>\n";
+}
+
+/**
+ * Render a tag block.
+ *
+ * @param array $attributes
+ *   Block attributes.
+ *
+ * @return string
+ *   Rendered HTML.
+ */
+function pwc_visual_editor_render_tag(array $attributes): string {
+  $tagsStr = $attributes['tags'] ?? 'Tag 1, Tag 2, Tag 3';
+  $size = $attributes['size'] ?? 'small';
+  $tagType = $attributes['tagType'] ?? 'filled';
+  $showClose = !empty($attributes['showClose']) && $attributes['showClose'] !== 'false';
+  $backgroundColor = $attributes['backgroundColor'] ?? '';
+  $fontColor = $attributes['fontColor'] ?? '';
+
+  // Validate size
+  if (!in_array($size, ['small', 'large'])) {
+    $size = 'small';
+  }
+
+  // Validate type
+  if (!in_array($tagType, ['filled', 'outlined'])) {
+    $tagType = 'filled';
+  }
+
+  // Build wrapper classes
+  $wrapperClasses = ['pwc-tag-wrapper'];
+
+  if (!empty($attributes['textAlign'])) {
+    $wrapperClasses[] = htmlspecialchars($attributes['textAlign']);
+  }
+  if (!empty($attributes['margin'])) {
+    $wrapperClasses[] = htmlspecialchars($attributes['margin']);
+  }
+  if (!empty($attributes['padding'])) {
+    $wrapperClasses[] = htmlspecialchars($attributes['padding']);
+  }
+  if (!empty($attributes['customClasses'])) {
+    $wrapperClasses[] = htmlspecialchars($attributes['customClasses']);
+  }
+
+  $wrapperClassString = implode(' ', array_filter($wrapperClasses));
+
+  // Parse comma-separated tags
+  $tags = array_filter(array_map('trim', explode(',', $tagsStr)));
+
+  if (empty($tags)) {
+    return '';
+  }
+
+  // Build each <apw-tag>
+  $tagsHtml = '';
+  foreach ($tags as $text) {
+    $safeText = htmlspecialchars($text, ENT_QUOTES, 'UTF-8');
+    $attrs = "text=\"{$safeText}\" size=\"{$size}\" type=\"{$tagType}\" show-close=\"" . ($showClose ? 'true' : 'false') . "\" apw-disabled=\"false\"";
+    if ($backgroundColor) {
+      $attrs .= ' background-color="' . htmlspecialchars($backgroundColor, ENT_QUOTES, 'UTF-8') . '"';
+    }
+    if ($fontColor) {
+      $attrs .= ' font-color="' . htmlspecialchars($fontColor, ENT_QUOTES, 'UTF-8') . '"';
+    }
+    $tagsHtml .= "<li><apw-tag {$attrs}></apw-tag></li>";
+  }
+
+  return "<div class=\"{$wrapperClassString}\"><ul class=\"pwc-tag-list\">{$tagsHtml}</ul></div>\n";
+}
+
+/**
+ * Render a layout block.
  *
  * @param array $attributes
  *   Block attributes.
  * @param array $innerBlocks
- *   Inner blocks (flat array with columnIndex attribute).
+ *   Inner blocks (columns).
  *
  * @return string
  *   Rendered HTML.

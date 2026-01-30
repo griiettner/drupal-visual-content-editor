@@ -692,6 +692,112 @@
           `;
         }
 
+        case 'btnTypePicker': {
+          const btnTypeButtons = (setting.options || []).map(opt => {
+            const isSelected = value === opt.value;
+            return `
+              <button
+                type="button"
+                class="pwc-btn-type-btn pwc-btn-type-btn--${opt.value} ${isSelected ? 'pwc-btn-type-btn--selected' : ''}"
+                data-value="${opt.value}"
+                data-name="${setting.name}"
+                title="${opt.label}"
+              >
+                <span class="pwc-btn-type-btn__preview">${opt.label}</span>
+              </button>
+            `;
+          }).join('');
+
+          return `
+            <div class="pwc-setting-field">
+              <label class="pwc-setting-label pwc-setting-label--mb2">
+                ${setting.label}
+              </label>
+              <div class="pwc-btn-type-picker" data-name="${setting.name}">
+                ${btnTypeButtons}
+              </div>
+            </div>
+          `;
+        }
+
+        case 'tagSizePicker': {
+          const tagSizeIcons = {
+            'small': `<svg class="pwc-icon" viewBox="0 0 24 24" fill="none">
+              <rect x="6" y="8" rx="4" width="12" height="8" stroke="currentColor" stroke-width="1.5" fill="none"></rect>
+              <text x="12" y="14" font-size="5" fill="currentColor" stroke="none" font-family="sans-serif" text-anchor="middle" font-weight="600">Sm</text>
+            </svg>`,
+            'large': `<svg class="pwc-icon" viewBox="0 0 24 24" fill="none">
+              <rect x="3" y="6" rx="5" width="18" height="12" stroke="currentColor" stroke-width="1.5" fill="none"></rect>
+              <text x="12" y="14.5" font-size="7" fill="currentColor" stroke="none" font-family="sans-serif" text-anchor="middle" font-weight="600">Lg</text>
+            </svg>`,
+          };
+
+          const tagSizeButtons = (setting.options || []).map(opt => {
+            const isSelected = value === opt.value;
+            return `
+              <button
+                type="button"
+                class="pwc-tag-size-btn ${isSelected ? 'pwc-picker-btn--selected' : ''}"
+                data-value="${opt.value}"
+                data-name="${setting.name}"
+                title="${opt.label}"
+              >
+                ${tagSizeIcons[opt.value] || ''}
+                <span class="pwc-tag-picker-btn__label">${opt.label}</span>
+              </button>
+            `;
+          }).join('');
+
+          return `
+            <div class="pwc-setting-field">
+              <label class="pwc-setting-label pwc-setting-label--mb2">
+                ${setting.label}
+              </label>
+              <div class="pwc-tag-size-picker" data-name="${setting.name}">
+                ${tagSizeButtons}
+              </div>
+            </div>
+          `;
+        }
+
+        case 'tagTypePicker': {
+          const tagTypeIcons = {
+            'filled': `<svg class="pwc-icon" viewBox="0 0 24 24" fill="none">
+              <rect x="4" y="7" rx="5" width="16" height="10" fill="currentColor"></rect>
+            </svg>`,
+            'outlined': `<svg class="pwc-icon" viewBox="0 0 24 24" fill="none">
+              <rect x="4" y="7" rx="5" width="16" height="10" stroke="currentColor" stroke-width="1.5" fill="none"></rect>
+            </svg>`,
+          };
+
+          const tagTypeButtons = (setting.options || []).map(opt => {
+            const isSelected = value === opt.value;
+            return `
+              <button
+                type="button"
+                class="pwc-tag-type-btn ${isSelected ? 'pwc-picker-btn--selected' : ''}"
+                data-value="${opt.value}"
+                data-name="${setting.name}"
+                title="${opt.label}"
+              >
+                ${tagTypeIcons[opt.value] || ''}
+                <span class="pwc-tag-picker-btn__label">${opt.label}</span>
+              </button>
+            `;
+          }).join('');
+
+          return `
+            <div class="pwc-setting-field">
+              <label class="pwc-setting-label pwc-setting-label--mb2">
+                ${setting.label}
+              </label>
+              <div class="pwc-tag-type-picker" data-name="${setting.name}">
+                ${tagTypeButtons}
+              </div>
+            </div>
+          `;
+        }
+
         case 'listStylePicker': {
           // Filter options based on current list type
           const currentListType = this.currentBlock?.getAttribute('list-type') || 'ul';
@@ -1220,6 +1326,54 @@
           } else {
             this.updateBlockAttribute(name, '');
           }
+        });
+      });
+
+      // Button type picker buttons
+      this.querySelectorAll('.pwc-btn-type-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const name = btn.dataset.name;
+          const value = btn.dataset.value;
+          const container = btn.closest('.pwc-btn-type-picker');
+
+          container.querySelectorAll('.pwc-btn-type-btn').forEach(b => {
+            b.classList.remove('pwc-btn-type-btn--selected');
+          });
+          btn.classList.add('pwc-btn-type-btn--selected');
+
+          this.updateBlockAttribute(name, value);
+        });
+      });
+
+      // Tag size picker buttons
+      this.querySelectorAll('.pwc-tag-size-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const name = btn.dataset.name;
+          const value = btn.dataset.value;
+          const container = btn.closest('.pwc-tag-size-picker');
+
+          container.querySelectorAll('.pwc-tag-size-btn').forEach(b => {
+            b.classList.remove('pwc-picker-btn--selected');
+          });
+          btn.classList.add('pwc-picker-btn--selected');
+
+          this.updateBlockAttribute(name, value);
+        });
+      });
+
+      // Tag type picker buttons
+      this.querySelectorAll('.pwc-tag-type-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const name = btn.dataset.name;
+          const value = btn.dataset.value;
+          const container = btn.closest('.pwc-tag-type-picker');
+
+          container.querySelectorAll('.pwc-tag-type-btn').forEach(b => {
+            b.classList.remove('pwc-picker-btn--selected');
+          });
+          btn.classList.add('pwc-picker-btn--selected');
+
+          this.updateBlockAttribute(name, value);
         });
       });
 

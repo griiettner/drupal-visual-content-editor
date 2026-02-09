@@ -3854,3 +3854,19 @@ body.pwc-dragging-block .pwc-drop-zone {
     margin-right: 0;
   }
 }
+
+/* Appkit4 spacing-0 overrides (not provided by Appkit4 CDN) */
+.ap-m-spacing-0 { margin: 0 !important; }
+.ap-mt-spacing-0 { margin-top: 0 !important; }
+.ap-mr-spacing-0 { margin-right: 0 !important; }
+.ap-mb-spacing-0 { margin-bottom: 0 !important; }
+.ap-ml-spacing-0 { margin-left: 0 !important; }
+.ap-mx-spacing-0 { margin-left: 0 !important; margin-right: 0 !important; }
+.ap-my-spacing-0 { margin-top: 0 !important; margin-bottom: 0 !important; }
+.ap-p-spacing-0 { padding: 0 !important; }
+.ap-pt-spacing-0 { padding-top: 0 !important; }
+.ap-pr-spacing-0 { padding-right: 0 !important; }
+.ap-pb-spacing-0 { padding-bottom: 0 !important; }
+.ap-pl-spacing-0 { padding-left: 0 !important; }
+.ap-px-spacing-0 { padding-left: 0 !important; padding-right: 0 !important; }
+.ap-py-spacing-0 { padding-top: 0 !important; padding-bottom: 0 !important; }

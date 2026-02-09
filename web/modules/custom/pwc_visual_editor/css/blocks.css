@@ -156,6 +156,22 @@
 .pwc-leading-relaxed { line-height: 1.625; }
 .pwc-leading-loose { line-height: 2; }
 
+/* --- Spacing Zero (not provided by Appkit4 CDN) --- */
+.ap-m-spacing-0 { margin: 0 !important; }
+.ap-mt-spacing-0 { margin-top: 0 !important; }
+.ap-mr-spacing-0 { margin-right: 0 !important; }
+.ap-mb-spacing-0 { margin-bottom: 0 !important; }
+.ap-ml-spacing-0 { margin-left: 0 !important; }
+.ap-mx-spacing-0 { margin-left: 0 !important; margin-right: 0 !important; }
+.ap-my-spacing-0 { margin-top: 0 !important; margin-bottom: 0 !important; }
+.ap-p-spacing-0 { padding: 0 !important; }
+.ap-pt-spacing-0 { padding-top: 0 !important; }
+.ap-pr-spacing-0 { padding-right: 0 !important; }
+.ap-pb-spacing-0 { padding-bottom: 0 !important; }
+.ap-pl-spacing-0 { padding-left: 0 !important; }
+.ap-px-spacing-0 { padding-left: 0 !important; padding-right: 0 !important; }
+.ap-py-spacing-0 { padding-top: 0 !important; padding-bottom: 0 !important; }
+
 /* --- Vertical Spacing (space-y) --- */
 .pwc-space-y-0 > * + * { margin-top: 0; }
 .pwc-space-y-1 > * + * { margin-top: 0.25rem; }

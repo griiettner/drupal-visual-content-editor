@@ -48,7 +48,7 @@
    * Values map to ap-m-spacing-N / ap-p-spacing-N classes.
    */
   const APPKIT_SPACING_PRESETS = [
-    { value: '', label: '0', px: '0px' },
+    { value: '0', label: '0', px: '0px' },
     { value: '1', label: '1', px: '2px' },
     { value: '2', label: '2', px: '4px' },
     { value: '3', label: '3', px: '8px' },

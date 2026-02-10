@@ -96,6 +96,17 @@
       this._activeTabIndex = 0;
     }
 
+    disconnectedCallback() {
+      if (this._tabsetObserver) {
+        this._tabsetObserver.disconnect();
+        this._tabsetObserver = null;
+      }
+
+      if (super.disconnectedCallback) {
+        super.disconnectedCallback();
+      }
+    }
+
     static get observedAttributes() {
       return [
         'block-id',
@@ -156,14 +167,20 @@
     }
 
     render() {
-      const titlesStr = this.getAttribute('titles') || JSON.stringify(DEFAULT_TITLES);
-      let titles;
-      try { titles = JSON.parse(titlesStr); } catch { titles = DEFAULT_TITLES; }
+      if (this._tabsetObserver) {
+        this._tabsetObserver.disconnect();
+        this._tabsetObserver = null;
+      }
+
+      const titles = this.parseTitles();
 
       const margin = this.getAttribute('margin') || '';
       const padding = this.getAttribute('padding') || '';
-      const customClasses = this.getAttribute('custom-classes') || '';
+      const customClasses = this.sanitizeClassList(this.getAttribute('custom-classes') || '');
       const contentBgColor = this.getAttribute('content-bg-color') || '';
+      const rawTabType = this.getAttribute('tab-type') || 'underline';
+      const tabType = rawTabType === 'filled' ? 'filled' : 'underline';
+      const stretched = this.getBooleanAttribute('stretched');
       const isEditing = window.pwcEditorState && window.pwcEditorState.isEditing;
 
       // Restore active tab from editor state (survives element re-creation).
@@ -184,10 +201,10 @@
         customClasses,
       ].filter(Boolean).join(' ');
 
-      // Build tab headers
-      const headersHtml = titles.map((title, index) => {
-        const activeClass = index === this._activeTabIndex ? ' pwc-tab-header--active' : '';
-        return `<button type="button" class="pwc-tab-header${activeClass}" data-tab-index="${index}">${this.escapeAttr(title)}</button>`;
+      // Build Appkit4 tab headers
+      const tabsHtml = titles.map((title, index) => {
+        const tabId = `${this.blockId || 'pwc-tab'}-${index}`;
+        return `<apw-tab tab-id="${this.escapeAttr(tabId)}" label="${this.escapeAttr(title)}"></apw-tab>`;
       }).join('');
 
       // Build tab panels
@@ -225,7 +242,14 @@
       this.innerHTML = `
         <div class="${wrapperClasses}">
           <div class="pwc-tab-headers">
-            ${headersHtml}
+            <apw-tabset
+              class="pwc-tabset"
+              tabset-id="${this.escapeAttr(this.blockId || '')}"
+              type="${this.escapeAttr(tabType)}"
+              active-index="${this._activeTabIndex}"
+              ${stretched ? 'stretched' : ''}>
+              ${tabsHtml}
+            </apw-tabset>
           </div>
           <div class="${contentClasses}">
             ${panelsHtml}
@@ -249,10 +273,10 @@
 
       // Render inner blocks into their tab panels
       this.renderInnerBlocks();
+      this.setupTabsetEvents();
 
       // Set up event handlers
       if (isEditing) {
-        this.setupTabHeaders();
         this.setupAddButtons();
         this.setupSectionDropZones();
         this.setupTabDragHandle();
@@ -310,28 +334,47 @@
       });
     }
 
-    setupTabHeaders() {
-      this.querySelectorAll('.pwc-tab-header').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-          e.stopPropagation();
-          const tabIndex = parseInt(btn.dataset.tabIndex, 10);
-          this._activeTabIndex = tabIndex;
+    setupTabsetEvents() {
+      const tabset = this.querySelector('apw-tabset');
+      if (!tabset) return;
 
-          // Persist to editor state so it survives re-renders.
-          const blockData = window.pwcEditorState?.findBlock(this.blockId);
-          if (blockData) blockData._activeTabIndex = tabIndex;
-
-          // Update header active state
-          this.querySelectorAll('.pwc-tab-header').forEach(h => {
-            h.classList.toggle('pwc-tab-header--active', parseInt(h.dataset.tabIndex, 10) === tabIndex);
-          });
-
-          // Show/hide panels
-          this.querySelectorAll('.pwc-tab-panel').forEach(panel => {
-            panel.style.display = parseInt(panel.dataset.tabIndex, 10) === tabIndex ? 'block' : 'none';
-          });
-        });
+      tabset.addEventListener('tabChange', (e) => {
+        const nextIndex = this.extractTabIndexFromEvent(e);
+        if (Number.isInteger(nextIndex)) {
+          this.setActiveTab(nextIndex);
+          return;
+        }
+        this.syncActiveTabFromTabset(tabset);
       });
+
+      tabset.addEventListener('click', (e) => {
+        const tab = e.composedPath().find((node) => node?.tagName?.toLowerCase?.() === 'apw-tab');
+        if (tab) {
+          const tabs = Array.from(tabset.querySelectorAll('apw-tab'));
+          const nextIndex = tabs.indexOf(tab);
+          if (nextIndex >= 0) {
+            this.setActiveTab(nextIndex);
+            return;
+          }
+        }
+
+        // Some Appkit interactions originate in shadow DOM internals.
+        // Read the final reflected state on the next frame.
+        requestAnimationFrame(() => this.syncActiveTabFromTabset(tabset));
+      });
+
+      tabset.addEventListener('keydown', () => {
+        requestAnimationFrame(() => this.syncActiveTabFromTabset(tabset));
+      });
+
+      // Keep panels synced when Appkit updates active-index internally.
+      const observer = new MutationObserver(() => {
+        this.syncActiveTabFromTabset(tabset);
+      });
+      observer.observe(tabset, { attributes: true, attributeFilter: ['active-index'] });
+
+      this._tabsetObserver = observer;
+      this.syncActiveTabFromTabset(tabset);
     }
 
     setupAddButtons() {
@@ -378,6 +421,7 @@
             const dropZone = e.target.closest('.pwc-drop-zone--reorder');
             if (dropZone) return;
             e.preventDefault();
+            body.classList.remove('pwc-tab-section__body--drag-over');
             return;
           }
 
@@ -460,11 +504,89 @@
      * Escape a string for use in HTML.
      */
     escapeAttr(str) {
-      return str
+      return String(str)
         .replace(/&/g, '&amp;')
         .replace(/"/g, '&quot;')
         .replace(/</g, '&lt;')
         .replace(/>/g, '&gt;');
+    }
+
+    parseTitles() {
+      const titlesStr = this.getAttribute('titles') || JSON.stringify(DEFAULT_TITLES);
+      try {
+        const parsed = JSON.parse(titlesStr);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          return parsed.map((title, index) => {
+            const text = (title ?? '').toString().trim();
+            return text || `Tab ${index + 1}`;
+          });
+        }
+      } catch (e) {
+        // Fallback to defaults for malformed JSON.
+      }
+      return [...DEFAULT_TITLES];
+    }
+
+    sanitizeClassList(classes) {
+      return classes
+        .split(/\s+/)
+        .map(token => token.trim())
+        .filter(token => /^[A-Za-z0-9_-]+$/.test(token))
+        .join(' ');
+    }
+
+    getBooleanAttribute(name) {
+      const value = this.getAttribute(name);
+      if (value === null) return false;
+      if (value === '' || value === 'true' || value === '1' || value === name) return true;
+      if (value === 'false' || value === '0') return false;
+      return Boolean(value);
+    }
+
+    extractTabIndexFromEvent(e) {
+      const detail = e?.detail;
+      if (detail && Number.isInteger(detail.activeIndex)) return detail.activeIndex;
+      if (detail && Number.isInteger(detail.index)) return detail.index;
+      if (detail && Number.isInteger(detail.tabIndex)) return detail.tabIndex;
+      if (typeof detail === 'number' && Number.isInteger(detail)) return detail;
+      return null;
+    }
+
+    syncActiveTabFromTabset(tabset) {
+      if (!tabset) return;
+      const reflected = parseInt(tabset.getAttribute('active-index'), 10);
+      if (!Number.isNaN(reflected)) {
+        this.setActiveTab(reflected, { source: 'tabset' });
+      }
+    }
+
+    setActiveTab(tabIndex, options = {}) {
+      const source = options.source || 'internal';
+      const numericIndex = parseInt(tabIndex, 10);
+      if (Number.isNaN(numericIndex)) return;
+
+      const titles = this.parseTitles();
+      if (numericIndex < 0 || numericIndex >= titles.length) return;
+
+      const changed = this._activeTabIndex !== numericIndex;
+      this._activeTabIndex = numericIndex;
+
+      // Persist to editor state so it survives re-renders.
+      const blockData = window.pwcEditorState?.findBlock(this.blockId);
+      if (blockData && changed) blockData._activeTabIndex = numericIndex;
+
+      // Keep tabset and panel visibility in sync.
+      const tabset = this.querySelector('apw-tabset');
+      if (tabset && source !== 'tabset') {
+        const reflected = parseInt(tabset.getAttribute('active-index'), 10);
+        if (Number.isNaN(reflected) || reflected !== numericIndex) {
+          tabset.setAttribute('active-index', String(numericIndex));
+        }
+      }
+
+      this.querySelectorAll('.pwc-tab-panel').forEach(panel => {
+        panel.style.display = parseInt(panel.dataset.tabIndex, 10) === numericIndex ? 'block' : 'none';
+      });
     }
   }
 

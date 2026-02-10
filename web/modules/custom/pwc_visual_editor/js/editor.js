@@ -236,6 +236,11 @@
         this.enterEditMode();
       });
 
+      // For empty pages, keep the trigger visible without requiring hover.
+      if (this.isContentRegionEmpty()) {
+        this.editTrigger.classList.add('pwc-edit-trigger--always-visible');
+      }
+
       // Add trigger to content region
       this.contentRegion.style.position = 'relative';
       this.contentRegion.appendChild(this.editTrigger);
@@ -244,6 +249,28 @@
       this.contentRegion.classList.add('pwc-content-editable');
 
       this.editTriggerCreated = true;
+    }
+
+    /**
+     * Check if the content region has meaningful content.
+     *
+     * @returns {boolean}
+     */
+    isContentRegionEmpty() {
+      if (!this.contentRegion) return true;
+
+      // Ignore helper/editor overlays when checking emptiness.
+      const meaningfulChildren = Array.from(this.contentRegion.children).filter((el) => {
+        return !el.classList.contains('pwc-edit-trigger') &&
+               !el.classList.contains('pwc-top-level-inserter') &&
+               !el.classList.contains('pwc-drop-zone') &&
+               !el.matches('pwc-block-inserter');
+      });
+
+      if (meaningfulChildren.length > 0) return false;
+
+      const text = (this.contentRegion.textContent || '').trim();
+      return text.length === 0;
     }
 
     /**
@@ -350,9 +377,22 @@
       this.addTopLevelInserter();
 
       // Open the settings panel
-      const settingsPanel = document.querySelector('pwc-settings-panel');
-      if (settingsPanel && settingsPanel.open) {
-        settingsPanel.open();
+      let settingsPanel = document.querySelector('pwc-settings-panel');
+      if (!settingsPanel) {
+        settingsPanel = document.createElement('pwc-settings-panel');
+        document.body.appendChild(settingsPanel);
+      }
+
+      if (settingsPanel) {
+        if (typeof settingsPanel.show === 'function') {
+          settingsPanel.show();
+        } else if (typeof settingsPanel.open === 'function') {
+          settingsPanel.open();
+        } else {
+          settingsPanel.style.display = 'block';
+          const panel = settingsPanel.querySelector('.pwc-settings-panel');
+          if (panel) panel.classList.remove('pwc-settings-panel--hidden');
+        }
       }
     }
 
@@ -415,14 +455,32 @@
       // Show empty state if no blocks
       if (blocks.length === 0 && isEditing) {
         this.contentRegion.innerHTML = `
-          <div class="pwc-empty-state py-16 text-center text-gray-500">
-            <svg class="w-16 h-16 mx-auto text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 13h6m-3-3v6m5 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-            </svg>
-            <p class="text-lg font-medium mb-2">No content yet</p>
-            <p class="text-sm">Click the + button below to start adding blocks</p>
+          <div class="pwc-empty-state" role="status" aria-live="polite">
+            <div class="pwc-empty-state__icon-wrap">
+              <svg class="pwc-empty-state__icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 13h6m-3-3v6m5 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+              </svg>
+            </div>
+            <p class="pwc-empty-state__title">No content yet</p>
+            <p class="pwc-empty-state__text">Start by adding your first block.</p>
+            <button type="button" class="pwc-empty-state__add-btn" title="Add block">
+              <svg class="pwc-empty-state__add-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+              </svg>
+              Add Block
+            </button>
+            <p class="pwc-empty-state__hint">Tip: You can also drag blocks from the library panel.</p>
           </div>
         `;
+
+        const emptyAddButton = this.contentRegion.querySelector('.pwc-empty-state__add-btn');
+        if (emptyAddButton) {
+          emptyAddButton.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            this.openBlockLibraryAtTopLevel();
+          });
+        }
       }
     }
 
@@ -434,6 +492,26 @@
       inserter.setInsertPosition(-1);
       inserter.className = 'pwc-top-level-inserter';
       this.contentRegion.appendChild(inserter);
+    }
+
+    /**
+     * Open the block library panel for top-level insertion.
+     */
+    openBlockLibraryAtTopLevel() {
+      let panel = window.pwcBlockLibraryPanel || document.querySelector('pwc-block-library-panel');
+
+      if (!panel) {
+        panel = document.createElement('pwc-block-library-panel');
+        document.body.appendChild(panel);
+      }
+
+      if (panel && typeof panel.setInsertPosition === 'function') {
+        panel.setInsertPosition(-1, null);
+      }
+
+      if (panel && typeof panel.open === 'function') {
+        panel.open();
+      }
     }
 
     /**

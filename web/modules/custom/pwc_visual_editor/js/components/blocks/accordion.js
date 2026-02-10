@@ -89,6 +89,7 @@
     constructor() {
       super();
       this._innerBlocksData = [];
+      this._expandedSections = new Set([0]);
     }
 
     static get observedAttributes() {
@@ -151,27 +152,25 @@
     }
 
     render() {
-      const titlesStr = this.getAttribute('titles') || JSON.stringify(DEFAULT_TITLES);
-      let titles;
-      try { titles = JSON.parse(titlesStr); } catch { titles = DEFAULT_TITLES; }
-
-      const customHeadersStr = this.getAttribute('custom-headers') || '[]';
-      let customHeaders;
-      try { customHeaders = JSON.parse(customHeadersStr); } catch { customHeaders = []; }
+      const titles = this.parseTitles();
+      const customHeaders = this.parseCustomHeaders(titles.length);
 
       const margin = this.getAttribute('margin') || '';
       const padding = this.getAttribute('padding') || '';
       const customClasses = this.getAttribute('custom-classes') || '';
-      const zebraStripes = this.getAttribute('zebra-stripes') === 'true';
+      const multiple = this.getBooleanAttribute('multiple');
+      const zebraStripes = this.getBooleanAttribute('zebra-stripes');
       const isEditing = window.pwcEditorState && window.pwcEditorState.isEditing;
+
+      this.syncExpandedSections(titles.length, multiple);
 
       const wrapperClasses = [
         'pwc-accordion-wrapper',
         zebraStripes ? 'pwc-accordion-wrapper--zebra' : '',
-        margin,
-        padding,
-        customClasses,
-      ].filter(Boolean).join(' ');
+        ...this.getSafeClassTokens(margin),
+        ...this.getSafeClassTokens(padding),
+        ...this.getSafeClassTokens(customClasses),
+      ].join(' ');
 
       // Build sections HTML
       const sectionsHtml = titles.map((title, index) => {
@@ -180,13 +179,14 @@
         const isCustom = customHeaders[index] === true;
         const headerBlocks = isCustom ? this.getHeaderBlocks(index) : [];
         const hasHeaderBlocks = headerBlocks.length > 0;
+        const isExpanded = this._expandedSections.has(index);
 
         // Header content
         let headerHtml;
         if (isCustom) {
           headerHtml = `
             <div class="pwc-accordion-section__header pwc-accordion-section__header--custom"
-                 data-accordion-index="${index}" data-accordion-id="${this.blockId}">
+                 data-accordion-index="${index}" data-accordion-id="${this.blockId}" aria-expanded="${isExpanded ? 'true' : 'false'}">
               <svg class="pwc-accordion-section__chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <polyline points="6 9 12 15 18 9"></polyline>
               </svg>
@@ -208,7 +208,8 @@
             </div>`;
         } else {
           headerHtml = `
-            <div class="pwc-accordion-section__header">
+            <div class="pwc-accordion-section__header"
+                 data-accordion-index="${index}" aria-expanded="${isExpanded ? 'true' : 'false'}">
               <svg class="pwc-accordion-section__chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <polyline points="6 9 12 15 18 9"></polyline>
               </svg>
@@ -217,7 +218,7 @@
         }
 
         return `
-          <div class="pwc-accordion-section" data-accordion-index="${index}">
+          <div class="pwc-accordion-section ${isExpanded ? 'pwc-accordion-section--expanded' : 'pwc-accordion-section--collapsed'}" data-accordion-index="${index}">
             ${headerHtml}
             <div class="pwc-accordion-section__body"
                  data-accordion-index="${index}"
@@ -269,6 +270,7 @@
 
       // Set up event handlers
       if (isEditing) {
+        this.setupSectionToggleHandlers();
         this.setupAddButtons();
         this.setupSectionDropZones();
         this.setupHeaderDropZones();
@@ -502,6 +504,130 @@
       });
     }
 
+    setupSectionToggleHandlers() {
+      this.querySelectorAll('.pwc-accordion-section__header').forEach(header => {
+        header.addEventListener('click', (e) => {
+          if (
+            e.target.closest('.pwc-accordion-section__header-add-btn') ||
+            e.target.closest('input, textarea, select, button, a, [contenteditable="true"]') ||
+            e.target.closest('.pwc-block')
+          ) {
+            return;
+          }
+
+          const sectionIndex = parseInt(header.dataset.accordionIndex, 10);
+          if (!Number.isNaN(sectionIndex)) {
+            this.toggleSection(sectionIndex);
+          }
+        });
+      });
+    }
+
+    toggleSection(sectionIndex) {
+      const multiple = this.getBooleanAttribute('multiple');
+      const next = new Set(this._expandedSections);
+
+      if (multiple) {
+        if (next.has(sectionIndex)) {
+          next.delete(sectionIndex);
+        } else {
+          next.add(sectionIndex);
+        }
+      } else if (next.has(sectionIndex)) {
+        next.delete(sectionIndex);
+      } else {
+        next.clear();
+        next.add(sectionIndex);
+      }
+
+      this._expandedSections = next;
+      this.persistExpandedSections();
+      this.applyExpandedSections();
+    }
+
+    applyExpandedSections() {
+      this.querySelectorAll('.pwc-accordion-section').forEach(section => {
+        const sectionIndex = parseInt(section.dataset.accordionIndex, 10);
+        const isExpanded = this._expandedSections.has(sectionIndex);
+        section.classList.toggle('pwc-accordion-section--expanded', isExpanded);
+        section.classList.toggle('pwc-accordion-section--collapsed', !isExpanded);
+
+        const header = section.querySelector('.pwc-accordion-section__header');
+        if (header) {
+          header.setAttribute('aria-expanded', isExpanded ? 'true' : 'false');
+        }
+      });
+    }
+
+    syncExpandedSections(totalSections, multiple) {
+      const blockData = window.pwcEditorState?.findBlock(this.blockId);
+      const fromState = blockData?._expandedAccordionIndices;
+      let indices = Array.isArray(fromState)
+        ? fromState.filter(i => Number.isInteger(i) && i >= 0 && i < totalSections)
+        : Array.from(this._expandedSections).filter(i => i >= 0 && i < totalSections);
+
+      if (!multiple && indices.length > 1) {
+        indices = [indices[0]];
+      }
+
+      if (indices.length === 0 && totalSections > 0) {
+        indices = [0];
+      }
+
+      this._expandedSections = new Set(indices);
+      this.persistExpandedSections();
+    }
+
+    persistExpandedSections() {
+      const blockData = window.pwcEditorState?.findBlock(this.blockId);
+      if (!blockData) return;
+      blockData._expandedAccordionIndices = Array.from(this._expandedSections).sort((a, b) => a - b);
+    }
+
+    parseTitles() {
+      const titlesStr = this.getAttribute('titles') || JSON.stringify(DEFAULT_TITLES);
+      try {
+        const parsed = JSON.parse(titlesStr);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          return parsed.map((title, index) => {
+            const text = (title ?? '').toString().trim();
+            return text || `Accordion Item ${index + 1}`;
+          });
+        }
+      } catch (e) {
+        // Fallback to defaults for malformed JSON.
+      }
+      return [...DEFAULT_TITLES];
+    }
+
+    parseCustomHeaders(totalSections) {
+      const customHeadersStr = this.getAttribute('custom-headers') || '[]';
+      try {
+        const parsed = JSON.parse(customHeadersStr);
+        if (Array.isArray(parsed)) {
+          return Array.from({ length: totalSections }, (_, index) => parsed[index] === true);
+        }
+      } catch (e) {
+        // Ignore malformed values.
+      }
+      return Array.from({ length: totalSections }, () => false);
+    }
+
+    getBooleanAttribute(name) {
+      const value = this.getAttribute(name);
+      if (value === null) return false;
+      if (value === '' || value === 'true' || value === '1' || value === name) return true;
+      if (value === 'false' || value === '0') return false;
+      return Boolean(value);
+    }
+
+    getSafeClassTokens(classes) {
+      return String(classes || '')
+        .split(/\s+/)
+        .map(token => token.trim())
+        .filter(token => /^[A-Za-z0-9_-]+$/.test(token));
+    }
+
     addBlockToHeader(blockData, sectionIndex) {
       blockData.attributes = blockData.attributes || {};
       blockData.attributes.columnIndex = sectionIndex;
@@ -576,7 +702,7 @@
      * Escape a string for use in an HTML attribute.
      */
     escapeAttr(str) {
-      return str
+      return String(str)
         .replace(/&/g, '&amp;')
         .replace(/"/g, '&quot;')
         .replace(/</g, '&lt;')

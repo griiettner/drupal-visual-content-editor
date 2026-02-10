@@ -60,14 +60,14 @@
 
     render() {
       this.innerHTML = `
-        <aside class="pwc-settings-panel">
+        <aside class="pwc-settings-panel ap-bg-color-background-container">
           <!-- Header with Add Block, Save, and Close buttons -->
-          <div class="pwc-settings-panel__header">
-            <h2>Settings</h2>
-            <div class="pwc-settings-panel__actions">
+          <div class="pwc-settings-panel__header ap-bg-color-background-container-alt pwc-u-flex pwc-u-items-center pwc-u-justify-between">
+            <h2 class="ap-text-color-text-heading">Settings</h2>
+            <div class="pwc-settings-panel__actions pwc-u-flex pwc-u-items-center pwc-u-gap-2">
               <button
                 type="button"
-                class="pwc-settings-panel__add-block"
+                class="pwc-settings-panel__add-block pwc-u-icon-btn pwc-u-icon-btn--soft ap-bg-color-background-container ap-text-color-text-body"
                 title="Add Block (Open Block Library)"
               >
                 <svg class="pwc-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -76,7 +76,7 @@
               </button>
               <button
                 type="button"
-                class="pwc-settings-panel__save"
+                class="pwc-settings-panel__save pwc-u-icon-btn pwc-u-icon-btn--primary ap-bg-color-background-primary ap-text-color-text-secondary"
                 title="Save Changes"
               >
                 <svg class="pwc-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -85,7 +85,7 @@
               </button>
               <button
                 type="button"
-                class="pwc-settings-panel__close"
+                class="pwc-settings-panel__close pwc-u-icon-btn pwc-u-icon-btn--ghost ap-bg-color-background-container ap-text-color-text-body"
                 title="Close Editor"
               >
                 <svg class="pwc-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -96,7 +96,7 @@
           </div>
 
           <!-- Content -->
-          <div class="pwc-settings-panel__content">
+          <div class="pwc-settings-panel__content pwc-u-flex-col">
             <!-- Dynamic content goes here -->
           </div>
         </aside>
@@ -333,7 +333,7 @@
               <div class="pwc-accordion-item-editor" data-index="${index}">
                 <div class="pwc-accordion-item-editor__header">
                   <span class="pwc-accordion-item-editor__number">${index + 1}</span>
-                  <button type="button" class="pwc-accordion-item-editor__remove" data-index="${index}" data-name="${setting.name}" title="Remove section">
+                  <button type="button" class="pwc-accordion-item-editor__remove pwc-u-icon-btn pwc-u-icon-btn--ghost pwc-u-icon-btn--sm" data-index="${index}" data-name="${setting.name}" title="Remove section">
                     <svg class="pwc-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                       <line x1="18" y1="6" x2="6" y2="18"></line>
                       <line x1="6" y1="6" x2="18" y2="18"></line>
@@ -359,7 +359,7 @@
               </label>
               <div class="pwc-accordion-items-editor" data-name="${setting.name}">
                 ${accTitlesHtml}
-                <button type="button" class="pwc-accordion-item-editor__add" data-name="${setting.name}">
+                <button type="button" class="pwc-accordion-item-editor__add pwc-u-btn pwc-u-btn--outline" data-name="${setting.name}">
                   <svg class="pwc-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <line x1="12" y1="5" x2="12" y2="19"></line>
                     <line x1="5" y1="12" x2="19" y2="12"></line>
@@ -382,10 +382,10 @@
                 <div class="pwc-tab-item-editor__header">
                   <span class="pwc-tab-item-editor__number">${index + 1}</span>
                   <div class="pwc-tab-item-editor__arrows">
-                    <button type="button" class="pwc-tab-item-editor__move-up" data-index="${index}" data-name="${setting.name}" ${index === 0 ? 'disabled' : ''} title="Move up">&#9650;</button>
-                    <button type="button" class="pwc-tab-item-editor__move-down" data-index="${index}" data-name="${setting.name}" ${index === lastTabIdx ? 'disabled' : ''} title="Move down">&#9660;</button>
+                    <button type="button" class="pwc-tab-item-editor__move-up pwc-u-icon-btn pwc-u-icon-btn--ghost pwc-u-icon-btn--xs" data-index="${index}" data-name="${setting.name}" ${index === 0 ? 'disabled' : ''} title="Move up">&#9650;</button>
+                    <button type="button" class="pwc-tab-item-editor__move-down pwc-u-icon-btn pwc-u-icon-btn--ghost pwc-u-icon-btn--xs" data-index="${index}" data-name="${setting.name}" ${index === lastTabIdx ? 'disabled' : ''} title="Move down">&#9660;</button>
                   </div>
-                  <button type="button" class="pwc-tab-item-editor__remove" data-index="${index}" data-name="${setting.name}" title="Remove tab">
+                  <button type="button" class="pwc-tab-item-editor__remove pwc-u-icon-btn pwc-u-icon-btn--ghost pwc-u-icon-btn--sm" data-index="${index}" data-name="${setting.name}" title="Remove tab">
                     <svg class="pwc-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                       <line x1="18" y1="6" x2="6" y2="18"></line>
                       <line x1="6" y1="6" x2="18" y2="18"></line>
@@ -411,7 +411,7 @@
               </label>
               <div class="pwc-tab-items-editor" data-name="${setting.name}">
                 ${tabTitlesHtml}
-                <button type="button" class="pwc-tab-item-editor__add" data-name="${setting.name}">
+                <button type="button" class="pwc-tab-item-editor__add pwc-u-btn pwc-u-btn--outline" data-name="${setting.name}">
                   <svg class="pwc-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <line x1="12" y1="5" x2="12" y2="19"></line>
                     <line x1="5" y1="12" x2="19" y2="12"></line>
@@ -567,7 +567,7 @@
             return `
               <button
                 type="button"
-                class="pwc-radius-picker-btn ${isSelected ? 'pwc-picker-btn--selected' : ''}"
+                class="pwc-radius-picker-btn pwc-u-picker-btn pwc-u-picker-btn--stack ${isSelected ? 'pwc-picker-btn--selected' : ''}"
                 data-value="${opt.value}"
                 data-name="${setting.name}"
                 title="${opt.preview}"
@@ -597,7 +597,7 @@
             return `
               <button
                 type="button"
-                class="pwc-border-width-picker-btn ${isSelected ? 'pwc-picker-btn--selected' : ''}"
+                class="pwc-border-width-picker-btn pwc-u-picker-btn pwc-u-picker-btn--stack ${isSelected ? 'pwc-picker-btn--selected' : ''}"
                 data-value="${opt.value}"
                 data-name="${setting.name}"
                 title="${opt.px}"
@@ -635,7 +635,7 @@
             return `
               <button
                 type="button"
-                class="pwc-layout-picker-btn ${isSelected ? 'pwc-picker-btn--selected' : ''}"
+                class="pwc-layout-picker-btn pwc-u-picker-btn pwc-u-picker-btn--stack ${isSelected ? 'pwc-picker-btn--selected' : ''}"
                 data-value="${opt.value}"
                 data-name="${setting.name}"
                 title="${opt.label}"
@@ -667,7 +667,7 @@
             return `
               <button
                 type="button"
-                class="pwc-gap-picker-btn ${isSelected ? 'pwc-picker-btn--selected' : ''}"
+                class="pwc-gap-picker-btn pwc-u-picker-btn pwc-u-picker-btn--stack ${isSelected ? 'pwc-picker-btn--selected' : ''}"
                 data-value="${opt.value}"
                 data-name="${setting.name}"
                 title="${opt.px}"
@@ -720,7 +720,7 @@
             return `
               <button
                 type="button"
-                class="pwc-valign-picker-btn ${isSelected ? 'pwc-picker-btn--selected' : ''}"
+                class="pwc-valign-picker-btn pwc-u-picker-btn pwc-u-picker-btn--stack ${isSelected ? 'pwc-picker-btn--selected' : ''}"
                 data-value="${opt.value}"
                 data-name="${setting.name}"
                 title="${opt.label}"
@@ -768,7 +768,7 @@
             return `
               <button
                 type="button"
-                class="pwc-list-type-btn ${isSelected ? 'pwc-picker-btn--selected' : ''}"
+                class="pwc-list-type-btn pwc-u-picker-btn pwc-u-picker-btn--row ${isSelected ? 'pwc-picker-btn--selected' : ''}"
                 data-value="${opt.value}"
                 data-name="${setting.name}"
                 title="${opt.label}"
@@ -797,7 +797,7 @@
             return `
               <button
                 type="button"
-                class="pwc-btn-type-btn pwc-btn-type-btn--${opt.value} ${isSelected ? 'pwc-btn-type-btn--selected' : ''}"
+                class="pwc-btn-type-btn pwc-u-picker-btn pwc-btn-type-btn--${opt.value} ${isSelected ? 'pwc-btn-type-btn--selected' : ''}"
                 data-value="${opt.value}"
                 data-name="${setting.name}"
                 title="${opt.label}"
@@ -836,7 +836,7 @@
             return `
               <button
                 type="button"
-                class="pwc-tag-size-btn ${isSelected ? 'pwc-picker-btn--selected' : ''}"
+                class="pwc-tag-size-btn pwc-u-picker-btn pwc-u-picker-btn--row ${isSelected ? 'pwc-picker-btn--selected' : ''}"
                 data-value="${opt.value}"
                 data-name="${setting.name}"
                 title="${opt.label}"
@@ -874,7 +874,7 @@
             return `
               <button
                 type="button"
-                class="pwc-tag-type-btn ${isSelected ? 'pwc-picker-btn--selected' : ''}"
+                class="pwc-tag-type-btn pwc-u-picker-btn pwc-u-picker-btn--row ${isSelected ? 'pwc-picker-btn--selected' : ''}"
                 data-value="${opt.value}"
                 data-name="${setting.name}"
                 title="${opt.label}"
@@ -944,7 +944,7 @@
             return `
               <button
                 type="button"
-                class="pwc-list-style-btn ${isSelected ? 'pwc-picker-btn--selected' : ''}"
+                class="pwc-list-style-btn pwc-u-picker-btn ${isSelected ? 'pwc-picker-btn--selected' : ''}"
                 data-value="${opt.value}"
                 data-name="${setting.name}"
                 title="${opt.label}"
@@ -993,7 +993,7 @@
             return `
               <button
                 type="button"
-                class="pwc-marker-pos-btn ${isSelected ? 'pwc-picker-btn--selected' : ''}"
+                class="pwc-marker-pos-btn pwc-u-picker-btn pwc-u-picker-btn--row ${isSelected ? 'pwc-picker-btn--selected' : ''}"
                 data-value="${opt.value}"
                 data-name="${setting.name}"
                 title="${opt.label}"
@@ -1043,7 +1043,7 @@
             return `
               <button
                 type="button"
-                class="pwc-heading-level-btn ${isSelected ? 'pwc-picker-btn--selected' : ''}"
+                class="pwc-heading-level-btn pwc-u-picker-btn ${isSelected ? 'pwc-picker-btn--selected' : ''}"
                 data-value="${opt.value}"
                 data-name="${setting.name}"
                 title="${opt.label}"
@@ -1446,10 +1446,17 @@
       this.querySelectorAll('.pwc-accordion-item-editor__remove').forEach(btn => {
         btn.addEventListener('click', () => {
           const name = btn.dataset.name;
+          const index = parseInt(btn.dataset.index, 10);
           const editor = btn.closest('.pwc-accordion-item-editor');
           const container = btn.closest('.pwc-accordion-items-editor');
           editor.remove();
           this._updateAccordionTitlesFromDOM(name, container);
+
+          this._removeAccordionSection(index, this._getAccordionTitlesFromDOM(container).length);
+
+          if (this.currentBlock) {
+            setTimeout(() => this.showBlockSettings(this.currentBlock), 50);
+          }
         });
       });
 
@@ -1916,8 +1923,8 @@
                 <path stroke-linecap="round" stroke-linejoin="round" d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.12 2.122"></path>
               </svg>
             </div>
-            <p class="pwc-empty-settings__title">No Block Selected</p>
-            <p class="pwc-empty-settings__message">Click on any block in the content area to edit its settings here.</p>
+            <p class="pwc-empty-settings__title ap-text-color-text-body">No Block Selected</p>
+            <p class="pwc-empty-settings__message ap-text-color-text-light">Click on any block in the content area to edit its settings here.</p>
           </div>
         </div>
       `;
@@ -2055,6 +2062,50 @@
       if (this.currentBlock) {
         setTimeout(() => this.showBlockSettings(this.currentBlock), 50);
       }
+    }
+
+    _removeAccordionSection(index, remainingSectionsCount) {
+      if (!this.currentBlock || Number.isNaN(index)) return;
+
+      const blockData = window.pwcEditorState?.findBlock(this.currentBlock.blockId);
+      if (!blockData) return;
+
+      if (Array.isArray(blockData.innerBlocks)) {
+        // Remove blocks from deleted section and shift subsequent sections.
+        blockData.innerBlocks = blockData.innerBlocks.filter(block => {
+          return (block.attributes?.columnIndex ?? 0) !== index;
+        });
+        blockData.innerBlocks.forEach(block => {
+          const ci = block.attributes?.columnIndex ?? 0;
+          if (ci > index) {
+            block.attributes.columnIndex = ci - 1;
+          }
+        });
+      }
+
+      const expandedIndices = Array.isArray(blockData._expandedAccordionIndices)
+        ? blockData._expandedAccordionIndices
+        : [];
+      const nextExpanded = expandedIndices
+        .filter(i => Number.isInteger(i) && i !== index)
+        .map(i => (i > index ? i - 1 : i));
+      blockData._expandedAccordionIndices = nextExpanded.length === 0 && remainingSectionsCount > 0
+        ? [0]
+        : nextExpanded;
+
+      const currentCustomHeaders = this.currentBlock.getAttribute('custom-headers') || '[]';
+      let customHeaders = [];
+      try {
+        const parsed = JSON.parse(currentCustomHeaders);
+        if (Array.isArray(parsed)) customHeaders = parsed;
+      } catch (e) {
+        // Ignore malformed value.
+      }
+      customHeaders.splice(index, 1);
+      this.updateBlockAttribute('customHeaders', JSON.stringify(customHeaders));
+
+      window.pwcEditorState.isDirty = true;
+      window.pwcEditorState.pushHistory();
     }
 
     camelToKebab(str) {

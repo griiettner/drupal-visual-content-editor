@@ -87,12 +87,12 @@
       this.innerHTML = `
         <div class="pwc-rich-toolbar">
           <!-- Bold -->
-          <button type="button" class="pwc-rich-toolbar__btn" data-command="bold" title="Bold (Ctrl+B)">
+          <button type="button" class="pwc-rich-toolbar__btn pwc-u-icon-btn pwc-u-icon-btn--dark pwc-u-icon-btn--compact" data-command="bold" title="Bold (Ctrl+B)">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M6 4h8a4 4 0 0 1 2.83 6.83A4 4 0 0 1 15 20H6V4zm2 2v5h6a2 2 0 1 0 0-4H8zm0 7v5h7a2 2 0 1 0 0-4H8z"/></svg>
           </button>
 
           <!-- Italic -->
-          <button type="button" class="pwc-rich-toolbar__btn" data-command="italic" title="Italic (Ctrl+I)">
+          <button type="button" class="pwc-rich-toolbar__btn pwc-u-icon-btn pwc-u-icon-btn--dark pwc-u-icon-btn--compact" data-command="italic" title="Italic (Ctrl+I)">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M10 4v2h2.21l-3.42 12H6v2h8v-2h-2.21l3.42-12H18V4z"/></svg>
           </button>
 
@@ -101,7 +101,7 @@
 
           <!-- Text Color -->
           <div class="pwc-rich-toolbar__dropdown-wrap">
-            <button type="button" class="pwc-rich-toolbar__btn" data-dropdown="textColor" title="Text Color">
+            <button type="button" class="pwc-rich-toolbar__btn pwc-u-icon-btn pwc-u-icon-btn--dark pwc-u-icon-btn--compact" data-dropdown="textColor" title="Text Color">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
                 <path d="M11 2 5.5 16h2.25l1.12-3h6.25l1.12 3h2.25L13 2h-2zm-1.38 9L12 4.67 14.38 11H9.62z"/>
                 <rect data-bar="textColor" x="3" y="18" width="18" height="4" rx="1" fill="#ffffff"/>
@@ -124,7 +124,7 @@
 
           <!-- Highlight -->
           <div class="pwc-rich-toolbar__dropdown-wrap">
-            <button type="button" class="pwc-rich-toolbar__btn" data-dropdown="highlight" title="Highlight Color">
+            <button type="button" class="pwc-rich-toolbar__btn pwc-u-icon-btn pwc-u-icon-btn--dark pwc-u-icon-btn--compact" data-dropdown="highlight" title="Highlight Color">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
                 <path d="M18.5 1.15c-.53 0-1.04.19-1.43.58l-5.81 5.82 7.19 7.19 5.81-5.82c.78-.78.78-2.05 0-2.83l-4.33-4.36c-.39-.39-.91-.58-1.43-.58zM2 17l6.16-6.16 7 7L9 24H2v-7z"/>
                 <rect data-bar="highlight" x="3" y="18" width="18" height="4" rx="1" fill="transparent"/>
@@ -147,7 +147,7 @@
 
           <!-- Font Size -->
           <div class="pwc-rich-toolbar__dropdown-wrap">
-            <button type="button" class="pwc-rich-toolbar__btn" data-dropdown="fontSize" title="Font Size">
+            <button type="button" class="pwc-rich-toolbar__btn pwc-u-icon-btn pwc-u-icon-btn--dark pwc-u-icon-btn--compact" data-dropdown="fontSize" title="Font Size">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
                 <path d="M2 4v2h4v14h2V6h4V4H2zm10 0v2h3v14h2V6h3V4h-8z"/>
               </svg>
@@ -156,7 +156,7 @@
               <div class="pwc-rich-toolbar__size-options">
                 ${INLINE_FONT_SIZES.map(s => `
                   <button type="button"
-                    class="pwc-rich-toolbar__size-option"
+                    class="pwc-rich-toolbar__size-option pwc-u-picker-btn"
                     data-inline-class="${s.value}"
                     data-class-type="fontSize"
                     title="${s.label}">
@@ -171,14 +171,14 @@
           <div class="pwc-rich-toolbar__divider"></div>
 
           <!-- Link -->
-          <button type="button" class="pwc-rich-toolbar__btn" data-command="link" title="Add link (Ctrl+K)">
+          <button type="button" class="pwc-rich-toolbar__btn pwc-u-icon-btn pwc-u-icon-btn--dark pwc-u-icon-btn--compact" data-command="link" title="Add link (Ctrl+K)">
             <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/>
             </svg>
           </button>
 
           <!-- Unlink -->
-          <button type="button" class="pwc-rich-toolbar__btn" data-command="unlink" title="Remove link">
+          <button type="button" class="pwc-rich-toolbar__btn pwc-u-icon-btn pwc-u-icon-btn--dark pwc-u-icon-btn--compact" data-command="unlink" title="Remove link">
             <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/>
             </svg>
@@ -188,7 +188,7 @@
           <div class="pwc-rich-toolbar__divider"></div>
 
           <!-- Eraser -->
-          <button type="button" class="pwc-rich-toolbar__btn" data-command="eraseAll" title="Clear all formatting">
+          <button type="button" class="pwc-rich-toolbar__btn pwc-u-icon-btn pwc-u-icon-btn--dark pwc-u-icon-btn--compact" data-command="eraseAll" title="Clear all formatting">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 4.5l-15 15m0 0h7.5m-7.5 0v-7.5"/>
             </svg>

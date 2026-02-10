@@ -107,26 +107,37 @@
 
       // Render blocks
       if (this.blocks.length === 0 && this.isEditing) {
-        // Empty state with prominent Add Block button
+        // Empty state with Add Block button (matches editor.js design).
         contentRegion.innerHTML = `
-          <div class="pwc-empty-state py-12 text-center">
-            <button type="button" class="pwc-add-block-btn inline-flex items-center gap-3 px-6 py-4 bg-blue-600 text-white text-lg font-medium rounded-lg hover:bg-blue-700 shadow-lg transition-all">
-              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div class="pwc-empty-state pwc-u-flex-col pwc-u-items-center pwc-u-justify-center" role="status" aria-live="polite">
+            <div class="pwc-empty-state__icon-wrap">
+              <svg class="pwc-empty-state__icon ap-text-color-text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+              </svg>
+            </div>
+            <p class="pwc-empty-state__title">No content yet</p>
+            <p class="pwc-empty-state__text">Start by adding your first block.</p>
+            <button type="button" class="pwc-empty-state__add-btn pwc-u-btn pwc-u-btn--primary ap-bg-color-background-primary ap-text-color-text-secondary" title="Add block">
+              <svg class="pwc-empty-state__add-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
               </svg>
               Add Block
             </button>
-            <p class="text-sm text-gray-500 mt-4">Click to browse available blocks</p>
+            <p class="pwc-empty-state__hint ap-text-color-text-light">Tip: You can also drag blocks from the library panel.</p>
           </div>
         `;
 
         // Add click handler for the Add Block button
-        const addBlockBtn = contentRegion.querySelector('.pwc-add-block-btn');
+        const addBlockBtn = contentRegion.querySelector('.pwc-empty-state__add-btn');
         if (addBlockBtn) {
           addBlockBtn.addEventListener('click', () => {
-            const panel = document.querySelector('pwc-block-library-panel');
+            let panel = window.pwcBlockLibraryPanel || document.querySelector('pwc-block-library-panel');
+            if (!panel) {
+              panel = document.createElement('pwc-block-library-panel');
+              document.body.appendChild(panel);
+            }
             if (panel) {
-              panel.setInsertPosition(0, null);
+              panel.setInsertPosition(-1, null);
               panel.open();
             }
           });

@@ -78,7 +78,7 @@
 
     if (blocks.length === 0) {
       // Empty state for view mode
-      contentRegion.innerHTML = '<p class="text-gray-500 text-center py-8">No content yet.</p>';
+      contentRegion.innerHTML = '<p class="pwc-text-muted pwc-text-center pwc-u-py-8 ap-text-color-text-light">No content yet.</p>';
       return;
     }
 
@@ -219,8 +219,9 @@
       this.editTrigger = null;
 
       // Create the edit trigger overlay
-      this.editTrigger = document.createElement('div');
-      this.editTrigger.className = 'pwc-edit-trigger';
+      this.editTrigger = document.createElement('button');
+      this.editTrigger.type = 'button';
+      this.editTrigger.className = 'pwc-edit-trigger pwc-u-btn pwc-u-btn--primary';
       this.editTrigger.innerHTML = `
         <div class="pwc-edit-trigger__icon">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -455,21 +456,21 @@
       // Show empty state if no blocks
       if (blocks.length === 0 && isEditing) {
         this.contentRegion.innerHTML = `
-          <div class="pwc-empty-state" role="status" aria-live="polite">
+          <div class="pwc-empty-state pwc-u-flex-col pwc-u-items-center pwc-u-justify-center" role="status" aria-live="polite">
             <div class="pwc-empty-state__icon-wrap">
-              <svg class="pwc-empty-state__icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+              <svg class="pwc-empty-state__icon ap-text-color-text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 13h6m-3-3v6m5 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
               </svg>
             </div>
             <p class="pwc-empty-state__title">No content yet</p>
             <p class="pwc-empty-state__text">Start by adding your first block.</p>
-            <button type="button" class="pwc-empty-state__add-btn" title="Add block">
+            <button type="button" class="pwc-empty-state__add-btn pwc-u-btn pwc-u-btn--primary ap-bg-color-background-primary ap-text-color-text-secondary" title="Add block">
               <svg class="pwc-empty-state__add-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
               </svg>
               Add Block
             </button>
-            <p class="pwc-empty-state__hint">Tip: You can also drag blocks from the library panel.</p>
+            <p class="pwc-empty-state__hint ap-text-color-text-light">Tip: You can also drag blocks from the library panel.</p>
           </div>
         `;
 

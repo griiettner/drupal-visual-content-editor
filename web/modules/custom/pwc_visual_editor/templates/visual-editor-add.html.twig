@@ -6,11 +6,11 @@
  * Starts immediately in edit mode with the visual editor.
  */
 #}
-<div class="pwc-visual-editor-page pwc-editing" data-pwc-new-page="true">
+<div class="pwc-visual-editor-page pwc-editing ap-bg-color-background-default" data-pwc-new-page="true">
   <!-- Page Header -->
-  <div class="pwc-page-header">
-    <div class="pwc-page-header__left">
-      <a href="/" class="pwc-page-header__back">
+  <div class="pwc-page-header ap-bg-color-background-container pwc-u-flex pwc-u-items-center pwc-u-justify-between">
+    <div class="pwc-page-header__left pwc-u-flex pwc-u-items-center">
+      <a href="/" class="pwc-page-header__back pwc-u-icon-btn pwc-u-icon-btn--ghost ap-text-color-text-body">
         <svg class="pwc-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
         </svg>
@@ -18,19 +18,19 @@
       <input
         type="text"
         id="pwc-page-title"
-        class="pwc-page-header__title"
+        class="pwc-page-header__title ap-text-color-text-heading"
         placeholder="Enter page title..."
         value=""
       >
     </div>
-    <div class="pwc-page-header__right">
-      <a href="/" class="pwc-page-header__cancel">
+    <div class="pwc-page-header__right pwc-u-flex pwc-u-items-center">
+      <a href="/" class="pwc-page-header__cancel pwc-u-btn pwc-u-btn--ghost ap-text-color-text-body">
         Cancel
       </a>
       <button
         type="button"
         id="pwc-save-btn"
-        class="pwc-page-header__save"
+        class="pwc-page-header__save pwc-u-btn pwc-u-btn--primary ap-bg-color-background-primary ap-text-color-text-secondary"
       >
         Create Page
       </button>

@@ -153,7 +153,6 @@
 
     render() {
       const titles = this.parseTitles();
-      const customHeaders = this.parseCustomHeaders(titles.length);
 
       const margin = this.getAttribute('margin') || '';
       const padding = this.getAttribute('padding') || '';
@@ -176,46 +175,27 @@
       const sectionsHtml = titles.map((title, index) => {
         const sectionBlocks = this.getSectionBlocks(index);
         const hasBlocks = sectionBlocks.length > 0;
-        const isCustom = customHeaders[index] === true;
-        const headerBlocks = isCustom ? this.getHeaderBlocks(index) : [];
+        const headerBlocks = this.getHeaderBlocks(index);
         const hasHeaderBlocks = headerBlocks.length > 0;
         const isExpanded = this._expandedSections.has(index);
-
-        // Header content
-        let headerHtml;
-        if (isCustom) {
-          headerHtml = `
-            <div class="pwc-accordion-section__header pwc-accordion-section__header--custom"
-                 data-accordion-index="${index}" data-accordion-id="${this.blockId}" aria-expanded="${isExpanded ? 'true' : 'false'}">
-              <svg class="pwc-accordion-section__chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <polyline points="6 9 12 15 18 9"></polyline>
-              </svg>
-              <div class="pwc-accordion-section__header-content">
-                ${!hasHeaderBlocks && isEditing ? `
-                  <div class="pwc-accordion-section__header-empty">
-                    <span>Drop blocks here for custom header</span>
-                  </div>
-                ` : ''}
-              </div>
-              ${isEditing ? `
-                <button type="button" class="pwc-accordion-section__header-add-btn"
-                        data-section="${index}" title="Add block to header">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"></path>
-                  </svg>
-                </button>
-              ` : ''}
-            </div>`;
-        } else {
-          headerHtml = `
-            <div class="pwc-accordion-section__header"
-                 data-accordion-index="${index}" aria-expanded="${isExpanded ? 'true' : 'false'}">
-              <svg class="pwc-accordion-section__chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <polyline points="6 9 12 15 18 9"></polyline>
-              </svg>
-              <span class="pwc-accordion-section__title">${this.escapeAttr(title)}</span>
-            </div>`;
-        }
+        const headerHtml = `
+          <div class="pwc-accordion-section__header pwc-accordion-section__header--custom"
+               data-accordion-index="${index}" data-accordion-id="${this.blockId}" aria-expanded="${isExpanded ? 'true' : 'false'}">
+            <svg class="pwc-accordion-section__chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="6 9 12 15 18 9"></polyline>
+            </svg>
+            <div class="pwc-accordion-section__header-content">
+              ${!hasHeaderBlocks ? `<span class="pwc-accordion-section__title">${this.escapeAttr(title)}</span>` : ''}
+            </div>
+            ${isEditing ? `
+              <button type="button" class="pwc-accordion-section__header-add-btn"
+                      data-section="${index}" title="Add block to header">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"></path>
+                </svg>
+              </button>
+            ` : ''}
+          </div>`;
 
         return `
           <div class="pwc-accordion-section ${isExpanded ? 'pwc-accordion-section--expanded' : 'pwc-accordion-section--collapsed'}" data-accordion-index="${index}">
@@ -448,7 +428,13 @@
     openBlockLibraryForHeader(sectionIndex) {
       const blockLibraryPanel = window.pwcBlockLibraryPanel || document.querySelector('pwc-block-library-panel');
       if (blockLibraryPanel) {
-        blockLibraryPanel.setInsertPosition(-1, this.blockId, sectionIndex, { headerBlock: true });
+        const titles = this.parseTitles();
+        const sectionTitle = titles[sectionIndex] || `Accordion Item ${sectionIndex + 1}`;
+        blockLibraryPanel.setInsertPosition(-1, this.blockId, sectionIndex, {
+          headerBlock: true,
+          __accordionHeaderTitle: sectionTitle,
+          __accordionHeaderSection: sectionIndex,
+        });
         blockLibraryPanel.open();
       }
     }
@@ -507,11 +493,20 @@
     setupSectionToggleHandlers() {
       this.querySelectorAll('.pwc-accordion-section__header').forEach(header => {
         header.addEventListener('click', (e) => {
+          const section = header.closest('.pwc-accordion-section');
+          const isCollapsed = section?.classList.contains('pwc-accordion-section--collapsed');
+          const clickedChevron = !!e.target.closest('.pwc-accordion-section__chevron');
+
           if (
             e.target.closest('.pwc-accordion-section__header-add-btn') ||
-            e.target.closest('input, textarea, select, button, a, [contenteditable="true"]') ||
-            e.target.closest('.pwc-block')
+            e.target.closest('input, textarea, select, button, a, [contenteditable="true"]')
           ) {
+            return;
+          }
+
+          // Allow opening collapsed sections even when their header contains nested blocks.
+          // For expanded sections, keep inner-block interactions intact unless chevron is clicked.
+          if (e.target.closest('.pwc-block') && !isCollapsed && !clickedChevron) {
             return;
           }
 
@@ -632,11 +627,13 @@
       blockData.attributes = blockData.attributes || {};
       blockData.attributes.columnIndex = sectionIndex;
       blockData.attributes.headerBlock = true;
+      this.applyHeadingTitleInheritance(blockData, sectionIndex);
 
       const accordionBlockData = window.pwcEditorState?.findBlock(this.blockId);
       if (accordionBlockData) {
         accordionBlockData.innerBlocks = accordionBlockData.innerBlocks || [];
         accordionBlockData.innerBlocks.push(blockData);
+        this.markSectionAsCustomHeader(sectionIndex, accordionBlockData);
         window.pwcEditorState.isDirty = true;
         window.pwcEditorState.pushHistory();
         window.pwcEditorState.emit('blockAdd', { block: blockData, parentId: this.blockId });
@@ -648,6 +645,50 @@
       setTimeout(() => {
         window.pwcEditorState.selectBlock(blockData.id);
       }, 50);
+    }
+
+    applyHeadingTitleInheritance(blockData, sectionIndex) {
+      if (blockData.type !== 'heading') return;
+
+      const accordionBlockData = window.pwcEditorState?.findBlock(this.blockId);
+      const hasHeadingAlready = accordionBlockData?.innerBlocks?.some(inner =>
+        inner.type === 'heading' &&
+        inner.attributes?.headerBlock === true &&
+        (inner.attributes?.columnIndex || 0) === sectionIndex
+      );
+      if (hasHeadingAlready) return;
+
+      const current = (blockData.attributes?.content || '').trim();
+      if (current && current !== 'Heading') return;
+
+      const titles = this.parseTitles();
+      blockData.attributes.content = titles[sectionIndex] || `Accordion Item ${sectionIndex + 1}`;
+    }
+
+    markSectionAsCustomHeader(sectionIndex, blockData = null) {
+      let headers = [];
+      try {
+        const parsed = JSON.parse(this.getAttribute('custom-headers') || '[]');
+        if (Array.isArray(parsed)) headers = parsed;
+      } catch (e) {
+        // Ignore malformed values and rebuild.
+      }
+
+      const titles = this.parseTitles();
+      if (headers.length < titles.length) {
+        headers.length = titles.length;
+      }
+      headers[sectionIndex] = true;
+      const serialized = JSON.stringify(headers.map(v => v === true));
+
+      this.setAttribute('custom-headers', serialized);
+
+      if (blockData) {
+        blockData.attributes = blockData.attributes || {};
+        blockData.attributes.customHeaders = serialized;
+      } else {
+        window.pwcEditorState?.updateBlock?.(this.blockId, { customHeaders: serialized });
+      }
     }
 
     addBlockToSection(blockData, sectionIndex) {

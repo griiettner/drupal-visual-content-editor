@@ -28,7 +28,7 @@
             <div class="pwc-inserter__rule"></div>
             <button
               type="button"
-              class="pwc-inserter__btn"
+              class="pwc-inserter__btn pwc-u-icon-btn pwc-u-icon-btn--primary pwc-u-icon-btn--round ap-bg-color-background-primary ap-text-color-text-secondary"
               title="Add block"
             >
               <svg class="pwc-inserter__icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">

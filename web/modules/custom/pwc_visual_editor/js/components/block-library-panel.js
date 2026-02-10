@@ -86,65 +86,52 @@
     }
 
     render() {
-      // Inline styles ensure panel works even if CSS doesn't load
-      const panelStyle = this.isOpen
-        ? 'position:fixed;top:0;left:0;bottom:0;width:280px;background:#fff;box-shadow:2px 0 8px rgba(0,0,0,0.1);z-index:9999;display:flex;flex-direction:column;overflow:hidden;'
-        : 'position:fixed;top:0;left:0;bottom:0;width:280px;background:#fff;z-index:9999;display:flex;flex-direction:column;overflow:hidden;transform:translateX(-100%);';
-
-      const toggleStyle = this.isOpen
-        ? 'position:fixed;top:80px;left:0;width:40px;height:40px;background:#007cba;color:#fff;border:none;border-radius:0 8px 8px 0;cursor:pointer;z-index:9999;display:none;align-items:center;justify-content:center;'
-        : 'position:fixed;top:80px;left:0;width:40px;height:40px;background:#007cba;color:#fff;border:none;border-radius:0 8px 8px 0;cursor:pointer;z-index:9999;display:flex;align-items:center;justify-content:center;';
-
-      const headerStyle = 'display:flex;align-items:center;justify-content:space-between;padding:12px;border-bottom:1px solid #e5e7eb;background:#f9fafb;';
-      const closeStyle = 'width:32px;height:32px;display:flex;align-items:center;justify-content:center;background:transparent;border:none;color:#6b7280;cursor:pointer;border-radius:6px;';
-
       this.innerHTML = `
         <!-- Toggle button when panel is closed -->
-        <button type="button" class="pwc-block-library__toggle ${this.isOpen ? 'pwc-block-library__toggle--hidden' : ''}" style="${toggleStyle}" title="Open Blocks Panel">
-          <svg style="width:20px;height:20px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <button type="button" class="pwc-block-library__toggle pwc-u-icon-btn pwc-u-icon-btn--primary pwc-u-icon-btn--dock-left ap-bg-color-background-primary ap-text-color-text-secondary ${this.isOpen ? 'pwc-block-library__toggle--hidden' : ''}" title="Open Blocks Panel">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
           </svg>
         </button>
 
-        <div class="pwc-block-library ${this.isOpen ? 'pwc-block-library--open' : ''}" style="${panelStyle}">
+        <div class="pwc-block-library ${this.isOpen ? 'pwc-block-library--open' : ''}">
           <!-- Panel Header -->
-          <div class="pwc-block-library__header" style="${headerStyle}">
-            <div class="pwc-block-library__title" style="font-size:14px;font-weight:600;color:#111827;">Blocks</div>
-            <button type="button" class="pwc-block-library__close" style="${closeStyle}" title="Close Panel">
-              <svg style="width:20px;height:20px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div class="pwc-block-library__header pwc-u-flex pwc-u-items-center pwc-u-justify-between">
+            <div class="pwc-block-library__title ap-text-color-text-heading">Blocks</div>
+            <button type="button" class="pwc-block-library__close pwc-u-icon-btn pwc-u-icon-btn--ghost pwc-u-icon-btn--danger-hover" title="Close Panel">
+              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
               </svg>
             </button>
           </div>
 
           <!-- Search -->
-          <div class="pwc-block-library__search" style="padding:8px 16px 12px;">
-            <div style="position:relative;">
+          <div class="pwc-block-library__search">
+            <div class="pwc-block-library__search-wrap">
               <input
                 type="text"
                 class="pwc-block-library__search-input"
-                style="width:100%;padding:8px 12px 8px 36px;border:1px solid #e5e7eb;border-radius:6px;font-size:14px;background:#f9fafb;"
                 placeholder="Search blocks..."
                 value="${this.searchQuery}"
               >
-              <svg style="position:absolute;left:10px;top:50%;transform:translateY(-50%);width:18px;height:18px;color:#9ca3af;pointer-events:none;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg class="pwc-block-library__search-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
               </svg>
             </div>
           </div>
 
           <!-- Tabs -->
-          <div class="pwc-block-library__tabs" style="display:flex;border-bottom:1px solid #e5e7eb;padding:0 16px;">
-            <button type="button" class="pwc-block-library__tab ${this.activeTab === 'blocks' ? 'pwc-block-library__tab--active' : ''}" style="flex:1;padding:10px 8px;background:transparent;border:none;font-size:13px;font-weight:500;color:${this.activeTab === 'blocks' ? '#007cba' : '#6b7280'};cursor:pointer;" data-tab="blocks">
+          <div class="pwc-block-library__tabs pwc-u-flex">
+            <button type="button" class="pwc-block-library__tab pwc-u-tab-btn ${this.activeTab === 'blocks' ? 'pwc-block-library__tab--active' : ''}" data-tab="blocks">
               Blocks
             </button>
-            <button type="button" class="pwc-block-library__tab ${this.activeTab === 'patterns' ? 'pwc-block-library__tab--active' : ''}" style="flex:1;padding:10px 8px;background:transparent;border:none;font-size:13px;font-weight:500;color:${this.activeTab === 'patterns' ? '#007cba' : '#6b7280'};cursor:pointer;" data-tab="patterns">
+            <button type="button" class="pwc-block-library__tab pwc-u-tab-btn ${this.activeTab === 'patterns' ? 'pwc-block-library__tab--active' : ''}" data-tab="patterns">
               Patterns
             </button>
           </div>
 
           <!-- Block List -->
-          <div class="pwc-block-library__content" style="flex:1;overflow-y:auto;padding:12px 16px;">
+          <div class="pwc-block-library__content pwc-u-flex-col">
             ${this.renderBlockList()}
           </div>
         </div>
@@ -182,9 +169,9 @@
 
         if (categoryBlocks.length > 0) {
           html += `
-            <div class="pwc-block-library__category" style="margin-bottom:20px;">
-              <div class="pwc-block-library__category-label" style="font-size:11px;font-weight:600;color:#9ca3af;letter-spacing:0.05em;margin-bottom:8px;">${category.label.toUpperCase()}</div>
-              <div class="pwc-block-library__blocks" style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;">
+            <div class="pwc-block-library__category">
+              <div class="pwc-block-library__category-label">${category.label.toUpperCase()}</div>
+              <div class="pwc-block-library__blocks pwc-u-grid-2">
                 ${categoryBlocks.map(block => this.renderBlockItem(block)).join('')}
               </div>
             </div>
@@ -193,29 +180,24 @@
       });
 
       if (!html) {
-        html = '<div class="pwc-block-library__empty" style="text-align:center;color:#9ca3af;font-size:14px;padding:40px 20px;">No blocks found</div>';
+        html = '<div class="pwc-block-library__empty ap-text-color-text-light">No blocks found</div>';
       }
 
       return html;
     }
 
     renderBlockItem(block) {
-      const blockStyle = 'display:flex;flex-direction:column;align-items:center;padding:12px 8px;background:#f9fafb;border:1px solid #e5e7eb;border-radius:8px;cursor:grab;text-align:center;';
-      const iconStyle = 'width:32px;height:32px;display:flex;align-items:center;justify-content:center;margin-bottom:6px;color:#374151;';
-      const labelStyle = 'font-size:12px;font-weight:500;color:#374151;line-height:1.3;';
-
       return `
         <div
-          class="pwc-block-library__block"
-          style="${blockStyle}"
+          class="pwc-block-library__block pwc-u-picker-btn pwc-u-picker-btn--stack"
           data-block-type="${block.name}"
           draggable="true"
           title="${block.description || block.title}"
         >
-          <div class="pwc-block-library__block-icon" style="${iconStyle}">
+          <div class="pwc-block-library__block-icon ap-text-color-text-body">
             ${this.getBlockIcon(block)}
           </div>
-          <div class="pwc-block-library__block-label" style="${labelStyle}">${block.title}</div>
+          <div class="pwc-block-library__block-label ap-text-color-text-body">${block.title}</div>
         </div>
       `;
     }
@@ -401,7 +383,31 @@
           blockData.attributes = blockData.attributes || {};
           blockData.attributes.columnIndex = this.columnIndex;
           if (this.insertMetadata) {
-            Object.assign(blockData.attributes, this.insertMetadata);
+            const metadata = { ...this.insertMetadata };
+            const headerTitle = metadata.__accordionHeaderTitle;
+            const headerSection = metadata.__accordionHeaderSection;
+            delete metadata.__accordionHeaderTitle;
+            delete metadata.__accordionHeaderSection;
+
+            Object.assign(blockData.attributes, metadata);
+
+            if (
+              blockType === 'heading' &&
+              metadata.headerBlock === true &&
+              typeof headerTitle === 'string' &&
+              Number.isInteger(headerSection)
+            ) {
+              const parentBlock = window.pwcEditorState.findBlock(this.parentBlockId);
+              const hasHeadingAlready = parentBlock?.innerBlocks?.some(inner =>
+                inner.type === 'heading' &&
+                inner.attributes?.headerBlock === true &&
+                (inner.attributes?.columnIndex || 0) === headerSection
+              );
+              const current = (blockData.attributes.content || '').trim();
+              if (!hasHeadingAlready && (!current || current === 'Heading')) {
+                blockData.attributes.content = headerTitle;
+              }
+            }
           }
 
           const parentBlock = window.pwcEditorState.findBlock(this.parentBlockId);

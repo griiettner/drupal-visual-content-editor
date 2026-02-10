@@ -32,11 +32,11 @@
 
     render() {
       this.innerHTML = `
-        <div class="pwc-toolbar">
+        <div class="pwc-toolbar ap-bg-color-background-container">
           <!-- Drag Handle -->
           <button
             type="button"
-            class="pwc-toolbar__btn"
+            class="pwc-toolbar__btn pwc-u-icon-btn pwc-u-icon-btn--dark ap-text-color-text-body"
             data-action="drag"
             title="Drag to reorder"
           >
@@ -51,7 +51,7 @@
           <!-- Move Up -->
           <button
             type="button"
-            class="pwc-toolbar__btn"
+            class="pwc-toolbar__btn pwc-u-icon-btn pwc-u-icon-btn--dark ap-text-color-text-body"
             data-action="move-up"
             title="Move up (Alt+↑)"
           >
@@ -63,7 +63,7 @@
           <!-- Move Down -->
           <button
             type="button"
-            class="pwc-toolbar__btn"
+            class="pwc-toolbar__btn pwc-u-icon-btn pwc-u-icon-btn--dark ap-text-color-text-body"
             data-action="move-down"
             title="Move down (Alt+↓)"
           >
@@ -76,7 +76,7 @@
           <div class="pwc-toolbar__divider"></div>
 
           <!-- Block Type Label -->
-          <span class="pwc-toolbar__label"></span>
+            <span class="pwc-toolbar__label ap-text-color-text-body"></span>
 
           <!-- Divider -->
           <div class="pwc-toolbar__divider"></div>
@@ -84,7 +84,7 @@
           <!-- Delete -->
           <button
             type="button"
-            class="pwc-toolbar__btn pwc-toolbar__btn--danger"
+            class="pwc-toolbar__btn pwc-u-icon-btn pwc-u-icon-btn--dark pwc-toolbar__btn--danger ap-text-color-text-body"
             data-action="delete"
             title="Delete block"
           >
@@ -96,7 +96,7 @@
           <!-- More Options -->
           <button
             type="button"
-            class="pwc-toolbar__btn"
+            class="pwc-toolbar__btn pwc-u-icon-btn pwc-u-icon-btn--dark ap-text-color-text-body"
             data-action="more"
             title="More options"
           >

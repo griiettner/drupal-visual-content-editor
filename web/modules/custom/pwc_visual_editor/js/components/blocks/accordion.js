@@ -249,8 +249,9 @@
       this.renderHeaderBlocks();
 
       // Set up event handlers
+      this.setupSectionToggleHandlers();
+
       if (isEditing) {
-        this.setupSectionToggleHandlers();
         this.setupAddButtons();
         this.setupSectionDropZones();
         this.setupHeaderDropZones();
@@ -260,37 +261,38 @@
     }
 
     getSectionBlocks(sectionIndex) {
-      const blockData = window.pwcEditorState?.findBlock(this.blockId);
-      if (!blockData || !blockData.innerBlocks) return [];
+      const innerBlocks = this.getInnerBlocksData();
+      if (!innerBlocks || innerBlocks.length === 0) return [];
 
-      return blockData.innerBlocks.filter(block => {
+      return innerBlocks.filter(block => {
         return (block.attributes?.columnIndex || 0) === sectionIndex &&
           !block.attributes?.headerBlock;
       });
     }
 
     getHeaderBlocks(sectionIndex) {
-      const blockData = window.pwcEditorState?.findBlock(this.blockId);
-      if (!blockData || !blockData.innerBlocks) return [];
+      const innerBlocks = this.getInnerBlocksData();
+      if (!innerBlocks || innerBlocks.length === 0) return [];
 
-      return blockData.innerBlocks.filter(block =>
+      return innerBlocks.filter(block =>
         (block.attributes?.columnIndex || 0) === sectionIndex &&
         block.attributes?.headerBlock === true
       );
     }
 
-    renderInnerBlocks() {
-      let innerBlocks = null;
-
+    getInnerBlocksData() {
       const blockData = window.pwcEditorState?.findBlock(this.blockId);
-      if (blockData && blockData.innerBlocks) {
-        innerBlocks = blockData.innerBlocks;
+      if (blockData && Array.isArray(blockData.innerBlocks)) {
+        return blockData.innerBlocks;
       }
-
-      if (!innerBlocks && this._innerBlocksData) {
-        innerBlocks = this._innerBlocksData;
+      if (Array.isArray(this._innerBlocksData)) {
+        return this._innerBlocksData;
       }
+      return [];
+    }
 
+    renderInnerBlocks() {
+      const innerBlocks = this.getInnerBlocksData();
       if (!innerBlocks || innerBlocks.length === 0) return;
 
       // Group body blocks by accordion section (using columnIndex), excluding header blocks
@@ -323,12 +325,12 @@
     }
 
     renderHeaderBlocks() {
-      const blockData = window.pwcEditorState?.findBlock(this.blockId);
-      if (!blockData || !blockData.innerBlocks) return;
+      const innerBlocks = this.getInnerBlocksData();
+      if (!innerBlocks || innerBlocks.length === 0) return;
 
       // Group header blocks by section
       const headerBlocksBySection = {};
-      blockData.innerBlocks.forEach(innerBlockData => {
+      innerBlocks.forEach(innerBlockData => {
         if (!innerBlockData.attributes?.headerBlock) return;
         const sectionIndex = innerBlockData.attributes?.columnIndex || 0;
         if (!headerBlocksBySection[sectionIndex]) {
@@ -493,28 +495,32 @@
     setupSectionToggleHandlers() {
       this.querySelectorAll('.pwc-accordion-section__header').forEach(header => {
         header.addEventListener('click', (e) => {
+          const isEditing = !!(window.pwcEditorState && window.pwcEditorState.isEditing);
           const section = header.closest('.pwc-accordion-section');
           const isCollapsed = section?.classList.contains('pwc-accordion-section--collapsed');
           const clickedChevron = !!e.target.closest('.pwc-accordion-section__chevron');
 
-          if (
-            e.target.closest('.pwc-accordion-section__header-add-btn') ||
-            e.target.closest('input, textarea, select, button, a, [contenteditable="true"]')
-          ) {
+          if (e.target.closest('.pwc-accordion-section__header-add-btn')) {
             return;
           }
 
-          // Allow opening collapsed sections even when their header contains nested blocks.
-          // For expanded sections, keep inner-block interactions intact unless chevron is clicked.
-          if (e.target.closest('.pwc-block') && !isCollapsed && !clickedChevron) {
-            return;
+          if (isEditing) {
+            if (e.target.closest('input, textarea, select, button, a, [contenteditable="true"]')) {
+              return;
+            }
+
+            // Allow opening collapsed sections even when their header contains nested blocks.
+            // For expanded sections, keep inner-block interactions intact unless chevron is clicked.
+            if (e.target.closest('.pwc-block') && !isCollapsed && !clickedChevron) {
+              return;
+            }
           }
 
           const sectionIndex = parseInt(header.dataset.accordionIndex, 10);
           if (!Number.isNaN(sectionIndex)) {
             this.toggleSection(sectionIndex);
           }
-        });
+        }, true);
       });
     }
 

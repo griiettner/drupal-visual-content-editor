@@ -110,11 +110,44 @@
      * @param {Function} callback - Callback to run when ready.
      */
     function waitForEditor(callback) {
+      const settings = drupalSettings.pwcVisualEditor || {};
+
+      function collectBlockTypes(blocks, types) {
+        if (!Array.isArray(blocks)) return;
+        blocks.forEach(function(block) {
+          if (block && block.type) {
+            types.add(block.type);
+          }
+          if (block && Array.isArray(block.innerBlocks) && block.innerBlocks.length > 0) {
+            collectBlockTypes(block.innerBlocks, types);
+          }
+        });
+      }
+
+      const requiredTypes = new Set();
+      const existingBlocks = settings.content && Array.isArray(settings.content.blocks)
+        ? settings.content.blocks
+        : [];
+      collectBlockTypes(existingBlocks, requiredTypes);
+
       // Check if all required services are available
       function isReady() {
-        return window.pwcEditorState &&
-               window.pwcBlockRegistry &&
-               window.pwcBlockRegistry.getAll().length > 0;
+        if (!window.pwcEditorState || !window.pwcBlockRegistry) {
+          return false;
+        }
+
+        const registryHasAny = window.pwcBlockRegistry.getAll().length > 0;
+        if (!registryHasAny) {
+          return false;
+        }
+
+        for (const type of requiredTypes) {
+          if (!window.pwcBlockRegistry.get(type)) {
+            return false;
+          }
+        }
+
+        return true;
       }
 
       if (isReady()) {

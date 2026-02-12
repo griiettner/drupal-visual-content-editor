@@ -10,6 +10,10 @@ services:
       - ./web/modules/custom:/var/www/html/modules/custom
       # Custom themes - persisted for development
       - ./web/themes/custom:/var/www/html/themes/custom
+      # Persist Drupal site settings across rebuilds
+      - ./web/sites/default/settings.php:/var/www/html/sites/default/settings.php
+      - ./web/sites/default/settings.local.php:/var/www/html/sites/default/settings.local.php
+      - ./web/sites/development.services.yml:/var/www/html/sites/development.services.yml
       # Media/uploaded files - persisted
       - ./web/sites/default/files:/var/www/html/sites/default/files
       # Configuration sync directory

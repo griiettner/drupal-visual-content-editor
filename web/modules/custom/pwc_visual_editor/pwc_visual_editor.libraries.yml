@@ -15,6 +15,8 @@ editor:
     js/components/blocks/list.js: {}
     js/components/blocks/layout-block.js: {}
     js/components/blocks/button.js: {}
+    js/components/blocks/image.js: {}
+    js/components/blocks/video.js: {}
     js/components/blocks/tag.js: {}
     js/components/blocks/accordion.js: {}
     js/components/blocks/tab.js: {}

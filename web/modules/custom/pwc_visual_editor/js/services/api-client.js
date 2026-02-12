@@ -15,6 +15,14 @@
       this.csrfToken = this.settings.csrfToken || '';
     }
 
+    async parseJsonSafe(response) {
+      try {
+        return await response.json();
+      } catch (e) {
+        return {};
+      }
+    }
+
     /**
      * Load page content.
      *
@@ -86,6 +94,138 @@
         console.error('API Error:', error);
         throw error;
       }
+    }
+
+    /**
+     * List available Drupal Media video items.
+     *
+     * @param {string} query - Optional search query.
+     * @returns {Promise<Object>} API response containing media items.
+     */
+    async listVideoMedia(query = '') {
+      const baseUrl = this.settings.mediaListUrl;
+      if (!baseUrl) {
+        throw new Error('mediaListUrl is not configured');
+      }
+
+      const url = new URL(baseUrl, window.location.origin);
+      if (query) {
+        url.searchParams.set('q', query);
+      }
+
+      const response = await fetch(url.toString(), {
+        method: 'GET',
+        headers: {
+          'Accept': 'application/json',
+        },
+        credentials: 'same-origin',
+      });
+
+      const data = await this.parseJsonSafe(response);
+      if (!response.ok || data.success === false) {
+        throw new Error(data.error || `Failed to list media videos: ${response.status}`);
+      }
+
+      return data;
+    }
+
+    /**
+     * Upload a video file to Drupal Media.
+     *
+     * @param {File} file - Video file to upload.
+     * @param {string} title - Optional media title.
+     * @returns {Promise<Object>} API response with created media item.
+     */
+    async uploadVideoMedia(file, title = '') {
+      const uploadUrl = this.settings.mediaUploadUrl;
+      if (!uploadUrl) {
+        throw new Error('mediaUploadUrl is not configured');
+      }
+
+      const formData = new FormData();
+      formData.append('video', file);
+      if (title) {
+        formData.append('title', title);
+      }
+
+      const response = await fetch(uploadUrl, {
+        method: 'POST',
+        credentials: 'same-origin',
+        body: formData,
+      });
+
+      const data = await this.parseJsonSafe(response);
+      if (!response.ok || data.success === false) {
+        throw new Error(data.error || `Failed to upload video: ${response.status}`);
+      }
+
+      return data;
+    }
+
+    /**
+     * List available Drupal Media image items.
+     *
+     * @param {string} query - Optional search query.
+     * @returns {Promise<Object>} API response containing media items.
+     */
+    async listImageMedia(query = '') {
+      const baseUrl = this.settings.mediaImageListUrl;
+      if (!baseUrl) {
+        throw new Error('mediaImageListUrl is not configured');
+      }
+
+      const url = new URL(baseUrl, window.location.origin);
+      if (query) {
+        url.searchParams.set('q', query);
+      }
+
+      const response = await fetch(url.toString(), {
+        method: 'GET',
+        headers: {
+          'Accept': 'application/json',
+        },
+        credentials: 'same-origin',
+      });
+
+      const data = await this.parseJsonSafe(response);
+      if (!response.ok || data.success === false) {
+        throw new Error(data.error || `Failed to list media images: ${response.status}`);
+      }
+
+      return data;
+    }
+
+    /**
+     * Upload an image file to Drupal Media.
+     *
+     * @param {File} file - Image file to upload.
+     * @param {string} title - Optional media title.
+     * @returns {Promise<Object>} API response with created media item.
+     */
+    async uploadImageMedia(file, title = '') {
+      const uploadUrl = this.settings.mediaImageUploadUrl;
+      if (!uploadUrl) {
+        throw new Error('mediaImageUploadUrl is not configured');
+      }
+
+      const formData = new FormData();
+      formData.append('image', file);
+      if (title) {
+        formData.append('title', title);
+      }
+
+      const response = await fetch(uploadUrl, {
+        method: 'POST',
+        credentials: 'same-origin',
+        body: formData,
+      });
+
+      const data = await this.parseJsonSafe(response);
+      if (!response.ok || data.success === false) {
+        throw new Error(data.error || `Failed to upload image: ${response.status}`);
+      }
+
+      return data;
     }
 
     /**

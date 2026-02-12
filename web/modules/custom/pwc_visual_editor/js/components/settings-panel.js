@@ -17,6 +17,8 @@
       this._isMinimized = false;
       this._reopenButton = null;
       this._activeTab = null;
+      this._videoUploadInFlight = new WeakSet();
+      this._imageUploadInFlight = new WeakSet();
     }
 
     connectedCallback() {
@@ -303,6 +305,13 @@
      * @returns {string} HTML string.
      */
     renderSettingField(setting, value) {
+      const currentSourceType = this.currentBlock?.getAttribute('source-type') || 'url';
+      if (Array.isArray(setting.showWhenSourceType) && setting.showWhenSourceType.length > 0) {
+        if (!setting.showWhenSourceType.includes(currentSourceType)) {
+          return '';
+        }
+      }
+
       const id = `pwc-setting-${setting.name}`;
 
       switch (setting.type) {
@@ -440,7 +449,136 @@
             </div>
           `;
 
+        case 'mediaVideoPicker': {
+          const sourceType = this.currentBlock?.getAttribute('source-type') || 'url';
+          const mediaId = this.currentBlock?.getAttribute('media-id') || '';
+          const mediaName = this.currentBlock?.getAttribute('media-name') || '';
+          const mediaType = this.currentBlock?.getAttribute('media-type') || '';
+          const inactiveClass = sourceType === 'media' ? '' : ' pwc-media-picker--inactive';
+          const currentText = mediaName
+            ? `${mediaName}${mediaId ? ` (#${mediaId})` : ''}`
+            : 'No media selected';
+
+          return `
+            <div class="pwc-setting-field">
+              <label class="pwc-setting-label pwc-setting-label--mb2">
+                ${setting.label}
+              </label>
+              <div class="pwc-media-picker${inactiveClass}" data-name="${setting.name}" data-media-kind="video">
+                <p class="pwc-media-picker__current ap-text-color-text-body">${this.escapeHtml(currentText)}</p>
+                <p class="pwc-media-picker__meta ap-text-color-text-light">${this.escapeHtml(mediaType || 'Not set')}</p>
+                <div class="pwc-media-picker__search-row">
+                  <input
+                    type="text"
+                    class="pwc-setting-input pwc-media-picker__search"
+                    placeholder="Search videos..."
+                  >
+                  <button type="button" class="pwc-u-btn pwc-u-btn--ghost pwc-media-picker__reload">Search</button>
+                </div>
+                <select class="pwc-setting-select pwc-media-picker__select" size="6"></select>
+                <div class="pwc-media-picker__actions">
+                  <button type="button" class="pwc-u-btn pwc-u-btn--primary pwc-media-picker__choose">Use Selected Video</button>
+                </div>
+                <p class="pwc-media-picker__status ap-text-color-text-light"></p>
+                ${setting.help ? `<p class="pwc-setting-help">${setting.help}</p>` : ''}
+              </div>
+            </div>
+          `;
+        }
+
+        case 'videoUpload':
+          return `
+            <div class="pwc-setting-field">
+              <label class="pwc-setting-label pwc-setting-label--mb2">
+                ${setting.label}
+              </label>
+              <div class="pwc-video-upload" data-upload-kind="video">
+                <apw-upload
+                  class="pwc-video-upload__component"
+                  type="button"
+                  name="video"
+                  accept="video/*"
+                  upload-title="Upload video"
+                  upload-instruction="Select one video file"
+                  upload-button-name="Choose Video"
+                  auto-upload="true"
+                  intercept-form-upload="true"
+                  multiple="false"
+                ></apw-upload>
+                <p class="pwc-video-upload__status ap-text-color-text-light"></p>
+                ${setting.help ? `<p class="pwc-setting-help">${setting.help}</p>` : ''}
+              </div>
+            </div>
+          `;
+
+        case 'mediaImagePicker': {
+          const sourceType = this.currentBlock?.getAttribute('source-type') || 'url';
+          const mediaId = this.currentBlock?.getAttribute('media-id') || '';
+          const mediaName = this.currentBlock?.getAttribute('media-name') || '';
+          const inactiveClass = sourceType === 'media' ? '' : ' pwc-media-picker--inactive';
+          const currentText = mediaName
+            ? `${mediaName}${mediaId ? ` (#${mediaId})` : ''}`
+            : 'No media selected';
+
+          return `
+            <div class="pwc-setting-field">
+              <label class="pwc-setting-label pwc-setting-label--mb2">
+                ${setting.label}
+              </label>
+              <div class="pwc-media-picker${inactiveClass}" data-name="${setting.name}" data-media-kind="image">
+                <p class="pwc-media-picker__current ap-text-color-text-body">${this.escapeHtml(currentText)}</p>
+                <div class="pwc-media-picker__search-row">
+                  <input
+                    type="text"
+                    class="pwc-setting-input pwc-media-picker__search"
+                    placeholder="Search images..."
+                  >
+                  <button type="button" class="pwc-u-btn pwc-u-btn--ghost pwc-media-picker__reload">Search</button>
+                </div>
+                <select class="pwc-setting-select pwc-media-picker__select" size="6"></select>
+                <div class="pwc-media-picker__actions">
+                  <button type="button" class="pwc-u-btn pwc-u-btn--primary pwc-media-picker__choose">Use Selected Image</button>
+                </div>
+                <p class="pwc-media-picker__status ap-text-color-text-light"></p>
+                ${setting.help ? `<p class="pwc-setting-help">${setting.help}</p>` : ''}
+              </div>
+            </div>
+          `;
+        }
+
+        case 'imageUpload':
+          return `
+            <div class="pwc-setting-field">
+              <label class="pwc-setting-label pwc-setting-label--mb2">
+                ${setting.label}
+              </label>
+              <div class="pwc-video-upload" data-upload-kind="image">
+                <apw-upload
+                  class="pwc-video-upload__component"
+                  type="button"
+                  name="image"
+                  accept="image/*"
+                  upload-title="Upload image"
+                  upload-instruction="Select one image file"
+                  upload-button-name="Choose Image"
+                  auto-upload="true"
+                  intercept-form-upload="true"
+                  multiple="false"
+                ></apw-upload>
+                <p class="pwc-video-upload__status ap-text-color-text-light"></p>
+                ${setting.help ? `<p class="pwc-setting-help">${setting.help}</p>` : ''}
+              </div>
+            </div>
+          `;
+
+        case 'optionButtons':
+          return this.renderOptionButtonsField(setting, value);
+
         case 'select':
+          if (Array.isArray(setting.options) && setting.options.length > 0 && setting.options.length <= 3) {
+            return this.renderOptionButtonsField(setting, value);
+          }
+
           // For heading blocks, enrich the "Default" label with the resolved value
           const levelDefs = this.currentBlock?.constructor?.levelDefaults;
           const currentLevel = this.currentBlock?.getAttribute?.('level') || 'h2';
@@ -1238,6 +1376,36 @@
       }
     }
 
+    renderOptionButtonsField(setting, value) {
+      const options = Array.isArray(setting.options) ? setting.options : [];
+      const buttons = options.map(opt => {
+        const isSelected = String(opt.value) === String(value);
+        return `
+          <button
+            type="button"
+            class="pwc-option-btn pwc-u-picker-btn pwc-u-picker-btn--row ${isSelected ? 'pwc-picker-btn--selected' : ''}"
+            data-name="${setting.name}"
+            data-value="${this.escapeHtml(String(opt.value))}"
+            title="${this.escapeHtml(opt.label || String(opt.value))}"
+          >
+            <span class="pwc-option-btn__label">${this.escapeHtml(opt.label || String(opt.value))}</span>
+          </button>
+        `;
+      }).join('');
+
+      return `
+        <div class="pwc-setting-field">
+          <label class="pwc-setting-label pwc-setting-label--mb2">
+            ${setting.label}
+          </label>
+          <div class="pwc-option-buttons" data-name="${setting.name}">
+            ${buttons}
+          </div>
+          ${setting.help ? `<p class="pwc-setting-help">${setting.help}</p>` : ''}
+        </div>
+      `;
+    }
+
     /**
      * Set up event listeners for setting fields.
      */
@@ -1263,7 +1431,35 @@
       // Text and textarea inputs
       this.querySelectorAll('input[type="text"], textarea, select').forEach(input => {
         input.addEventListener('input', () => {
+          if (!input.name) return;
           this.updateBlockAttribute(input.name, input.value);
+          if (input.name === 'caption' && input.value.trim() !== '') {
+            this.updateBlockAttribute('showCaption', true);
+          }
+          if (input.name === 'sourceType' && this.currentBlock) {
+            setTimeout(() => this.showBlockSettings(this.currentBlock), 50);
+          }
+        });
+      });
+
+      // Option button groups (used for compact selects / explicit option buttons)
+      this.querySelectorAll('.pwc-option-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const name = btn.dataset.name;
+          const value = btn.dataset.value ?? '';
+          const container = btn.closest('.pwc-option-buttons');
+          if (!name || !container) return;
+
+          container.querySelectorAll('.pwc-option-btn').forEach(b => {
+            b.classList.remove('pwc-picker-btn--selected');
+          });
+          btn.classList.add('pwc-picker-btn--selected');
+
+          this.updateBlockAttribute(name, value);
+
+          if (name === 'sourceType' && this.currentBlock) {
+            setTimeout(() => this.showBlockSettings(this.currentBlock), 50);
+          }
         });
       });
 
@@ -1281,13 +1477,72 @@
         toggle.addEventListener('click', () => {
           const isChecked = toggle.getAttribute('data-checked') === 'true';
           const newValue = !isChecked;
+          const name = toggle.getAttribute('name');
 
           toggle.setAttribute('data-checked', newValue);
           toggle.setAttribute('aria-checked', newValue);
           toggle.classList.toggle('pwc-toggle--checked', newValue);
 
-          this.updateBlockAttribute(toggle.getAttribute('name'), newValue);
+          this.updateBlockAttribute(name, newValue);
+          if (name === 'showCaption') {
+            this.updateBlockAttribute('showCaptionExplicit', true);
+          }
         });
+      });
+
+      // Media picker
+      this.querySelectorAll('.pwc-media-picker').forEach(picker => {
+        const mediaKind = picker.dataset.mediaKind || 'video';
+        const searchInput = picker.querySelector('.pwc-media-picker__search');
+        const reloadBtn = picker.querySelector('.pwc-media-picker__reload');
+        const chooseBtn = picker.querySelector('.pwc-media-picker__choose');
+
+        const loadOptions = () => {
+          const query = (searchInput?.value || '').trim();
+          if (mediaKind === 'image') {
+            return this.loadImageMediaOptions(picker, query);
+          }
+          return this.loadVideoMediaOptions(picker, query);
+        };
+
+        if (reloadBtn) {
+          reloadBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            loadOptions();
+          });
+        }
+
+        if (searchInput) {
+          searchInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+              e.preventDefault();
+              loadOptions();
+            }
+          });
+        }
+
+        if (chooseBtn) {
+          chooseBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            if (mediaKind === 'image') {
+              this.applySelectedImageOption(picker);
+            } else {
+              this.applySelectedMediaOption(picker);
+            }
+          });
+        }
+
+        loadOptions();
+      });
+
+      // Video upload
+      this.querySelectorAll('.pwc-video-upload').forEach(uploadWidget => {
+        const uploadKind = uploadWidget.dataset.uploadKind || 'video';
+        if (uploadKind === 'image') {
+          this.setupAppkitImageUpload(uploadWidget);
+        } else {
+          this.setupAppkitVideoUpload(uploadWidget);
+        }
       });
 
       // Color swatch buttons
@@ -1821,16 +2076,518 @@
 
       // Build the new class string (Appkit4 format: ap-m-spacing-N, ap-mt-spacing-N)
       const classes = [];
-      if (state.all) {
+      if (state.all !== '') {
         classes.push(`ap-${prefix}-spacing-${state.all}`);
       } else {
-        if (state.t) classes.push(`ap-${prefix}t-spacing-${state.t}`);
-        if (state.r) classes.push(`ap-${prefix}r-spacing-${state.r}`);
-        if (state.b) classes.push(`ap-${prefix}b-spacing-${state.b}`);
-        if (state.l) classes.push(`ap-${prefix}l-spacing-${state.l}`);
+        if (state.t !== '') classes.push(`ap-${prefix}t-spacing-${state.t}`);
+        if (state.r !== '') classes.push(`ap-${prefix}r-spacing-${state.r}`);
+        if (state.b !== '') classes.push(`ap-${prefix}b-spacing-${state.b}`);
+        if (state.l !== '') classes.push(`ap-${prefix}l-spacing-${state.l}`);
       }
 
       this.updateBlockAttribute(name, classes.join(' '));
+    }
+
+    async loadVideoMediaOptions(picker, query = '') {
+      const statusEl = picker.querySelector('.pwc-media-picker__status');
+      const selectEl = picker.querySelector('.pwc-media-picker__select');
+      if (!selectEl) return;
+
+      if (!window.pwcApiClient || typeof window.pwcApiClient.listVideoMedia !== 'function') {
+        if (statusEl) statusEl.textContent = 'Video media API is not available.';
+        return;
+      }
+
+      if (statusEl) statusEl.textContent = 'Loading videos...';
+      selectEl.innerHTML = '';
+
+      try {
+        const response = await window.pwcApiClient.listVideoMedia(query);
+        const items = Array.isArray(response?.items) ? response.items : [];
+        const currentMediaId = this.currentBlock?.getAttribute('media-id') || '';
+
+        if (items.length === 0) {
+          const option = document.createElement('option');
+          option.value = '';
+          option.textContent = 'No videos found';
+          option.disabled = true;
+          selectEl.appendChild(option);
+          if (statusEl) statusEl.textContent = 'No matching videos.';
+          return;
+        }
+
+        items.forEach(item => {
+          const option = document.createElement('option');
+          option.value = String(item.id || '');
+          option.textContent = `${item.title || 'Untitled'} (${item.type === 'embed' ? 'Embed' : 'File'})`;
+          option.dataset.mediaId = String(item.id || '');
+          option.dataset.mediaName = item.title || '';
+          option.dataset.mediaUrl = item.url || '';
+          option.dataset.mediaType = item.type || 'file';
+          if (currentMediaId && String(item.id) === String(currentMediaId)) {
+            option.selected = true;
+          }
+          selectEl.appendChild(option);
+        });
+
+        if (statusEl) statusEl.textContent = `${items.length} video${items.length === 1 ? '' : 's'} loaded.`;
+      } catch (error) {
+        if (statusEl) statusEl.textContent = `Failed to load videos: ${error?.message || 'Unknown error'}`;
+      }
+    }
+
+    applySelectedMediaOption(picker) {
+      const selectEl = picker.querySelector('.pwc-media-picker__select');
+      const statusEl = picker.querySelector('.pwc-media-picker__status');
+      const option = selectEl?.selectedOptions?.[0];
+      if (!option || !option.dataset.mediaUrl) {
+        if (statusEl) statusEl.textContent = 'Select a video first.';
+        return;
+      }
+
+      this.updateBlockAttributes({
+        sourceType: 'media',
+        mediaId: option.dataset.mediaId || '',
+        mediaName: option.dataset.mediaName || '',
+        mediaUrl: option.dataset.mediaUrl || '',
+        mediaType: option.dataset.mediaType || 'file',
+      });
+
+      if (statusEl) {
+        statusEl.textContent = `Selected: ${option.dataset.mediaName || 'video'}`;
+      }
+
+      if (this.currentBlock) {
+        setTimeout(() => this.showBlockSettings(this.currentBlock), 50);
+      }
+    }
+
+    async loadImageMediaOptions(picker, query = '') {
+      const statusEl = picker.querySelector('.pwc-media-picker__status');
+      const selectEl = picker.querySelector('.pwc-media-picker__select');
+      if (!selectEl) return;
+
+      if (!window.pwcApiClient || typeof window.pwcApiClient.listImageMedia !== 'function') {
+        if (statusEl) statusEl.textContent = 'Image media API is not available.';
+        return;
+      }
+
+      if (statusEl) statusEl.textContent = 'Loading images...';
+      selectEl.innerHTML = '';
+
+      try {
+        const response = await window.pwcApiClient.listImageMedia(query);
+        const items = Array.isArray(response?.items) ? response.items : [];
+        const currentMediaId = this.currentBlock?.getAttribute('media-id') || '';
+
+        if (items.length === 0) {
+          const option = document.createElement('option');
+          option.value = '';
+          option.textContent = 'No images found';
+          option.disabled = true;
+          selectEl.appendChild(option);
+          if (statusEl) statusEl.textContent = 'No matching images.';
+          return;
+        }
+
+        items.forEach(item => {
+          const option = document.createElement('option');
+          option.value = String(item.id || '');
+          option.textContent = item.title || 'Untitled';
+          option.dataset.mediaId = String(item.id || '');
+          option.dataset.mediaName = item.title || '';
+          option.dataset.mediaUrl = item.url || '';
+          option.dataset.mediaType = item.type || 'file';
+          if (currentMediaId && String(item.id) === String(currentMediaId)) {
+            option.selected = true;
+          }
+          selectEl.appendChild(option);
+        });
+
+        if (statusEl) statusEl.textContent = `${items.length} image${items.length === 1 ? '' : 's'} loaded.`;
+      } catch (error) {
+        if (statusEl) statusEl.textContent = `Failed to load images: ${error?.message || 'Unknown error'}`;
+      }
+    }
+
+    applySelectedImageOption(picker) {
+      const selectEl = picker.querySelector('.pwc-media-picker__select');
+      const statusEl = picker.querySelector('.pwc-media-picker__status');
+      const option = selectEl?.selectedOptions?.[0];
+      if (!option || !option.dataset.mediaUrl) {
+        if (statusEl) statusEl.textContent = 'Select an image first.';
+        return;
+      }
+
+      this.updateBlockAttributes({
+        sourceType: 'media',
+        mediaId: option.dataset.mediaId || '',
+        mediaName: option.dataset.mediaName || '',
+        mediaUrl: option.dataset.mediaUrl || '',
+        mediaType: option.dataset.mediaType || 'file',
+      });
+
+      if (statusEl) {
+        statusEl.textContent = `Selected: ${option.dataset.mediaName || 'image'}`;
+      }
+
+      if (this.currentBlock) {
+        setTimeout(() => this.showBlockSettings(this.currentBlock), 50);
+      }
+    }
+
+    setupAppkitVideoUpload(uploadWidget) {
+      const setup = async () => {
+        await customElements.whenDefined('apw-upload');
+
+        const uploader = uploadWidget.querySelector('apw-upload');
+        const statusEl = uploadWidget.querySelector('.pwc-video-upload__status');
+        if (!uploader) return;
+
+        const uploadUrl = window.pwcApiClient?.settings?.mediaUploadUrl || '';
+        uploader.interceptFormUpload = true;
+        uploader.autoUpload = true;
+        uploader.multiple = false;
+        uploader.accept = 'video/*';
+        if (uploadUrl) {
+          uploader.action = uploadUrl;
+        }
+        uploader.method = 'post';
+        uploader.withCredentials = true;
+
+        // Primary integration path: Appkit delegates selected file(s) to this callback.
+        uploader.customUploader = async (...args) => {
+          const file = this.extractUploadFile(args);
+          if (!file) {
+            if (statusEl) statusEl.textContent = 'Choose a video file first.';
+            throw new Error('No file selected.');
+          }
+
+          const result = await this.uploadVideoFile(uploadWidget, file);
+          const callbacks = this.extractUploadCallbacks(args);
+          if (callbacks.onSuccess) callbacks.onSuccess(result);
+          return result;
+        };
+
+        // Fallback: if this Appkit build emits events instead of invoking customUploader.
+        const fallbackHandler = async (event) => {
+          if (this._videoUploadInFlight.has(uploadWidget)) return;
+          const file = this.extractUploadFile(event);
+          if (!file) return;
+
+          try {
+            await this.uploadVideoFile(uploadWidget, file);
+          } catch (error) {
+            // Keep status text as error indicator; no further action required.
+          }
+        };
+
+        uploader.addEventListener('change', fallbackHandler);
+        uploader.addEventListener('apwChange', fallbackHandler);
+        uploader.addEventListener('apwUpload', fallbackHandler);
+
+        // Deep fallback: hook the native input inside shadow DOM for builds
+        // where customUploader/events do not surface selection events.
+        this.bindAppkitUploadShadowInput(uploader, uploadWidget);
+      };
+
+      setup();
+    }
+
+    setupAppkitImageUpload(uploadWidget) {
+      const setup = async () => {
+        await customElements.whenDefined('apw-upload');
+
+        const uploader = uploadWidget.querySelector('apw-upload');
+        const statusEl = uploadWidget.querySelector('.pwc-video-upload__status');
+        if (!uploader) return;
+
+        const uploadUrl = window.pwcApiClient?.settings?.mediaImageUploadUrl || '';
+        uploader.interceptFormUpload = true;
+        uploader.autoUpload = true;
+        uploader.multiple = false;
+        uploader.accept = 'image/*';
+        if (uploadUrl) {
+          uploader.action = uploadUrl;
+        }
+        uploader.method = 'post';
+        uploader.withCredentials = true;
+
+        uploader.customUploader = async (...args) => {
+          const file = this.extractUploadFile(args);
+          if (!file) {
+            if (statusEl) statusEl.textContent = 'Choose an image file first.';
+            throw new Error('No file selected.');
+          }
+
+          const result = await this.uploadImageFile(uploadWidget, file);
+          const callbacks = this.extractUploadCallbacks(args);
+          if (callbacks.onSuccess) callbacks.onSuccess(result);
+          return result;
+        };
+
+        const fallbackHandler = async (event) => {
+          if (this._imageUploadInFlight.has(uploadWidget)) return;
+          const file = this.extractUploadFile(event);
+          if (!file) return;
+
+          try {
+            await this.uploadImageFile(uploadWidget, file);
+          } catch (error) {
+            // Keep status text as error indicator; no further action required.
+          }
+        };
+
+        uploader.addEventListener('change', fallbackHandler);
+        uploader.addEventListener('apwChange', fallbackHandler);
+        uploader.addEventListener('apwUpload', fallbackHandler);
+
+        this.bindAppkitUploadShadowInput(uploader, uploadWidget, (file) => this.uploadImageFile(uploadWidget, file));
+      };
+
+      setup();
+    }
+
+    bindAppkitUploadShadowInput(uploader, uploadWidget, uploadFn = null) {
+      const attach = () => {
+        const input = uploader?.shadowRoot?.querySelector('input[type="file"]');
+        if (!input || input.__pwcBound) {
+          return false;
+        }
+
+        input.__pwcBound = true;
+        input.addEventListener('change', async (event) => {
+          const files = event?.target?.files;
+          if (!files || files.length === 0) return;
+
+          // Upload first file only (block is configured for single upload).
+          try {
+            if (uploadFn) {
+              await uploadFn(files[0]);
+            } else {
+              await this.uploadVideoFile(uploadWidget, files[0]);
+            }
+          } catch (error) {
+            // Status is handled in uploadVideoFile.
+          }
+        });
+        return true;
+      };
+
+      if (attach()) {
+        return;
+      }
+
+      const observer = new MutationObserver(() => {
+        if (attach()) {
+          observer.disconnect();
+        }
+      });
+
+      if (uploader && uploader.shadowRoot) {
+        observer.observe(uploader.shadowRoot, { childList: true, subtree: true });
+        setTimeout(() => observer.disconnect(), 5000);
+      }
+    }
+
+    extractUploadFile(payload) {
+      if (!payload) return null;
+
+      if (payload instanceof File) {
+        return payload;
+      }
+
+      if (payload instanceof FileList) {
+        return payload[0] || null;
+      }
+
+      if (Array.isArray(payload)) {
+        for (const item of payload) {
+          const found = this.extractUploadFile(item);
+          if (found) return found;
+        }
+        return null;
+      }
+
+      if (payload.file instanceof File) {
+        return payload.file;
+      }
+
+      if (payload.rawFile instanceof File) {
+        return payload.rawFile;
+      }
+
+      if (payload.originFileObj instanceof File) {
+        return payload.originFileObj;
+      }
+
+      if (payload.target && payload.target.files instanceof FileList) {
+        return payload.target.files[0] || null;
+      }
+
+      if (payload.files instanceof FileList) {
+        return payload.files[0] || null;
+      }
+
+      if (Array.isArray(payload.files)) {
+        return payload.files.find((f) => f instanceof File) || null;
+      }
+
+      if (payload.detail) {
+        return this.extractUploadFile(payload.detail);
+      }
+
+      return null;
+    }
+
+    extractUploadCallbacks(payload) {
+      const callbacks = {
+        onSuccess: null,
+      };
+
+      const scan = (value) => {
+        if (!value) return;
+
+        if (Array.isArray(value)) {
+          value.forEach(scan);
+          return;
+        }
+
+        if (typeof value !== 'object') return;
+
+        if (typeof value.onSuccess === 'function') callbacks.onSuccess = value.onSuccess;
+        if (typeof value.success === 'function') callbacks.onSuccess = value.success;
+        if (typeof value.resolve === 'function') callbacks.onSuccess = value.resolve;
+
+        if (value.detail) scan(value.detail);
+      };
+
+      scan(payload);
+      return callbacks;
+    }
+
+    async uploadVideoFile(uploadWidget, file) {
+      const uploader = uploadWidget.querySelector('apw-upload');
+      const statusEl = uploadWidget.querySelector('.pwc-video-upload__status');
+      const maxBytes = Number(window.pwcApiClient?.settings?.mediaUploadMaxBytes || 0);
+
+      if (this._videoUploadInFlight.has(uploadWidget)) {
+        return null;
+      }
+      this._videoUploadInFlight.add(uploadWidget);
+
+      if (!window.pwcApiClient || typeof window.pwcApiClient.uploadVideoMedia !== 'function') {
+        if (statusEl) statusEl.textContent = 'Video upload API is not available.';
+        throw new Error('Video upload API is not available.');
+      }
+
+      if (maxBytes > 0 && Number(file?.size || 0) > maxBytes) {
+        const maxMb = (maxBytes / (1024 * 1024)).toFixed(1);
+        const fileMb = (Number(file.size) / (1024 * 1024)).toFixed(1);
+        const message = `File is too large (${fileMb} MB). Max allowed is ${maxMb} MB.`;
+        if (statusEl) statusEl.textContent = message;
+        this._videoUploadInFlight.delete(uploadWidget);
+        throw new Error(message);
+      }
+
+      if (uploader) uploader.apwDisabled = true;
+      if (statusEl) statusEl.textContent = 'Uploading...';
+
+      try {
+        const response = await window.pwcApiClient.uploadVideoMedia(file, file.name);
+        const item = response?.item || null;
+        if (!item || !item.url) {
+          throw new Error('Invalid upload response');
+        }
+
+        this.updateBlockAttributes({
+          sourceType: 'upload',
+          mediaId: String(item.id || ''),
+          mediaName: item.title || file.name,
+          mediaUrl: item.url,
+          mediaType: item.type || 'file',
+        });
+
+        if (statusEl) statusEl.textContent = 'Upload complete and selected.';
+
+        const mediaPicker = this.querySelector('.pwc-media-picker');
+        if (mediaPicker) {
+          await this.loadVideoMediaOptions(mediaPicker, '');
+        }
+
+        if (this.currentBlock) {
+          setTimeout(() => this.showBlockSettings(this.currentBlock), 50);
+        }
+        return response;
+      } catch (error) {
+        if (statusEl) statusEl.textContent = `Upload failed: ${error?.message || 'Unknown error'}`;
+        throw error;
+      } finally {
+        this._videoUploadInFlight.delete(uploadWidget);
+        if (uploader) uploader.apwDisabled = false;
+      }
+    }
+
+    async uploadImageFile(uploadWidget, file) {
+      const uploader = uploadWidget.querySelector('apw-upload');
+      const statusEl = uploadWidget.querySelector('.pwc-video-upload__status');
+      const maxBytes = Number(window.pwcApiClient?.settings?.mediaUploadMaxBytes || 0);
+
+      if (this._imageUploadInFlight.has(uploadWidget)) {
+        return null;
+      }
+      this._imageUploadInFlight.add(uploadWidget);
+
+      if (!window.pwcApiClient || typeof window.pwcApiClient.uploadImageMedia !== 'function') {
+        if (statusEl) statusEl.textContent = 'Image upload API is not available.';
+        throw new Error('Image upload API is not available.');
+      }
+
+      if (maxBytes > 0 && Number(file?.size || 0) > maxBytes) {
+        const maxMb = (maxBytes / (1024 * 1024)).toFixed(1);
+        const fileMb = (Number(file.size) / (1024 * 1024)).toFixed(1);
+        const message = `File is too large (${fileMb} MB). Max allowed is ${maxMb} MB.`;
+        if (statusEl) statusEl.textContent = message;
+        this._imageUploadInFlight.delete(uploadWidget);
+        throw new Error(message);
+      }
+
+      if (uploader) uploader.apwDisabled = true;
+      if (statusEl) statusEl.textContent = 'Uploading...';
+
+      try {
+        const response = await window.pwcApiClient.uploadImageMedia(file, file.name);
+        const item = response?.item || null;
+        if (!item || !item.url) {
+          throw new Error('Invalid upload response');
+        }
+
+        this.updateBlockAttributes({
+          sourceType: 'upload',
+          mediaId: String(item.id || ''),
+          mediaName: item.title || file.name,
+          mediaUrl: item.url,
+          mediaType: item.type || 'file',
+        });
+
+        if (statusEl) statusEl.textContent = 'Upload complete and selected.';
+
+        const mediaPicker = this.querySelector('.pwc-media-picker[data-media-kind="image"]');
+        if (mediaPicker) {
+          await this.loadImageMediaOptions(mediaPicker, '');
+        }
+
+        if (this.currentBlock) {
+          setTimeout(() => this.showBlockSettings(this.currentBlock), 50);
+        }
+        return response;
+      } catch (error) {
+        if (statusEl) statusEl.textContent = `Upload failed: ${error?.message || 'Unknown error'}`;
+        throw error;
+      } finally {
+        this._imageUploadInFlight.delete(uploadWidget);
+        if (uploader) uploader.apwDisabled = false;
+      }
     }
 
     /**
@@ -1906,6 +2663,19 @@
       window.pwcEditorState.updateBlock(this.currentBlock.blockId, {
         [name]: value,
       });
+    }
+
+    updateBlockAttributes(attributes) {
+      if (!this.currentBlock || !attributes || typeof attributes !== 'object') return;
+
+      const safeUpdates = {};
+      Object.entries(attributes).forEach(([name, value]) => {
+        const attrName = this.camelToKebab(name);
+        this.currentBlock.setAttribute(attrName, value);
+        safeUpdates[name] = value;
+      });
+
+      window.pwcEditorState.updateBlock(this.currentBlock.blockId, safeUpdates);
     }
 
     /**

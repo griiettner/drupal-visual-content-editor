@@ -84,6 +84,53 @@
   flex-direction: column;
 }
 
+/* --- Video --- */
+.pwc-video-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+.pwc-video-player,
+.pwc-video-embed {
+  width: 100%;
+}
+
+.pwc-video-player video,
+.pwc-video-embed iframe {
+  width: 100%;
+  height: auto;
+  display: block;
+  border: 0;
+}
+
+.pwc-video-caption {
+  margin-top: 0.5rem;
+  font-size: 0.875rem;
+}
+
+/* --- Image --- */
+.pwc-image-wrapper {
+  position: relative;
+  width: 100%;
+  margin: 0;
+}
+
+.pwc-image-media {
+  width: 100%;
+}
+
+.pwc-image-media img {
+  width: 100%;
+  height: auto;
+  display: block;
+  border: 0;
+}
+
+.pwc-image-caption {
+  margin-top: 0.5rem;
+  font-size: 0.875rem;
+}
+
 /* --- Layout --- */
 .pwc-layout-block {
   display: flex;

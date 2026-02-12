@@ -41,3 +41,39 @@ pwc_visual_editor.create:
   requirements:
     _permission: 'use pwc visual editor'
   methods: [POST]
+
+# API endpoint for listing video media items
+pwc_visual_editor.media_list:
+  path: '/api/pwc-visual-editor/media/videos'
+  defaults:
+    _controller: '\Drupal\pwc_visual_editor\Controller\EditorController::listVideoMedia'
+  requirements:
+    _permission: 'use pwc visual editor'
+  methods: [GET]
+
+# API endpoint for uploading videos to Drupal Media
+pwc_visual_editor.media_upload:
+  path: '/api/pwc-visual-editor/media/videos/upload'
+  defaults:
+    _controller: '\Drupal\pwc_visual_editor\Controller\EditorController::uploadVideoMedia'
+  requirements:
+    _permission: 'use pwc visual editor'
+  methods: [POST]
+
+# API endpoint for listing image media items
+pwc_visual_editor.image_media_list:
+  path: '/api/pwc-visual-editor/media/images'
+  defaults:
+    _controller: '\Drupal\pwc_visual_editor\Controller\EditorController::listImageMedia'
+  requirements:
+    _permission: 'use pwc visual editor'
+  methods: [GET]
+
+# API endpoint for uploading images to Drupal Media
+pwc_visual_editor.image_media_upload:
+  path: '/api/pwc-visual-editor/media/images/upload'
+  defaults:
+    _controller: '\Drupal\pwc_visual_editor\Controller\EditorController::uploadImageMedia'
+  requirements:
+    _permission: 'use pwc visual editor'
+  methods: [POST]

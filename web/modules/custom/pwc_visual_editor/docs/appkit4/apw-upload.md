@@ -61,3 +61,25 @@ _None found in metadata._
 - Types are inferred from compiled flags and may be broader than source TypeScript definitions.
 - This metadata does not include slot names, emitted custom events, or full method signatures.
 - Review the original source package for behavioral details and usage examples.
+
+## Integration Notes (PWC Visual Editor)
+
+The Video block upload uses `apw-upload` with:
+
+- `interceptFormUpload = true`
+- `autoUpload = true`
+- `multiple = false`
+- `accept = "video/*"`
+
+and sets `customUploader` at runtime (after `customElements.whenDefined('apw-upload')`).
+
+Because this metadata does not document callback signatures, the editor integration accepts multiple payload shapes and extracts the `File` defensively from:
+
+- direct `File`
+- `FileList`
+- array payloads
+- object fields like `file`, `rawFile`, `originFileObj`, `files`, or event-style `target.files`
+
+The current integration also adds fallback listeners (`change`, `apwChange`, `apwUpload`) in case the component path does not invoke `customUploader` in a specific Appkit build.
+
+Additionally, the editor binds to the native `<input type="file">` inside `apw-upload`'s open shadow DOM as a last-resort fallback. This is used when callback/event wiring is not surfaced by the component build, ensuring selected files still reach the Drupal upload API.

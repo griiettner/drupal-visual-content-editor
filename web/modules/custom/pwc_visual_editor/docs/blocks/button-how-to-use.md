@@ -1,79 +1,69 @@
-# Accordion Block: How to Use
+# Button Block: How To Use
 
-This guide explains how to use the Accordion block in the PWC Visual Editor.
+This guide explains how to use the Button block in the PWC Visual Editor.
 
-## What this block does
+## What the Button block does
 
-The Accordion block lets you create collapsible sections.
+The Button block adds a styled Appkit button (`<apw-button>`) to your page.
 
-Each section has:
-- A header area
-- A body area where you can place other blocks
+You can control:
 
-By default, a new Accordion starts with 3 sections.
+- Button text
+- Button style (Primary, Secondary, Tertiary, Text, Negative)
+- Optional icon
+- Optional compact and rounded variants
+- Optional link URL
+- Alignment and spacing
 
-## Add an Accordion block
+## Add a Button block
 
-1. Open the block inserter/library.
-2. Search for `Accordion`.
-3. Click to insert it.
+1. Open the block library.
+2. Select `Button`.
+3. A default button is inserted with label `Button`.
 
-Default section titles are:
-- `Accordion Item 1`
-- `Accordion Item 2`
-- `Accordion Item 3`
+## Basic setup
 
-## Add content to a section body
+After selecting the button block, open the settings panel:
 
-You can add content in two ways:
+1. Set `Button Label` (the text users see).
+2. Set `Button Type` (visual style).
+3. Optional: add `Icon` (Appkit icon name).
 
-1. Click the `+` button inside a section body.
-2. Drag a block and drop it into a section body.
+Example:
 
-When a section is empty, you will see `Drop blocks here`.
+- Label: `Get Started`
+- Type: `Primary`
+- Icon: `arrow-forward`
 
-## Add content to a section header
+## Make the button act like a link
 
-Each section header also has a `+` button.
+Use these settings:
 
-1. Click the header `+`.
-2. Pick a block (Heading, Paragraph, Tag, etc.).
-3. The block appears in the header area.
+- `Link URL`: destination URL (for example `https://example.com`)
+- `Open in New Tab`: enable if needed
 
-Tip:
-- If the first header block is a `Heading`, it is automatically filled with the section title.
+When `Link URL` is filled, the editor wraps the button in an anchor (`<a>`).
 
-## Rename, add, or remove sections
+## Style and layout options
 
-1. Select the Accordion block.
-2. Open the Settings panel.
-3. In `Accordion Items`, you can:
-- Edit titles
-- Add a section
-- Remove a section
+Use these settings to control layout:
 
-Important:
-- Removing a section also removes all blocks inside that section.
+- `Compact Size`: smaller button
+- `Rounded`: rounded shape
+- `Alignment`: left, center, right
+- `Margin`: outer spacing utility class
+- `Padding`: inner spacing utility class
+- `Custom Classes`: additional CSS classes (space-separated)
 
-## Configure open behavior
+## Common usage patterns
 
-Use `Allow Multiple Open`:
-- Off: one section open at a time (classic accordion behavior)
-- On: multiple sections can stay open
+- Primary call to action: `Primary` + clear action label
+- Secondary action: `Secondary` + optional icon
+- Text action inside content: `Text` style
+- External links: URL + `Open in New Tab`
 
-## Style options
+## Tips
 
-In block settings you can set:
-- `Margin`
-- `Padding`
-- `Zebra Stripes`
-- `Custom Classes`
-
-`Custom Classes` supports space-separated CSS classes.
-
-## Reorder or delete the entire accordion
-
-While editing:
-- Use the drag handle to move the whole Accordion block.
-- Use the trash icon to delete the whole Accordion and all nested content.
-
+- Keep labels action-focused (`Download`, `Book demo`, `Start now`).
+- Use `Open in New Tab` mainly for external websites.
+- Use `Custom Classes` only when standard settings are not enough.

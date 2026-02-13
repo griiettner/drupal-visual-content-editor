@@ -1,238 +1,266 @@
-# Accordion Block: Developer Documentation
+# Tag Block: Developer Documentation
 
-Technical reference for the Accordion block implementation in:
+Technical reference for `web/modules/custom/pwc_visual_editor/js/components/blocks/tag.js`.
 
-- `web/modules/custom/pwc_visual_editor/js/components/blocks/accordion.js`
+## File and Registration
 
-## Overview
+- Class: `TagBlock extends window.PwcBaseBlock`
+- Custom element: `pwc-tag`
+- Registry key: `tag`
 
-The Accordion block is a container block that stores child blocks in `innerBlocks`.  
-Each child block is mapped to a specific accordion section using `attributes.columnIndex`.
-
-Header content is distinguished from body content with:
-
-- `attributes.headerBlock = true` for header blocks
-- no `headerBlock` flag for body blocks
-
-## Registration and metadata
-
-The block class extends `window.PwcBaseBlock` and is registered as both a custom element and a block-registry entry.
+Registration at file end:
 
 ```js
-class AccordionBlock extends window.PwcBaseBlock {
-  static get blockName() { return 'accordion'; }
-  static get blockTitle() { return 'Accordion'; }
-  static get blockDescription() { return 'Add collapsible accordion sections with inner blocks.'; }
-  static get blockCategory() { return 'basic'; }
-}
-
-customElements.define('pwc-accordion', AccordionBlock);
-window.pwcBlockRegistry.register(AccordionBlock);
+customElements.define('pwc-tag', TagBlock);
+window.pwcBlockRegistry.register(TagBlock);
 ```
 
-## Settings contract
+## Block Metadata
 
-`blockSettings` defines the settings panel schema:
+Static metadata used by the block library:
 
-- `titles` (`accordionTitles`): JSON string of section titles
-- `multiple` (`toggle`): allow multiple sections open
-- `margin` (`spacing`)
-- `padding` (`spacing`)
-- `zebraStripes` (`toggle`)
-- `customClasses` (`text`)
-- `customHeaders` (`hidden`): internal JSON boolean array
+- `blockName`: `tag`
+- `blockTitle`: `Tag`
+- `blockDescription`: `Add tags with Appkit4 styles.`
+- `blockCategory`: `basic`
 
-Example attribute mapping:
+## Settings Contract
 
-- `zebraStripes` -> `zebra-stripes`
-- `customHeaders` -> `custom-headers`
+Defined in `blockSettings` and mapped to element attributes by the editor/registry.
 
-## Data model
+| Setting name | UI type | Attribute | Default | Tab |
+| --- | --- | --- | --- | --- |
+| `tags` | `textarea` | `tags` | `Tag 1, Tag 2, Tag 3` | `typography` |
+| `size` | `tagSizePicker` | `size` | `small` | `typography` |
+| `tagType` | `tagTypePicker` | `tag-type` | `filled` | `typography` |
+| `stacked` | `toggle` | `stacked` | `false` | `style` |
+| `showClose` | `toggle` | `show-close` | `false` | `style` |
+| `backgroundColor` | `colorSwatch` | `background-color` | `''` | `style` |
+| `fontColor` | `colorSwatch` | `font-color` | `''` | `style` |
+| `textAlign` | `alignment` | `text-align` | `''` | `layout` |
+| `margin` | `spacing` | `margin` | `''` | `layout` |
+| `padding` | `spacing` | `padding` | `''` | `layout` |
+| `customClasses` | `text` | `custom-classes` | `''` | `style` |
 
-Body block example:
+Important mappings:
+
+- `tagType` -> `tag-type`
+- `showClose` -> `show-close`
+- `backgroundColor` -> `background-color`
+- `fontColor` -> `font-color`
+- `textAlign` -> `text-align`
+- `customClasses` -> `custom-classes`
+
+## Color Source
+
+`TAG_COLORS` contains the supported color swatches with labels and hex values.  
+Both background and font color fields reuse this same list.
+
+Example structure:
+
+```js
+{ value: '#415385', hex: '#415385', label: 'Primary' }
+```
+
+## Observed Attributes
+
+The block re-renders when these attributes change:
+
+```js
+[
+  'block-id',
+  'tags',
+  'size',
+  'tag-type',
+  'show-close',
+  'background-color',
+  'font-color',
+  'text-align',
+  'margin',
+  'padding',
+  'custom-classes',
+  'stacked',
+]
+```
+
+`attributeChangedCallback()` behavior:
+
+- Skip if value is unchanged
+- Skip if element is not connected
+- Otherwise call `render()` and `addHoverControls()`
+
+## Render Flow
+
+`render()` does this in order:
+
+1. Read attributes with defaults.
+2. Build wrapper classes (`pwc-tag-wrapper` + layout/style classes).
+3. Build list classes (`pwc-tag-list` + optional `pwc-tag-list--stacked`).
+4. Parse `tags` string by comma and trim values.
+5. For each tag text, render a `<li><apw-tag ...></apw-tag></li>`.
+6. Inject wrapper + list markup into `innerHTML`.
+
+## Tag Parsing Logic
+
+Input is a comma-separated string:
+
+```js
+const tags = tagsStr.split(',').map(t => t.trim()).filter(Boolean);
+```
+
+Implications:
+
+- Leading/trailing spaces are removed
+- Empty entries are discarded
+- Each valid token becomes one `<apw-tag>`
+
+## Output Examples
+
+### 1) Simple tags
+
+Input:
+
+```html
+<pwc-tag tags="News, Updates, Case Study" size="small" tag-type="filled"></pwc-tag>
+```
+
+Rendered HTML (simplified):
+
+```html
+<div class="pwc-tag-wrapper">
+  <ul class="pwc-tag-list">
+    <li><apw-tag text="News" size="small" type="filled" show-close="false" apw-disabled="false"></apw-tag></li>
+    <li><apw-tag text="Updates" size="small" type="filled" show-close="false" apw-disabled="false"></apw-tag></li>
+    <li><apw-tag text="Case Study" size="small" type="filled" show-close="false" apw-disabled="false"></apw-tag></li>
+  </ul>
+</div>
+```
+
+### 2) Stacked with custom colors
+
+Input:
+
+```html
+<pwc-tag
+  tags="Finance, Tax, Risk"
+  size="large"
+  tag-type="outlined"
+  stacked="true"
+  show-close="true"
+  background-color="#415385"
+  font-color="#ffffff"
+></pwc-tag>
+```
+
+Rendered HTML (simplified):
+
+```html
+<div class="pwc-tag-wrapper">
+  <ul class="pwc-tag-list pwc-tag-list--stacked">
+    <li><apw-tag text="Finance" size="large" type="outlined" show-close="true" apw-disabled="false" background-color="#415385" font-color="#ffffff"></apw-tag></li>
+    <li><apw-tag text="Tax" size="large" type="outlined" show-close="true" apw-disabled="false" background-color="#415385" font-color="#ffffff"></apw-tag></li>
+    <li><apw-tag text="Risk" size="large" type="outlined" show-close="true" apw-disabled="false" background-color="#415385" font-color="#ffffff"></apw-tag></li>
+  </ul>
+</div>
+```
+
+## Data Model in Editor State
+
+Typical block data object:
 
 ```json
 {
-  "id": "block-1",
-  "type": "paragraph",
+  "type": "tag",
+  "id": "block-123",
   "attributes": {
-    "columnIndex": 1
+    "tags": "News, Product, Alerts",
+    "size": "small",
+    "tagType": "filled",
+    "stacked": false,
+    "showClose": false,
+    "backgroundColor": "",
+    "fontColor": "",
+    "textAlign": "pwc-text-left",
+    "margin": "m-2",
+    "padding": "",
+    "customClasses": "my-tag-group"
   }
 }
 ```
 
-Header block example:
+The registry maps camelCase keys to kebab-case DOM attributes during render.
 
-```json
+## Safety and Escaping
+
+`escapeAttr(str)` escapes:
+
+- `&` -> `&amp;`
+- `"` -> `&quot;`
+- `<` -> `&lt;`
+- `>` -> `&gt;`
+
+It is applied to dynamic values inserted into `<apw-tag>` attributes (`text`, `background-color`, `font-color`).
+
+## Extension Scenarios
+
+### Add a new setting
+
+1. Add a field in `blockSettings`.
+2. Add the kebab-case attribute name to `observedAttributes`.
+3. Read and apply the new attribute in `render()`.
+
+Example: add disabled mode.
+
+```js
+// blockSettings
 {
-  "id": "block-2",
-  "type": "heading",
-  "attributes": {
-    "columnIndex": 1,
-    "headerBlock": true
-  }
-}
-```
-
-Expanded state is persisted per accordion block:
-
-```js
-blockData._expandedAccordionIndices = [0, 2];
-```
-
-## Render flow
-
-`render()` performs these steps:
-
-1. Read and parse attributes/settings.
-2. Normalize expanded indices with `syncExpandedSections()`.
-3. Build accordion HTML for all titles.
-4. Render body blocks via `renderInnerBlocks()`.
-5. Render header blocks via `renderHeaderBlocks()`.
-6. Bind event handlers for toggling, insertion, drop zones, and drag controls.
-
-## Section mapping logic
-
-Body selection:
-
-```js
-(block.attributes?.columnIndex || 0) === sectionIndex &&
-!block.attributes?.headerBlock
-```
-
-Header selection:
-
-```js
-(block.attributes?.columnIndex || 0) === sectionIndex &&
-block.attributes?.headerBlock === true
-```
-
-## Insertion flows
-
-### Body insertion
-
-- Triggered from body `+` button or body drop.
-- Uses `setInsertPosition(-1, this.blockId, sectionIndex)`.
-- New block is tagged with `columnIndex`.
-
-### Header insertion
-
-- Triggered from header `+` button or header drop.
-- Uses `setInsertPosition(..., { headerBlock: true, ... })`.
-- New block is tagged with `columnIndex` and `headerBlock: true`.
-
-## Direct insertion methods
-
-`addBlockToSection(blockData, sectionIndex)`:
-
-- sets `blockData.attributes.columnIndex`
-- pushes into parent accordion `innerBlocks`
-- marks editor dirty, pushes history, emits `blockAdd`
-- rerenders and selects inserted block
-
-`addBlockToHeader(blockData, sectionIndex)` adds the same state steps plus:
-
-- sets `headerBlock: true`
-- applies heading title inheritance
-- updates `custom-headers` metadata
-
-## Heading title inheritance
-
-When the first header heading in a section is inserted and content is empty/default, it inherits the section title:
-
-```js
-if (blockData.type === 'heading' && !hasHeadingAlready) {
-  const current = (blockData.attributes?.content || '').trim();
-  if (!current || current === 'Heading') {
-    blockData.attributes.content = titles[sectionIndex] || `Accordion Item ${sectionIndex + 1}`;
-  }
-}
-```
-
-## Expansion behavior
-
-- `toggleSection(index)` controls open/close.
-- `multiple=false` keeps a single-open model.
-- `syncExpandedSections()` validates saved state.
-- `applyExpandedSections()` syncs classes and `aria-expanded`.
-- `persistExpandedSections()` writes normalized indices to block data.
-
-## Validation and safety helpers
-
-- `parseTitles()` safely parses JSON and falls back to defaults.
-- `getBooleanAttribute(name)` handles common boolean string forms.
-- `getSafeClassTokens(classes)` filters classes to `A-Z a-z 0-9 _ -`.
-- `escapeAttr(str)` prevents unsafe HTML injection in title output.
-
-## Example: add a custom setting
-
-Add to `blockSettings`:
-
-```js
-{
-  name: 'compact',
+  name: 'disabled',
   type: 'toggle',
-  label: 'Compact',
+  label: 'Disabled',
   default: false,
   tab: 'style',
 }
 ```
 
-Use in render:
-
 ```js
-const compact = this.getBooleanAttribute('compact');
-const wrapperClasses = [
-  'pwc-accordion-wrapper',
-  compact ? 'pwc-accordion-wrapper--compact' : '',
-].join(' ');
+// observedAttributes
+'disabled'
 ```
 
-## Example: programmatically add a body block
-
 ```js
-const accordion = window.pwcEditorState.findBlock(accordionId);
-const blockData = window.pwcBlockRegistry.createBlockData('paragraph');
-blockData.attributes = { ...(blockData.attributes || {}), columnIndex: 0 };
-
-accordion.innerBlocks = accordion.innerBlocks || [];
-accordion.innerBlocks.push(blockData);
-
-window.pwcEditorState.isDirty = true;
-window.pwcEditorState.pushHistory();
-window.pwcEditorState.emit('blockAdd', { block: blockData, parentId: accordionId });
+// render()
+const disabled = this.getAttribute('disabled') === 'true';
+let attrs = `text="${this.escapeAttr(text)}" size="${size}" type="${tagType}" show-close="${showClose}" apw-disabled="${disabled}"`;
 ```
 
-## Example: programmatically add a header block
+### Create a Tag block programmatically
 
 ```js
-const accordion = window.pwcEditorState.findBlock(accordionId);
-const heading = window.pwcBlockRegistry.createBlockData('heading');
-heading.attributes = {
-  ...(heading.attributes || {}),
-  columnIndex: 0,
-  headerBlock: true,
-  content: 'Custom Header',
+const blockData = window.pwcBlockRegistry.createBlockData('tag');
+blockData.attributes = {
+  ...(blockData.attributes || {}),
+  tags: 'Design, Accessibility, QA',
+  size: 'small',
+  tagType: 'outlined',
+  stacked: false,
+  showClose: false,
 };
 
-accordion.innerBlocks = accordion.innerBlocks || [];
-accordion.innerBlocks.push(heading);
-
+window.pwcEditorState.blocks.push(blockData);
 window.pwcEditorState.isDirty = true;
 window.pwcEditorState.pushHistory();
-window.pwcEditorState.emit('blockAdd', { block: heading, parentId: accordionId });
+window.pwcEditorState.emit('blockAdd', { block: blockData });
 ```
 
-## Known implementation notes
+## Known Gotchas
 
-- `parseCustomHeaders()` is present, but rendering currently decides header mode based on actual header blocks.
-- Section reindexing after deletion is handled in settings-panel logic.
-- If you manipulate `innerBlocks` manually, keep `columnIndex` aligned with title indices.
+- `show-close` and `stacked` are string attributes in DOM, so check with `=== 'true'`.
+- If `tags` has no valid values after parsing, the block renders an empty `<ul>`.
+- `customClasses` is appended directly to wrapper classes, so only trusted class names should be used.
 
-## Related files
+## Related Files
 
-- `web/modules/custom/pwc_visual_editor/js/components/blocks/accordion.js`
-- `web/modules/custom/pwc_visual_editor/js/components/settings-panel.js`
-- `web/modules/custom/pwc_visual_editor/js/components/block-library-panel.js`
+- `web/modules/custom/pwc_visual_editor/js/components/blocks/tag.js`
 - `web/modules/custom/pwc_visual_editor/js/services/block-registry.js`
+- `web/modules/custom/pwc_visual_editor/js/components/settings-panel.js`
 - `web/modules/custom/pwc_visual_editor/js/services/editor-state.js`

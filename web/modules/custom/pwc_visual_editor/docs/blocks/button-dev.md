@@ -1,216 +1,218 @@
-# Accordion Block: Developer Documentation
+# Button Block: Developer Documentation
 
-This document explains how the Accordion block works internally in `pwc_visual_editor`, including data shape, settings, and extension points.
+Technical reference for `web/modules/custom/pwc_visual_editor/js/components/blocks/button.js`.
 
-## File location
+## File and Registration
 
-- `web/modules/custom/pwc_visual_editor/js/components/blocks/accordion.js`
+- Class: `ButtonBlock extends window.PwcBaseBlock`
+- Custom element: `pwc-button`
+- Registry key: `button`
 
-## Block registration
-
-The block is a custom element class extending `window.PwcBaseBlock`:
+Registration at file end:
 
 ```js
-class AccordionBlock extends window.PwcBaseBlock {
-  static get blockName() { return 'accordion'; }
-  static get blockTitle() { return 'Accordion'; }
-}
-
-customElements.define('pwc-accordion', AccordionBlock);
-window.pwcBlockRegistry.register(AccordionBlock);
+customElements.define('pwc-button', ButtonBlock);
+window.pwcBlockRegistry.register(ButtonBlock);
 ```
 
-## Key settings (blockSettings)
+## Block Metadata
 
-Main settings exposed in the editor:
+Static metadata used by the block library:
 
-- `titles` (`accordionTitles`) -> JSON array of section titles
-- `multiple` (`toggle`) -> allow multiple expanded sections
-- `margin` / `padding` (`spacing`) -> utility spacing classes
-- `zebraStripes` (`toggle`) -> alternate section background
-- `customClasses` (`text`) -> extra CSS classes
-- `customHeaders` (`hidden`) -> JSON boolean array tracking sections that use custom header content
+- `blockName`: `button`
+- `blockTitle`: `Button`
+- `blockDescription`: `Add a button with Appkit4 styles.`
+- `blockCategory`: `basic`
 
-Example of stored attributes:
+## Settings Contract
+
+Defined in `blockSettings` and mapped to element attributes by the editor/registry.
+
+Settings and expected values:
+
+- `label` (`text`): visible button text
+- `btnType` (`btnTypePicker`): `primary`, `secondary`, `tertiary`, `text`, `negative`
+- `icon` (`text`): Appkit icon name
+- `compact` (`toggle`): `true` or `false`
+- `rounded` (`toggle`): `true` or `false`
+- `url` (`text`): optional link URL
+- `target` (`toggle`): open link in new tab
+- `textAlign` (`alignment`): utility class (`pwc-text-left`, `pwc-text-center`, `pwc-text-right`, or empty)
+- `margin` (`spacing`): spacing utility classes
+- `padding` (`spacing`): spacing utility classes
+- `customClasses` (`text`): additional classes
+
+Important attribute mappings:
+
+- `btnType` -> `btn-type`
+- `textAlign` -> `text-align`
+- `customClasses` -> `custom-classes`
+
+## Observed Attributes
+
+The block re-renders when these attributes change:
+
+```js
+[
+  'block-id',
+  'label',
+  'btn-type',
+  'icon',
+  'compact',
+  'rounded',
+  'url',
+  'target',
+  'text-align',
+  'margin',
+  'padding',
+  'custom-classes',
+]
+```
+
+## Render Flow
+
+`render()` performs:
+
+1. Read all attributes with defaults.
+2. Build wrapper classes (`pwc-button-wrapper` + align/spacing/custom).
+3. Build `<apw-button>` attributes:
+- Always sets `btn-type`, `label`, and `type="button"`.
+- Conditionally sets `icon`, `compact="true"`, `rounded="true"`.
+4. If `url` exists, wrap button in `<a>` and optionally add `target="_blank" rel="noopener noreferrer"`.
+5. Replace element content with a wrapper div.
+
+## Output Examples
+
+### 1) Simple button
+
+Input attributes:
+
+```html
+<pwc-button label="Save" btn-type="primary"></pwc-button>
+```
+
+Rendered HTML (simplified):
+
+```html
+<div class="pwc-button-wrapper">
+  <apw-button btn-type="primary" label="Save" type="button"></apw-button>
+</div>
+```
+
+### 2) Linked button opening in new tab
+
+Input attributes:
+
+```html
+<pwc-button
+  label="Read Docs"
+  btn-type="secondary"
+  url="https://example.com/docs"
+  target="true"
+  icon="book-outline"
+></pwc-button>
+```
+
+Rendered HTML (simplified):
+
+```html
+<div class="pwc-button-wrapper">
+  <a href="https://example.com/docs" class="pwc-button-link" target="_blank" rel="noopener noreferrer">
+    <apw-button btn-type="secondary" label="Read Docs" type="button" icon="book-outline"></apw-button>
+  </a>
+</div>
+```
+
+## Data Model in Editor State
+
+A typical block object in editor state:
 
 ```json
 {
-  "titles": "[\"Overview\", \"FAQ\", \"Support\"]",
-  "multiple": false,
-  "margin": "mt-16 mb-16",
-  "padding": "p-16",
-  "zebraStripes": true,
-  "customClasses": "my-accordion",
-  "customHeaders": "[true,false,false]"
-}
-```
-
-## Data model for inner blocks
-
-Accordion children are stored in `innerBlocks` of the parent accordion block.
-
-Each child uses `columnIndex` to map to a section:
-
-- `columnIndex: 0` -> first section
-- `columnIndex: 1` -> second section
-
-Header blocks are identified by:
-- `headerBlock: true`
-
-Body blocks are:
-- `headerBlock` missing or `false`
-
-Example:
-
-```json
-{
-  "id": "accordion-1",
-  "type": "accordion",
+  "type": "button",
+  "id": "block-123",
   "attributes": {
-    "titles": "[\"Overview\", \"FAQ\"]"
-  },
-  "innerBlocks": [
-    {
-      "id": "heading-a",
-      "type": "heading",
-      "attributes": {
-        "columnIndex": 0,
-        "headerBlock": true,
-        "content": "Overview"
-      }
-    },
-    {
-      "id": "paragraph-a",
-      "type": "paragraph",
-      "attributes": {
-        "columnIndex": 0
-      }
-    }
-  ]
+    "label": "Get Started",
+    "btnType": "primary",
+    "icon": "arrow-forward",
+    "compact": false,
+    "rounded": true,
+    "url": "https://example.com",
+    "target": true,
+    "textAlign": "pwc-text-center",
+    "margin": "m-4",
+    "padding": "",
+    "customClasses": "my-cta"
+  }
 }
 ```
 
-## Render flow
+The block registry maps this data to DOM attributes (`btn-type`, `text-align`, etc.) when rendering.
 
-High-level `render()` flow:
+## Safety and Escaping
 
-1. Parse attributes (`titles`, toggles, classes)
-2. Sync expanded state with editor data
-3. Build section markup
-4. Render body inner blocks into `.pwc-accordion-section__content`
-5. Render header inner blocks into `.pwc-accordion-section__header-content`
-6. Attach handlers (toggle, add, drag/drop)
+`escapeAttr(str)` escapes:
 
-The section HTML is generated per title and includes:
-- Header wrapper (`.pwc-accordion-section__header`)
-- Body drop zone (`.pwc-accordion-section__body`)
-- Optional add buttons in edit mode
+- `&` -> `&amp;`
+- `"` -> `&quot;`
+- `<` -> `&lt;`
+- `>` -> `&gt;`
 
-## Section expansion logic
+It is used for user-provided label, icon, and URL-related attributes before HTML injection.
 
-Expanded sections are tracked by `this._expandedSections` (`Set<number>`).
+## Extending the Block
 
-Methods:
-- `syncExpandedSections(totalSections, multiple)` -> normalizes valid indices and default open section
-- `toggleSection(sectionIndex)` -> single-open or multi-open behavior
-- `applyExpandedSections()` -> updates expanded/collapsed classes and `aria-expanded`
-- `persistExpandedSections()` -> writes temporary UI state to `blockData._expandedAccordionIndices`
+### Add a new setting
 
-## Add block behavior
+1. Add a field in `blockSettings`.
+2. Add the kebab-case attribute name in `observedAttributes`.
+3. Read attribute in `render()` and apply it to wrapper or `<apw-button>`.
 
-Body insertion:
+Example (`disabled` toggle):
 
 ```js
-addBlockToSection(blockData, sectionIndex) {
-  blockData.attributes = blockData.attributes || {};
-  blockData.attributes.columnIndex = sectionIndex;
-  // push into accordion.innerBlocks, set dirty, history, emit event
-}
-```
-
-Header insertion:
-
-```js
-addBlockToHeader(blockData, sectionIndex) {
-  blockData.attributes = blockData.attributes || {};
-  blockData.attributes.columnIndex = sectionIndex;
-  blockData.attributes.headerBlock = true;
-  this.applyHeadingTitleInheritance(blockData, sectionIndex);
-}
-```
-
-Special rule:
-- `applyHeadingTitleInheritance()` auto-fills the first header `heading` block with the section title if content is empty/default.
-
-## Drag and drop integration
-
-The block supports:
-
-- Inserting blocks by drop into section body/header zones
-- Reordering the whole Accordion block via a dedicated handle
-
-Reorder drag uses MIME type:
-- `application/x-pwc-block-reorder`
-
-Insert drag uses:
-- `text/plain` with block type
-
-Drop zone setup methods:
-- `setupSectionDropZones()`
-- `setupHeaderDropZones()`
-- `setupAccordionDragHandle()`
-
-## Safety helpers
-
-- `parseTitles()` safely parses title JSON and falls back to defaults
-- `getBooleanAttribute(name)` normalizes boolean-like string values
-- `getSafeClassTokens(classes)` prevents unsafe class tokens
-- `escapeAttr(str)` escapes HTML-sensitive characters for output
-
-## Extending the Accordion block
-
-Common extension points:
-
-1. Add new settings in `blockSettings`.
-2. Add new observed attributes in `observedAttributes`.
-3. Read those attributes in `render()`.
-4. Apply classes/markup/logic based on the new setting.
-
-Example: add an `outlined` style toggle:
-
-```js
-// In blockSettings
+// blockSettings
 {
-  name: 'outlined',
+  name: 'disabled',
   type: 'toggle',
-  label: 'Outlined',
+  label: 'Disabled',
   default: false,
   tab: 'style',
 }
 ```
 
 ```js
-// In observedAttributes
-'outlined'
+// observedAttributes
+'disabled'
 ```
 
 ```js
-// In render
-const outlined = this.getBooleanAttribute('outlined');
-const wrapperClasses = [
-  'pwc-accordion-wrapper',
-  outlined ? 'pwc-accordion-wrapper--outlined' : '',
-].join(' ');
+// render()
+const disabled = this.getAttribute('disabled') === 'true';
+if (disabled) btnAttrs += ' disabled="true"';
 ```
 
-## Cache/deployment notes
+### Create a button block programmatically
 
-Because this is JavaScript in a custom module:
+```js
+const blockData = window.pwcBlockRegistry.createBlockData('button');
+blockData.attributes = {
+  ...(blockData.attributes || {}),
+  label: 'Contact Sales',
+  btnType: 'secondary',
+  url: '/contact',
+  target: false,
+};
 
-- JS changes usually appear immediately in this development setup.
-- Clear Drupal cache when needed for routing/service/schema-level changes:
-
-```bash
-docker compose exec drupal bash -c "cd /opt/drupal && ./vendor/bin/drush cr"
+window.pwcEditorState.blocks.push(blockData);
+window.pwcEditorState.isDirty = true;
+window.pwcEditorState.pushHistory();
+window.pwcEditorState.emit('blockAdd', { block: blockData });
 ```
 
+## Related Files
+
+- `web/modules/custom/pwc_visual_editor/js/components/blocks/button.js`
+- `web/modules/custom/pwc_visual_editor/js/services/block-registry.js`
+- `web/modules/custom/pwc_visual_editor/js/components/settings-panel.js`
+- `web/modules/custom/pwc_visual_editor/js/services/editor-state.js`

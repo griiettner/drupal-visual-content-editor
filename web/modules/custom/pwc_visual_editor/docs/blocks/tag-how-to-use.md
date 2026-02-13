@@ -1,92 +1,133 @@
-# Accordion Block: How to Use
+# Tag Block: How To Use
 
-This guide explains how to use the Accordion block in the PWC Visual Editor.
+This guide explains how to use the Tag block in the PWC Visual Editor.
 
-## What this block does
+## What the Tag block does
 
-The Accordion block creates collapsible sections (accordion items).  
-Each section can contain:
+The Tag block adds one or more Appkit4 tags (`<apw-tag>`) to your page.
 
-- A header area
-- A body area for regular blocks
+You can control:
 
-By default, new accordions start with 3 items.
+- Tag text (single or multiple tags)
+- Size (`Small` or `Large`)
+- Style (`Filled` or `Outlined`)
+- Optional close button
+- Background and font colors
+- Horizontal or stacked layout
+- Alignment and spacing
 
-## Add an Accordion block
+## Add a Tag block
 
 1. Open the block library.
-2. Select `Accordion`.
-3. The block appears on the page with default titles:
-- `Accordion Item 1`
-- `Accordion Item 2`
-- `Accordion Item 3`
+2. Select `Tag`.
+3. A Tag block is inserted with default values.
 
-## Add content in a section body
+Default tag text is:
 
-You can add content in two ways:
+`Tag 1, Tag 2, Tag 3`
 
-1. Click the `+` button inside a section body.
-2. Drag a block from the block library and drop it into the section body.
+## Add one or more tags
 
-When a section body is empty, it shows `Drop blocks here`.
+Use the `Tags` field and enter text separated by commas.
 
-## Add content in a section header
+Example:
 
-Each section header also has a `+` button.
+`News, Product Update, Case Study`
 
-1. Click `+` in the header.
-2. Choose a block (Heading, Paragraph, Tag, etc.).
-3. The block is inserted into that header area.
+This creates 3 separate tags.
 
-Helpful behavior:
-- If the first header block you add is a Heading, it can auto-fill from the section title.
+Tips:
 
-## Edit section titles
+- Add commas between tags.
+- Extra spaces are handled automatically.
+- Empty values are ignored.
 
-1. Select the Accordion block.
-2. Open the settings panel.
-3. Find `Accordion Items`.
-4. Update title text for each section.
-
-## Add or remove sections
-
-In `Accordion Items` settings:
-
-- Click `Add Section` to add a new accordion item.
-- Click remove (`x`) to delete a section.
-
-Important when removing a section:
-
-- Blocks in that section are removed.
-- Blocks in later sections are reindexed to keep the structure valid.
-
-## Control open/close behavior
-
-Use the `Allow Multiple Open` setting:
-
-- Off: only one section should stay open at a time.
-- On: multiple sections can stay open together.
-
-## Styling options
+## Choose size and style
 
 Use these settings:
 
+- `Size`: `Small` or `Large`
+- `Type`: `Filled` or `Outlined`
+
+Common pattern:
+
+- `Filled` for stronger visual emphasis
+- `Outlined` for lighter metadata-style labels
+
+## Show or hide close icon
+
+Use `Show Close Button`:
+
+- Off: tags display as labels only
+- On: each tag displays a close icon
+
+Use this only when the close action is meaningful in your UI context.
+
+## Set colors
+
+Use:
+
+- `Background Color`
+- `Font Color`
+
+You can choose from the predefined Appkit4 color list.
+
+If you leave a color empty:
+
+- Background falls back to component default
+- Font color falls back to component default
+
+## Control tag layout
+
+Use `Stacked`:
+
+- Off: tags display in a row/wrap layout
+- On: tags display vertically (one per line)
+
+This is useful for filters, sidebars, or dense mobile sections.
+
+## Layout and spacing
+
+Use these settings on the block wrapper:
+
+- `Alignment`: left, center, right
 - `Margin`
 - `Padding`
-- `Zebra Stripes`
 - `Custom Classes`
 
-`Custom Classes` supports space-separated class names (for example: `my-accordion compact`).
+`Custom Classes` should be space-separated class names.
 
-## Move or delete the whole Accordion block
+## Quick examples
 
-When editing:
+### Example 1: Simple metadata tags
 
-- Use the drag handle to reorder the full accordion block.
-- Use the trash icon to delete the accordion and all inner content.
+- Tags: `AI, Accessibility, Drupal`
+- Size: `Small`
+- Type: `Outlined`
+- Stacked: `Off`
+
+### Example 2: Category labels in sidebar
+
+- Tags: `Finance, Risk, Tax, Audit`
+- Size: `Large`
+- Type: `Filled`
+- Stacked: `On`
+- Alignment: `Left`
+
+## Common issues
+
+1. Only one tag appears:
+- Make sure values are separated by commas.
+
+2. Colors are not changing:
+- Confirm `Background Color` or `Font Color` is selected (not empty).
+
+3. Layout looks crowded:
+- Enable `Stacked` or add `Margin`/`Padding`.
 
 ## Best practices
 
-- Keep section titles short and clear.
-- Put rich content inside the body, not the header, unless you need a custom header layout.
-- Use `Allow Multiple Open` for FAQ-style pages; keep it off for step-by-step content.
+- Keep tag text short (1 to 3 words).
+- Use consistent tag style on the same page.
+- Use stacked layout for narrow columns.
+- Prefer predefined colors for design consistency.

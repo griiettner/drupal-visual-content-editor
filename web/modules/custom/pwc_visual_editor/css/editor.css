@@ -195,7 +195,8 @@ body.pwc-editing button.contextual-trigger {
   gap: 4px;
   opacity: 0;
   visibility: hidden;
-  transition: opacity 0.15s ease, visibility 0.15s ease;
+  /* Keep controls visible briefly after hover-out so handles are easier to click. */
+  transition: opacity 0.15s ease 1.2s, visibility 0s linear 1.35s;
   z-index: 10;
 }
 
@@ -203,6 +204,7 @@ body.pwc-editing button.contextual-trigger {
 .pwc-editing .pwc-block--selected .pwc-block__controls {
   opacity: 1;
   visibility: visible;
+  transition-delay: 0s, 0s;
 }
 
 .pwc-block__drag-handle,
@@ -453,7 +455,9 @@ pwc-layout > .pwc-block__controls {
   gap: 8px;
   opacity: 0;
   visibility: hidden;
-  transition: opacity 0.15s ease, visibility 0.15s ease;
+  pointer-events: auto;
+  /* Keep controls visible briefly after hover-out so handles are easier to click. */
+  transition: opacity 0.15s ease 1.2s, visibility 0s linear 1.35s;
   z-index: 100;
 }
 
@@ -465,6 +469,27 @@ pwc-layout:hover .pwc-layout-controls,
 pwc-layout.pwc-block--selected .pwc-layout-controls {
   opacity: 1;
   visibility: visible;
+  transition-delay: 0s, 0s;
+}
+
+/* Nested container fix:
+   hide parent controls when a nested container is active to keep inner controls clickable. */
+pwc-layout:hover:has(pwc-layout:hover) > .pwc-layout-controls,
+pwc-layout.pwc-block--selected:has(pwc-layout.pwc-block--selected) > .pwc-layout-controls,
+pwc-accordion:hover:has(pwc-accordion:hover) > .pwc-accordion-controls,
+pwc-accordion.pwc-block--selected:has(pwc-accordion.pwc-block--selected) > .pwc-accordion-controls,
+pwc-tab:hover:has(pwc-tab:hover) > .pwc-tab-controls,
+pwc-tab.pwc-block--selected:has(pwc-tab.pwc-block--selected) > .pwc-tab-controls {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+/* Keep currently selected container controls above other hover controls. */
+pwc-layout.pwc-block--selected > .pwc-layout-controls,
+pwc-accordion.pwc-block--selected > .pwc-accordion-controls,
+pwc-tab.pwc-block--selected > .pwc-tab-controls {
+  z-index: 220;
 }
 
 .pwc-accordion-handle,
@@ -777,10 +802,52 @@ body.pwc-dragging-block .pwc-tab-section__content {
    ========================================================================== */
 
 .pwc-layout-block {
+  position: relative;
   display: flex;
   flex-wrap: wrap;
   width: 100%;
   min-height: 60px;
+}
+
+.pwc-layout-block__content {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  display: flex;
+  flex-wrap: wrap;
+  min-height: 60px;
+}
+
+.pwc-layout-block__bg-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  border-radius: inherit;
+}
+
+.pwc-layout-block.pwc-layout-block--hero {
+  display: block;
+}
+
+.pwc-layout-hero-stage {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  min-height: inherit;
+}
+
+.pwc-layout-hero-positioner {
+  display: flex;
+  width: 100%;
+  height: 100%;
+  min-height: inherit;
+}
+
+.pwc-layout-hero-content {
+  width: 100%;
+  display: flex;
+  flex-wrap: wrap;
 }
 
 .pwc-layout-column {
@@ -819,6 +886,10 @@ body.pwc-dragging-block .pwc-tab-section__content {
 
 .pwc-editing .pwc-layout-block:not(:has(.pwc-block)) {
   display: flex;
+}
+
+.pwc-editing .pwc-layout-block.pwc-layout-block--hero:not(:has(.pwc-block)) {
+  display: block;
 }
 
 /* Column drag-over state */
@@ -3340,7 +3411,8 @@ body.pwc-dragging-block .pwc-drop-zone {
 }
 
 @media (max-width: 768px) {
-  .pwc-layout-block {
+  .pwc-layout-block:not(.pwc-layout-block--hero),
+  .pwc-layout-hero-content {
     flex-direction: column;
   }
 

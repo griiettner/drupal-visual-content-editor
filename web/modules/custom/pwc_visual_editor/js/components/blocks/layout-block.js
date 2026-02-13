@@ -61,6 +61,17 @@
     static get blockSettings() {
       return [
         {
+          name: 'mode',
+          type: 'optionButtons',
+          label: 'Container Mode',
+          tab: 'layout',
+          options: [
+            { value: 'standard', label: 'Standard' },
+            { value: 'hero', label: 'Hero' },
+          ],
+          default: 'standard',
+        },
+        {
           name: 'layout',
           type: 'layoutPicker',
           label: 'Layout',
@@ -102,6 +113,63 @@
           default: 'top',
         },
         {
+          name: 'contentPosition',
+          type: 'optionButtons',
+          label: 'Content Position',
+          tab: 'layout',
+          options: [
+            { value: 'top-left', label: 'Top Left' },
+            { value: 'top-center', label: 'Top Center' },
+            { value: 'top-right', label: 'Top Right' },
+            { value: 'middle-left', label: 'Middle Left' },
+            { value: 'center', label: 'Center' },
+            { value: 'middle-right', label: 'Middle Right' },
+            { value: 'bottom-left', label: 'Bottom Left' },
+            { value: 'bottom-center', label: 'Bottom Center' },
+            { value: 'bottom-right', label: 'Bottom Right' },
+          ],
+          default: 'center',
+        },
+        {
+          name: 'fullBleed',
+          type: 'toggle',
+          label: 'Full Width (Bleed)',
+          default: false,
+          tab: 'layout',
+        },
+        {
+          name: 'minHeight',
+          type: 'text',
+          label: 'Min Height',
+          default: '',
+          tab: 'layout',
+          placeholder: 'e.g. 320px, 60vh',
+        },
+        {
+          name: 'maxHeight',
+          type: 'text',
+          label: 'Max Height',
+          default: '',
+          tab: 'layout',
+          placeholder: 'e.g. 80vh, 900px',
+        },
+        {
+          name: 'contentWidth',
+          type: 'text',
+          label: 'Content Width',
+          default: '',
+          tab: 'layout',
+          placeholder: 'e.g. 100%, 960px',
+        },
+        {
+          name: 'contentMaxWidth',
+          type: 'text',
+          label: 'Content Max Width',
+          default: '',
+          tab: 'layout',
+          placeholder: 'e.g. 1200px',
+        },
+        {
           name: 'margin',
           type: 'spacing',
           label: 'Margin',
@@ -125,6 +193,107 @@
           tab: 'style',
           colors: window.APPKIT_OPTIONS?.colors || [],
           colorType: 'bg',
+        },
+        {
+          name: 'bgOpacity',
+          type: 'optionButtons',
+          label: 'Background Opacity',
+          tab: 'style',
+          options: [
+            { value: 'ap-opacity-7', label: '100%' },
+            { value: 'ap-opacity-6', label: '48%' },
+            { value: 'ap-opacity-5', label: '32%' },
+            { value: 'ap-opacity-4', label: '24%' },
+            { value: 'ap-opacity-3', label: '12%' },
+            { value: 'ap-opacity-2', label: '8%' },
+            { value: 'ap-opacity-1', label: '4%' },
+          ],
+          default: 'ap-opacity-7',
+        },
+        {
+          name: 'bgSourceType',
+          type: 'optionButtons',
+          label: 'Background Source',
+          default: 'url',
+          tab: 'style',
+          options: [
+            { value: 'url', label: 'URL' },
+            { value: 'media', label: 'Media' },
+            { value: 'upload', label: 'Upload' },
+          ],
+        },
+        {
+          name: 'bgImageUrl',
+          type: 'text',
+          label: 'Background Image URL',
+          default: '',
+          tab: 'style',
+          placeholder: 'https://... or /sites/default/files/...',
+          showWhenSourceType: ['url'],
+          sourceTypeName: 'bgSourceType',
+        },
+        {
+          name: 'bgMediaId',
+          type: 'mediaImagePicker',
+          label: 'Select Background Image',
+          default: '',
+          tab: 'style',
+          showWhenSourceType: ['media'],
+          sourceTypeName: 'bgSourceType',
+          attributePrefix: 'bg',
+        },
+        {
+          name: 'bgMediaUpload',
+          type: 'imageUpload',
+          label: 'Upload Background Image',
+          default: '',
+          tab: 'style',
+          showWhenSourceType: ['upload'],
+          sourceTypeName: 'bgSourceType',
+          attributePrefix: 'bg',
+        },
+        {
+          name: 'bgSize',
+          type: 'optionButtons',
+          label: 'Background Fit',
+          default: 'cover',
+          tab: 'style',
+          options: [
+            { value: 'cover', label: 'Cover' },
+            { value: 'contain', label: 'Contain' },
+            { value: 'auto', label: 'Auto' },
+          ],
+        },
+        {
+          name: 'bgPosition',
+          type: 'select',
+          label: 'Background Position',
+          default: 'center center',
+          tab: 'style',
+          options: [
+            { value: 'left top', label: 'Top Left' },
+            { value: 'center top', label: 'Top Center' },
+            { value: 'right top', label: 'Top Right' },
+            { value: 'left center', label: 'Middle Left' },
+            { value: 'center center', label: 'Center' },
+            { value: 'right center', label: 'Middle Right' },
+            { value: 'left bottom', label: 'Bottom Left' },
+            { value: 'center bottom', label: 'Bottom Center' },
+            { value: 'right bottom', label: 'Bottom Right' },
+          ],
+        },
+        {
+          name: 'bgRepeat',
+          type: 'optionButtons',
+          label: 'Background Repeat',
+          default: 'no-repeat',
+          tab: 'style',
+          options: [
+            { value: 'no-repeat', label: 'No Repeat' },
+            { value: 'repeat', label: 'Repeat' },
+            { value: 'repeat-x', label: 'Repeat X' },
+            { value: 'repeat-y', label: 'Repeat Y' },
+          ],
         },
         {
           name: 'borderWidth',
@@ -260,7 +429,34 @@
     }
 
     static get observedAttributes() {
-      return ['layout', 'gap', 'vertical-align', 'margin', 'padding', 'background-color', 'border-width', 'border-color', 'border-radius', 'block-id', 'block-type'];
+      return [
+        'layout',
+        'mode',
+        'gap',
+        'vertical-align',
+        'content-position',
+        'full-bleed',
+        'min-height',
+        'max-height',
+        'content-width',
+        'content-max-width',
+        'margin',
+        'padding',
+        'background-color',
+        'bg-opacity',
+        'bg-source-type',
+        'bg-image-url',
+        'bg-media-id',
+        'bg-media-url',
+        'bg-size',
+        'bg-position',
+        'bg-repeat',
+        'border-width',
+        'border-color',
+        'border-radius',
+        'block-id',
+        'block-type',
+      ];
     }
 
     get margin() {
@@ -287,6 +483,64 @@
       return this.getAttribute('border-radius') || '';
     }
 
+    get mode() {
+      return this.getAttribute('mode') || 'standard';
+    }
+
+    get contentPosition() {
+      return this.getAttribute('content-position') || 'center';
+    }
+
+    get minHeight() {
+      return this.getSafeStyleValue(this.getAttribute('min-height') || '');
+    }
+
+    get maxHeight() {
+      return this.getSafeStyleValue(this.getAttribute('max-height') || '');
+    }
+
+    get contentWidth() {
+      return this.getSafeStyleValue(this.getAttribute('content-width') || '');
+    }
+
+    get contentMaxWidth() {
+      return this.getSafeStyleValue(this.getAttribute('content-max-width') || '');
+    }
+
+    get fullBleed() {
+      const value = this.getAttribute('full-bleed');
+      return value === '' || value === 'true' || value === '1';
+    }
+
+    get bgOpacity() {
+      return this.getAttribute('bg-opacity') || 'ap-opacity-7';
+    }
+
+    get bgSourceType() {
+      return this.getAttribute('bg-source-type') || 'url';
+    }
+
+    get bgSize() {
+      return this.getAttribute('bg-size') || 'cover';
+    }
+
+    get bgPosition() {
+      return this.getAttribute('bg-position') || 'center center';
+    }
+
+    get bgRepeat() {
+      return this.getAttribute('bg-repeat') || 'no-repeat';
+    }
+
+    getBackgroundImageUrl() {
+      const mediaUrl = this.getAttribute('bg-media-url') || '';
+      const imageUrl = this.getAttribute('bg-image-url') || '';
+      const rawUrl = (this.bgSourceType === 'media' || this.bgSourceType === 'upload')
+        ? (mediaUrl || imageUrl)
+        : imageUrl;
+      return this.sanitizeUrl(rawUrl);
+    }
+
     /**
      * Render the layout block content.
      */
@@ -294,6 +548,9 @@
       const layoutConfig = LayoutBlock.layoutVariations[this.layout] || LayoutBlock.layoutVariations['100'];
       const columns = layoutConfig.columns;
       const isEditing = window.pwcEditorState && window.pwcEditorState.isEditing;
+      const isHero = this.mode === 'hero';
+      const bgImageUrl = this.getBackgroundImageUrl();
+      const hasBackgroundLayer = Boolean(bgImageUrl || this.backgroundColor);
 
       // Get gap value in pixels
       const gapValues = {
@@ -312,9 +569,42 @@
         'stretch': 'stretch',
       };
       const alignValue = alignValues[this.verticalAlign] || 'flex-start';
+      const containerStyles = [];
+      if (this.minHeight) {
+        containerStyles.push(`min-height:${this.minHeight}`);
+      }
+      if (this.maxHeight) {
+        containerStyles.push(`max-height:${this.maxHeight}`);
+      }
+
+      const contentStyles = [
+        `gap:${gapValue}`,
+        `align-items:${alignValue}`,
+      ];
+      if (this.contentWidth) {
+        contentStyles.push(`width:${this.contentWidth}`);
+      }
+      if (this.contentMaxWidth) {
+        contentStyles.push(`max-width:${this.contentMaxWidth}`);
+      }
+
+      const bgStyles = [];
+      if (bgImageUrl) {
+        bgStyles.push(`background-image:url('${this.toSafeCssUrl(bgImageUrl)}')`);
+        bgStyles.push(`background-size:${this.bgSize}`);
+        bgStyles.push(`background-position:${this.bgPosition}`);
+        bgStyles.push(`background-repeat:${this.bgRepeat}`);
+      }
+
+      const {
+        justifyClass,
+        alignClass,
+        justifyValue: contentJustifyValue,
+        alignValue: contentAlignValue,
+      } = this.getContentPositionClasses(this.contentPosition);
 
       // Build columns HTML
-      let columnsHtml = columns.map((col, index) => {
+      const columnsHtml = columns.map((col, index) => {
         const columnBlocks = this.getColumnBlocks(index);
         const hasBlocks = columnBlocks.length > 0;
 
@@ -346,18 +636,43 @@
       const layoutClasses = [
         'pwc-layout-block',
         `pwc-layout-block--${this.layout}`,
+        isHero ? 'pwc-layout-block--hero' : '',
+        this.fullBleed ? 'pwc-layout-block--full-bleed' : '',
         this.margin,
         this.padding,
-        this.backgroundColor,
         this.borderWidth,
         this.borderColor,
         this.borderRadius,
       ].filter(Boolean).join(' ');
 
+      const backgroundLayerHtml = hasBackgroundLayer
+        ? `
+          <div class="pwc-layout-block__bg-layer ${this.backgroundColor} ${this.bgOpacity}"
+               style="${bgStyles.join(';')}"></div>
+        `
+        : '';
+
+      const standardContentHtml = `
+        <div class="pwc-layout-block__content" style="${contentStyles.join(';')}">
+          ${columnsHtml}
+        </div>
+      `;
+
+      const heroContentHtml = `
+        <div class="pwc-layout-hero-stage">
+          <div class="pwc-layout-hero-positioner d-flex w-100 h-100 ${justifyClass} ${alignClass}" style="justify-content:${contentJustifyValue};align-items:${contentAlignValue};">
+            <div class="pwc-layout-hero-content" style="${contentStyles.join(';')}">
+              ${columnsHtml}
+            </div>
+          </div>
+        </div>
+      `;
+
       this.innerHTML = `
         <div class="${layoutClasses}"
-             style="gap: ${gapValue}; align-items: ${alignValue};">
-          ${columnsHtml}
+             style="${containerStyles.join(';')}">
+          ${backgroundLayerHtml}
+          ${isHero ? heroContentHtml : standardContentHtml}
         </div>
         ${isEditing ? `
           <div class="pwc-layout-controls">
@@ -384,6 +699,62 @@
         this.setupColumnDropZones();
         this.setupLayoutDragHandle();
       }
+    }
+
+    getContentPositionClasses(position) {
+      const map = {
+        'top-left': { justifyClass: 'justify-content-start', alignClass: 'align-items-start', justifyValue: 'flex-start', alignValue: 'flex-start' },
+        'top-center': { justifyClass: 'justify-content-center', alignClass: 'align-items-start', justifyValue: 'center', alignValue: 'flex-start' },
+        'top-right': { justifyClass: 'justify-content-end', alignClass: 'align-items-start', justifyValue: 'flex-end', alignValue: 'flex-start' },
+        'middle-left': { justifyClass: 'justify-content-start', alignClass: 'align-items-center', justifyValue: 'flex-start', alignValue: 'center' },
+        'center': { justifyClass: 'justify-content-center', alignClass: 'align-items-center', justifyValue: 'center', alignValue: 'center' },
+        'middle-right': { justifyClass: 'justify-content-end', alignClass: 'align-items-center', justifyValue: 'flex-end', alignValue: 'center' },
+        'bottom-left': { justifyClass: 'justify-content-start', alignClass: 'align-items-end', justifyValue: 'flex-start', alignValue: 'flex-end' },
+        'bottom-center': { justifyClass: 'justify-content-center', alignClass: 'align-items-end', justifyValue: 'center', alignValue: 'flex-end' },
+        'bottom-right': { justifyClass: 'justify-content-end', alignClass: 'align-items-end', justifyValue: 'flex-end', alignValue: 'flex-end' },
+      };
+      return map[position] || map.center;
+    }
+
+    getSafeStyleValue(value) {
+      const trimmed = String(value || '').trim();
+      if (!trimmed) return '';
+      if (/^(none|auto|min-content|max-content|fit-content)$/i.test(trimmed)) return trimmed.toLowerCase();
+      if (/^\d+(\.\d+)?(px|%|vw|vh|rem|em)$/.test(trimmed)) return trimmed;
+      return '';
+    }
+
+    sanitizeUrl(url) {
+      const value = String(url || '').trim();
+      if (!value) return '';
+      if (value.startsWith('/')) return value;
+
+      try {
+        const parsed = new URL(value);
+        if (parsed.protocol === 'http:' || parsed.protocol === 'https:') {
+          return parsed.toString();
+        }
+      } catch (e) {
+        // Ignore malformed URL.
+      }
+
+      return '';
+    }
+
+    toSafeCssUrl(url) {
+      return String(url || '')
+        .replace(/\\/g, '\\\\')
+        .replace(/'/g, '%27')
+        .replace(/\(/g, '%28')
+        .replace(/\)/g, '%29');
+    }
+
+    escapeAttr(str) {
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/"/g, '&quot;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;');
     }
 
     /**

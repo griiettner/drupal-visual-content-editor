@@ -305,7 +305,8 @@
      * @returns {string} HTML string.
      */
     renderSettingField(setting, value) {
-      const currentSourceType = this.currentBlock?.getAttribute('source-type') || 'url';
+      const sourceTypeName = setting.sourceTypeName || 'sourceType';
+      const currentSourceType = this.currentBlock?.getAttribute(this.camelToKebab(sourceTypeName)) || 'url';
       if (Array.isArray(setting.showWhenSourceType) && setting.showWhenSourceType.length > 0) {
         if (!setting.showWhenSourceType.includes(currentSourceType)) {
           return '';
@@ -450,10 +451,11 @@
           `;
 
         case 'mediaVideoPicker': {
-          const sourceType = this.currentBlock?.getAttribute('source-type') || 'url';
-          const mediaId = this.currentBlock?.getAttribute('media-id') || '';
-          const mediaName = this.currentBlock?.getAttribute('media-name') || '';
-          const mediaType = this.currentBlock?.getAttribute('media-type') || '';
+          const fieldNames = this.getMediaFieldNames(setting);
+          const sourceType = this.currentBlock?.getAttribute(this.camelToKebab(fieldNames.sourceType)) || 'url';
+          const mediaId = this.currentBlock?.getAttribute(this.camelToKebab(fieldNames.mediaId)) || '';
+          const mediaName = this.currentBlock?.getAttribute(this.camelToKebab(fieldNames.mediaName)) || '';
+          const mediaType = this.currentBlock?.getAttribute(this.camelToKebab(fieldNames.mediaType)) || '';
           const inactiveClass = sourceType === 'media' ? '' : ' pwc-media-picker--inactive';
           const currentText = mediaName
             ? `${mediaName}${mediaId ? ` (#${mediaId})` : ''}`
@@ -464,7 +466,14 @@
               <label class="pwc-setting-label pwc-setting-label--mb2">
                 ${setting.label}
               </label>
-              <div class="pwc-media-picker${inactiveClass}" data-name="${setting.name}" data-media-kind="video">
+              <div class="pwc-media-picker${inactiveClass}"
+                   data-name="${setting.name}"
+                   data-media-kind="video"
+                   data-source-type-name="${fieldNames.sourceType}"
+                   data-media-id-name="${fieldNames.mediaId}"
+                   data-media-name-name="${fieldNames.mediaName}"
+                   data-media-url-name="${fieldNames.mediaUrl}"
+                   data-media-type-name="${fieldNames.mediaType}">
                 <p class="pwc-media-picker__current ap-text-color-text-body">${this.escapeHtml(currentText)}</p>
                 <p class="pwc-media-picker__meta ap-text-color-text-light">${this.escapeHtml(mediaType || 'Not set')}</p>
                 <div class="pwc-media-picker__search-row">
@@ -486,13 +495,20 @@
           `;
         }
 
-        case 'videoUpload':
+        case 'videoUpload': {
+          const videoFieldNames = this.getMediaFieldNames(setting);
           return `
             <div class="pwc-setting-field">
               <label class="pwc-setting-label pwc-setting-label--mb2">
                 ${setting.label}
               </label>
-              <div class="pwc-video-upload" data-upload-kind="video">
+              <div class="pwc-video-upload"
+                   data-upload-kind="video"
+                   data-source-type-name="${videoFieldNames.sourceType}"
+                   data-media-id-name="${videoFieldNames.mediaId}"
+                   data-media-name-name="${videoFieldNames.mediaName}"
+                   data-media-url-name="${videoFieldNames.mediaUrl}"
+                   data-media-type-name="${videoFieldNames.mediaType}">
                 <apw-upload
                   class="pwc-video-upload__component"
                   type="button"
@@ -510,11 +526,13 @@
               </div>
             </div>
           `;
+        }
 
         case 'mediaImagePicker': {
-          const sourceType = this.currentBlock?.getAttribute('source-type') || 'url';
-          const mediaId = this.currentBlock?.getAttribute('media-id') || '';
-          const mediaName = this.currentBlock?.getAttribute('media-name') || '';
+          const fieldNames = this.getMediaFieldNames(setting);
+          const sourceType = this.currentBlock?.getAttribute(this.camelToKebab(fieldNames.sourceType)) || 'url';
+          const mediaId = this.currentBlock?.getAttribute(this.camelToKebab(fieldNames.mediaId)) || '';
+          const mediaName = this.currentBlock?.getAttribute(this.camelToKebab(fieldNames.mediaName)) || '';
           const inactiveClass = sourceType === 'media' ? '' : ' pwc-media-picker--inactive';
           const currentText = mediaName
             ? `${mediaName}${mediaId ? ` (#${mediaId})` : ''}`
@@ -525,7 +543,14 @@
               <label class="pwc-setting-label pwc-setting-label--mb2">
                 ${setting.label}
               </label>
-              <div class="pwc-media-picker${inactiveClass}" data-name="${setting.name}" data-media-kind="image">
+              <div class="pwc-media-picker${inactiveClass}"
+                   data-name="${setting.name}"
+                   data-media-kind="image"
+                   data-source-type-name="${fieldNames.sourceType}"
+                   data-media-id-name="${fieldNames.mediaId}"
+                   data-media-name-name="${fieldNames.mediaName}"
+                   data-media-url-name="${fieldNames.mediaUrl}"
+                   data-media-type-name="${fieldNames.mediaType}">
                 <p class="pwc-media-picker__current ap-text-color-text-body">${this.escapeHtml(currentText)}</p>
                 <div class="pwc-media-picker__search-row">
                   <input
@@ -546,13 +571,20 @@
           `;
         }
 
-        case 'imageUpload':
+        case 'imageUpload': {
+          const imageFieldNames = this.getMediaFieldNames(setting);
           return `
             <div class="pwc-setting-field">
               <label class="pwc-setting-label pwc-setting-label--mb2">
                 ${setting.label}
               </label>
-              <div class="pwc-video-upload" data-upload-kind="image">
+              <div class="pwc-video-upload"
+                   data-upload-kind="image"
+                   data-source-type-name="${imageFieldNames.sourceType}"
+                   data-media-id-name="${imageFieldNames.mediaId}"
+                   data-media-name-name="${imageFieldNames.mediaName}"
+                   data-media-url-name="${imageFieldNames.mediaUrl}"
+                   data-media-type-name="${imageFieldNames.mediaType}">
                 <apw-upload
                   class="pwc-video-upload__component"
                   type="button"
@@ -570,6 +602,7 @@
               </div>
             </div>
           `;
+        }
 
         case 'optionButtons':
           return this.renderOptionButtonsField(setting, value);
@@ -1436,7 +1469,7 @@
           if (input.name === 'caption' && input.value.trim() !== '') {
             this.updateBlockAttribute('showCaption', true);
           }
-          if (input.name === 'sourceType' && this.currentBlock) {
+          if (this.shouldRefreshOnSourceTypeChange(input.name) && this.currentBlock) {
             setTimeout(() => this.showBlockSettings(this.currentBlock), 50);
           }
         });
@@ -1457,7 +1490,7 @@
 
           this.updateBlockAttribute(name, value);
 
-          if (name === 'sourceType' && this.currentBlock) {
+          if (this.shouldRefreshOnSourceTypeChange(name) && this.currentBlock) {
             setTimeout(() => this.showBlockSettings(this.currentBlock), 50);
           }
         });
@@ -2088,9 +2121,57 @@
       this.updateBlockAttribute(name, classes.join(' '));
     }
 
+    getMediaFieldNames(setting = {}) {
+      const prefix = String(setting.attributePrefix || '').trim();
+      if (!prefix) {
+        return {
+          sourceType: 'sourceType',
+          mediaId: 'mediaId',
+          mediaName: 'mediaName',
+          mediaUrl: 'mediaUrl',
+          mediaType: 'mediaType',
+        };
+      }
+
+      return {
+        sourceType: `${prefix}SourceType`,
+        mediaId: `${prefix}MediaId`,
+        mediaName: `${prefix}MediaName`,
+        mediaUrl: `${prefix}MediaUrl`,
+        mediaType: `${prefix}MediaType`,
+      };
+    }
+
+    getMediaFieldNamesFromElement(element) {
+      const data = element?.dataset || {};
+      return {
+        sourceType: data.sourceTypeName || 'sourceType',
+        mediaId: data.mediaIdName || 'mediaId',
+        mediaName: data.mediaNameName || 'mediaName',
+        mediaUrl: data.mediaUrlName || 'mediaUrl',
+        mediaType: data.mediaTypeName || 'mediaType',
+      };
+    }
+
+    shouldRefreshOnSourceTypeChange(changedName) {
+      if (!changedName || !this.currentBlock || !window.pwcBlockRegistry) {
+        return changedName === 'sourceType';
+      }
+
+      const blockInfo = window.pwcBlockRegistry.get(this.currentBlock.blockType);
+      const settings = Array.isArray(blockInfo?.settings) ? blockInfo.settings : [];
+      return settings.some(setting => {
+        if (!Array.isArray(setting.showWhenSourceType) || setting.showWhenSourceType.length === 0) {
+          return false;
+        }
+        return (setting.sourceTypeName || 'sourceType') === changedName;
+      });
+    }
+
     async loadVideoMediaOptions(picker, query = '') {
       const statusEl = picker.querySelector('.pwc-media-picker__status');
       const selectEl = picker.querySelector('.pwc-media-picker__select');
+      const fieldNames = this.getMediaFieldNamesFromElement(picker);
       if (!selectEl) return;
 
       if (!window.pwcApiClient || typeof window.pwcApiClient.listVideoMedia !== 'function') {
@@ -2104,7 +2185,7 @@
       try {
         const response = await window.pwcApiClient.listVideoMedia(query);
         const items = Array.isArray(response?.items) ? response.items : [];
-        const currentMediaId = this.currentBlock?.getAttribute('media-id') || '';
+        const currentMediaId = this.currentBlock?.getAttribute(this.camelToKebab(fieldNames.mediaId)) || '';
 
         if (items.length === 0) {
           const option = document.createElement('option');
@@ -2139,6 +2220,7 @@
     applySelectedMediaOption(picker) {
       const selectEl = picker.querySelector('.pwc-media-picker__select');
       const statusEl = picker.querySelector('.pwc-media-picker__status');
+      const fieldNames = this.getMediaFieldNamesFromElement(picker);
       const option = selectEl?.selectedOptions?.[0];
       if (!option || !option.dataset.mediaUrl) {
         if (statusEl) statusEl.textContent = 'Select a video first.';
@@ -2146,11 +2228,11 @@
       }
 
       this.updateBlockAttributes({
-        sourceType: 'media',
-        mediaId: option.dataset.mediaId || '',
-        mediaName: option.dataset.mediaName || '',
-        mediaUrl: option.dataset.mediaUrl || '',
-        mediaType: option.dataset.mediaType || 'file',
+        [fieldNames.sourceType]: 'media',
+        [fieldNames.mediaId]: option.dataset.mediaId || '',
+        [fieldNames.mediaName]: option.dataset.mediaName || '',
+        [fieldNames.mediaUrl]: option.dataset.mediaUrl || '',
+        [fieldNames.mediaType]: option.dataset.mediaType || 'file',
       });
 
       if (statusEl) {
@@ -2165,6 +2247,7 @@
     async loadImageMediaOptions(picker, query = '') {
       const statusEl = picker.querySelector('.pwc-media-picker__status');
       const selectEl = picker.querySelector('.pwc-media-picker__select');
+      const fieldNames = this.getMediaFieldNamesFromElement(picker);
       if (!selectEl) return;
 
       if (!window.pwcApiClient || typeof window.pwcApiClient.listImageMedia !== 'function') {
@@ -2178,7 +2261,7 @@
       try {
         const response = await window.pwcApiClient.listImageMedia(query);
         const items = Array.isArray(response?.items) ? response.items : [];
-        const currentMediaId = this.currentBlock?.getAttribute('media-id') || '';
+        const currentMediaId = this.currentBlock?.getAttribute(this.camelToKebab(fieldNames.mediaId)) || '';
 
         if (items.length === 0) {
           const option = document.createElement('option');
@@ -2213,6 +2296,7 @@
     applySelectedImageOption(picker) {
       const selectEl = picker.querySelector('.pwc-media-picker__select');
       const statusEl = picker.querySelector('.pwc-media-picker__status');
+      const fieldNames = this.getMediaFieldNamesFromElement(picker);
       const option = selectEl?.selectedOptions?.[0];
       if (!option || !option.dataset.mediaUrl) {
         if (statusEl) statusEl.textContent = 'Select an image first.';
@@ -2220,11 +2304,11 @@
       }
 
       this.updateBlockAttributes({
-        sourceType: 'media',
-        mediaId: option.dataset.mediaId || '',
-        mediaName: option.dataset.mediaName || '',
-        mediaUrl: option.dataset.mediaUrl || '',
-        mediaType: option.dataset.mediaType || 'file',
+        [fieldNames.sourceType]: 'media',
+        [fieldNames.mediaId]: option.dataset.mediaId || '',
+        [fieldNames.mediaName]: option.dataset.mediaName || '',
+        [fieldNames.mediaUrl]: option.dataset.mediaUrl || '',
+        [fieldNames.mediaType]: option.dataset.mediaType || 'file',
       });
 
       if (statusEl) {
@@ -2469,6 +2553,7 @@
     async uploadVideoFile(uploadWidget, file) {
       const uploader = uploadWidget.querySelector('apw-upload');
       const statusEl = uploadWidget.querySelector('.pwc-video-upload__status');
+      const fieldNames = this.getMediaFieldNamesFromElement(uploadWidget);
       const maxBytes = Number(window.pwcApiClient?.settings?.mediaUploadMaxBytes || 0);
 
       if (this._videoUploadInFlight.has(uploadWidget)) {
@@ -2501,16 +2586,17 @@
         }
 
         this.updateBlockAttributes({
-          sourceType: 'upload',
-          mediaId: String(item.id || ''),
-          mediaName: item.title || file.name,
-          mediaUrl: item.url,
-          mediaType: item.type || 'file',
+          [fieldNames.sourceType]: 'upload',
+          [fieldNames.mediaId]: String(item.id || ''),
+          [fieldNames.mediaName]: item.title || file.name,
+          [fieldNames.mediaUrl]: item.url,
+          [fieldNames.mediaType]: item.type || 'file',
         });
 
         if (statusEl) statusEl.textContent = 'Upload complete and selected.';
 
-        const mediaPicker = this.querySelector('.pwc-media-picker');
+        const mediaPicker = Array.from(this.querySelectorAll('.pwc-media-picker[data-media-kind="video"]'))
+          .find((picker) => (picker.dataset.sourceTypeName || 'sourceType') === fieldNames.sourceType);
         if (mediaPicker) {
           await this.loadVideoMediaOptions(mediaPicker, '');
         }
@@ -2531,6 +2617,7 @@
     async uploadImageFile(uploadWidget, file) {
       const uploader = uploadWidget.querySelector('apw-upload');
       const statusEl = uploadWidget.querySelector('.pwc-video-upload__status');
+      const fieldNames = this.getMediaFieldNamesFromElement(uploadWidget);
       const maxBytes = Number(window.pwcApiClient?.settings?.mediaUploadMaxBytes || 0);
 
       if (this._imageUploadInFlight.has(uploadWidget)) {
@@ -2563,16 +2650,17 @@
         }
 
         this.updateBlockAttributes({
-          sourceType: 'upload',
-          mediaId: String(item.id || ''),
-          mediaName: item.title || file.name,
-          mediaUrl: item.url,
-          mediaType: item.type || 'file',
+          [fieldNames.sourceType]: 'upload',
+          [fieldNames.mediaId]: String(item.id || ''),
+          [fieldNames.mediaName]: item.title || file.name,
+          [fieldNames.mediaUrl]: item.url,
+          [fieldNames.mediaType]: item.type || 'file',
         });
 
         if (statusEl) statusEl.textContent = 'Upload complete and selected.';
 
-        const mediaPicker = this.querySelector('.pwc-media-picker[data-media-kind="image"]');
+        const mediaPicker = Array.from(this.querySelectorAll('.pwc-media-picker[data-media-kind="image"]'))
+          .find((picker) => (picker.dataset.sourceTypeName || 'sourceType') === fieldNames.sourceType);
         if (mediaPicker) {
           await this.loadImageMediaOptions(mediaPicker, '');
         }

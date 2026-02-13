@@ -1802,9 +1802,59 @@ function pwc_visual_editor_render_layout(array $attributes, array $innerBlocks):
     return '';
   }
 
+  $sanitize_style_value = static function ($value): string {
+    $value = trim((string) $value);
+    if ($value === '') {
+      return '';
+    }
+    if (preg_match('/^(none|auto|min-content|max-content|fit-content)$/i', $value)) {
+      return strtolower($value);
+    }
+    if (preg_match('/^\d+(\.\d+)?(px|%|vw|vh|rem|em)$/', $value)) {
+      return $value;
+    }
+    return '';
+  };
+
+  $sanitize_url = static function ($url): string {
+    $url = trim((string) $url);
+    if ($url === '') {
+      return '';
+    }
+    if (str_starts_with($url, '/')) {
+      return $url;
+    }
+    if (filter_var($url, FILTER_VALIDATE_URL)) {
+      $scheme = strtolower((string) parse_url($url, PHP_URL_SCHEME));
+      if (in_array($scheme, ['http', 'https'], TRUE)) {
+        return $url;
+      }
+    }
+    return '';
+  };
+
+  $sanitize_classes = static function ($value): array {
+    $tokens = preg_split('/\s+/', (string) $value) ?: [];
+    $safe = [];
+    foreach ($tokens as $token) {
+      $token = trim($token);
+      if ($token !== '' && preg_match('/^[A-Za-z0-9_-]+$/', $token)) {
+        $safe[] = $token;
+      }
+    }
+    return $safe;
+  };
+
+  $sanitize_css_keyword = static function ($value, array $allowed, string $fallback): string {
+    $value = strtolower(trim((string) $value));
+    return in_array($value, $allowed, TRUE) ? $value : $fallback;
+  };
+
   $layout = $attributes['layout'] ?? '100';
+  $mode = ($attributes['mode'] ?? 'standard') === 'hero' ? 'hero' : 'standard';
   $gap = $attributes['gap'] ?? 'medium';
   $verticalAlign = $attributes['verticalAlign'] ?? 'top';
+  $fullBleed = !empty($attributes['fullBleed']) && (string) $attributes['fullBleed'] !== 'false' && (string) $attributes['fullBleed'] !== '0';
 
   // Layout configurations matching JS layoutVariations (flex-grow ratios).
   $layoutConfigs = [
@@ -1859,34 +1909,113 @@ function pwc_visual_editor_render_layout(array $attributes, array $innerBlocks):
   $gapValue = $gapValues[$gap] ?? '16px';
   $alignValue = $alignValues[$verticalAlign] ?? 'flex-start';
 
-  // Build wrapper classes (no Tailwind — flex/wrap handled by .pwc-layout-block in CSS).
+  $minHeight = $sanitize_style_value($attributes['minHeight'] ?? '');
+  $maxHeight = $sanitize_style_value($attributes['maxHeight'] ?? '');
+  $contentWidth = $sanitize_style_value($attributes['contentWidth'] ?? '');
+  $contentMaxWidth = $sanitize_style_value($attributes['contentMaxWidth'] ?? '');
+
+  $contentPosition = strtolower((string) ($attributes['contentPosition'] ?? 'center'));
+  $positionMap = [
+    'top-left' => ['justifyClass' => 'justify-content-start', 'alignClass' => 'align-items-start', 'justifyValue' => 'flex-start', 'alignValue' => 'flex-start'],
+    'top-center' => ['justifyClass' => 'justify-content-center', 'alignClass' => 'align-items-start', 'justifyValue' => 'center', 'alignValue' => 'flex-start'],
+    'top-right' => ['justifyClass' => 'justify-content-end', 'alignClass' => 'align-items-start', 'justifyValue' => 'flex-end', 'alignValue' => 'flex-start'],
+    'middle-left' => ['justifyClass' => 'justify-content-start', 'alignClass' => 'align-items-center', 'justifyValue' => 'flex-start', 'alignValue' => 'center'],
+    'center' => ['justifyClass' => 'justify-content-center', 'alignClass' => 'align-items-center', 'justifyValue' => 'center', 'alignValue' => 'center'],
+    'middle-right' => ['justifyClass' => 'justify-content-end', 'alignClass' => 'align-items-center', 'justifyValue' => 'flex-end', 'alignValue' => 'center'],
+    'bottom-left' => ['justifyClass' => 'justify-content-start', 'alignClass' => 'align-items-end', 'justifyValue' => 'flex-start', 'alignValue' => 'flex-end'],
+    'bottom-center' => ['justifyClass' => 'justify-content-center', 'alignClass' => 'align-items-end', 'justifyValue' => 'center', 'alignValue' => 'flex-end'],
+    'bottom-right' => ['justifyClass' => 'justify-content-end', 'alignClass' => 'align-items-end', 'justifyValue' => 'flex-end', 'alignValue' => 'flex-end'],
+  ];
+  $position = $positionMap[$contentPosition] ?? $positionMap['center'];
+
+  $bgSourceType = $attributes['bgSourceType'] ?? 'url';
+  $bgMediaUrl = (string) ($attributes['bgMediaUrl'] ?? '');
+  $bgImageUrlAttr = (string) ($attributes['bgImageUrl'] ?? '');
+  $bgRawUrl = in_array($bgSourceType, ['media', 'upload'], TRUE)
+    ? ($bgMediaUrl !== '' ? $bgMediaUrl : $bgImageUrlAttr)
+    : $bgImageUrlAttr;
+  $bgImageUrl = $sanitize_url($bgRawUrl);
+
+  $bgSize = $sanitize_css_keyword($attributes['bgSize'] ?? 'cover', ['cover', 'contain', 'auto'], 'cover');
+  $bgRepeat = $sanitize_css_keyword($attributes['bgRepeat'] ?? 'no-repeat', ['no-repeat', 'repeat', 'repeat-x', 'repeat-y'], 'no-repeat');
+  $bgPosition = trim((string) ($attributes['bgPosition'] ?? 'center center'));
+  $allowedBgPositions = [
+    'left top', 'center top', 'right top',
+    'left center', 'center center', 'right center',
+    'left bottom', 'center bottom', 'right bottom',
+  ];
+  if (!in_array($bgPosition, $allowedBgPositions, TRUE)) {
+    $bgPosition = 'center center';
+  }
+
+  // Build wrapper classes.
   $wrapperClasses = ['pwc-layout-block'];
+  $wrapperClasses[] = 'pwc-layout-block--' . preg_replace('/[^a-z0-9-]/', '', strtolower((string) $layout));
+  if ($mode === 'hero') {
+    $wrapperClasses[] = 'pwc-layout-block--hero';
+  }
+  if ($fullBleed) {
+    $wrapperClasses[] = 'pwc-layout-block--full-bleed';
+  }
   if (!empty($attributes['margin'])) {
-    $wrapperClasses[] = htmlspecialchars($attributes['margin']);
+    $wrapperClasses = array_merge($wrapperClasses, $sanitize_classes($attributes['margin']));
   }
   if (!empty($attributes['padding'])) {
-    $wrapperClasses[] = htmlspecialchars($attributes['padding']);
-  }
-  if (!empty($attributes['backgroundColor'])) {
-    $wrapperClasses[] = htmlspecialchars($attributes['backgroundColor']);
+    $wrapperClasses = array_merge($wrapperClasses, $sanitize_classes($attributes['padding']));
   }
   if (!empty($attributes['borderWidth'])) {
-    $wrapperClasses[] = htmlspecialchars($attributes['borderWidth']);
+    $wrapperClasses = array_merge($wrapperClasses, $sanitize_classes($attributes['borderWidth']));
   }
   if (!empty($attributes['borderColor'])) {
-    $wrapperClasses[] = htmlspecialchars($attributes['borderColor']);
+    $wrapperClasses = array_merge($wrapperClasses, $sanitize_classes($attributes['borderColor']));
   }
   if (!empty($attributes['borderRadius'])) {
-    $wrapperClasses[] = htmlspecialchars($attributes['borderRadius']);
+    $wrapperClasses = array_merge($wrapperClasses, $sanitize_classes($attributes['borderRadius']));
   }
   if (!empty($attributes['customClasses'])) {
-    $wrapperClasses[] = htmlspecialchars($attributes['customClasses']);
+    $wrapperClasses = array_merge($wrapperClasses, $sanitize_classes($attributes['customClasses']));
   }
   $wrapperClasses[] = 'pwc-layout-gap-' . preg_replace('/[^a-z0-9-]/', '', strtolower((string) $gap));
   $wrapperClasses[] = 'pwc-layout-align-' . preg_replace('/[^a-z0-9-]/', '', strtolower((string) $verticalAlign));
 
   $wrapperClassString = implode(' ', $wrapperClasses);
-  $wrapperStyle = "gap: {$gapValue}; align-items: {$alignValue};";
+
+  $wrapperStyleParts = [];
+  if ($minHeight !== '') {
+    $wrapperStyleParts[] = "min-height: {$minHeight}";
+  }
+  if ($maxHeight !== '') {
+    $wrapperStyleParts[] = "max-height: {$maxHeight}";
+  }
+  $wrapperStyle = implode('; ', $wrapperStyleParts);
+
+  $contentStyleParts = ["gap: {$gapValue}", "align-items: {$alignValue}"];
+  if ($contentWidth !== '') {
+    $contentStyleParts[] = "width: {$contentWidth}";
+  }
+  if ($contentMaxWidth !== '') {
+    $contentStyleParts[] = "max-width: {$contentMaxWidth}";
+  }
+  $contentStyle = implode('; ', $contentStyleParts);
+
+  $hasBackgroundLayer = !empty($attributes['backgroundColor']) || $bgImageUrl !== '';
+  $bgLayerClasses = ['pwc-layout-block__bg-layer'];
+  if (!empty($attributes['backgroundColor'])) {
+    $bgLayerClasses = array_merge($bgLayerClasses, $sanitize_classes($attributes['backgroundColor']));
+  }
+  $bgOpacity = (string) ($attributes['bgOpacity'] ?? 'ap-opacity-7');
+  if (preg_match('/^ap-opacity-[1-7]$/', $bgOpacity)) {
+    $bgLayerClasses[] = $bgOpacity;
+  }
+  $bgLayerStyleParts = [];
+  if ($bgImageUrl !== '') {
+    $safeCssUrl = str_replace(["\\", "'", "(", ")"], ["\\\\", '%27', '%28', '%29'], $bgImageUrl);
+    $bgLayerStyleParts[] = "background-image: url('{$safeCssUrl}')";
+    $bgLayerStyleParts[] = "background-size: {$bgSize}";
+    $bgLayerStyleParts[] = "background-position: {$bgPosition}";
+    $bgLayerStyleParts[] = "background-repeat: {$bgRepeat}";
+  }
+  $bgLayerStyle = implode('; ', $bgLayerStyleParts);
 
   // Group inner blocks by columnIndex.
   $blocksByColumn = [];
@@ -1902,8 +2031,21 @@ function pwc_visual_editor_render_layout(array $attributes, array $innerBlocks):
     $blocksByColumn[$columnIndex][] = $block;
   }
 
-  $html = "<div class=\"{$wrapperClassString}\" style=\"{$wrapperStyle}\">\n";
+  $html = "<div class=\"" . htmlspecialchars($wrapperClassString, ENT_QUOTES, 'UTF-8') . "\"";
+  if ($wrapperStyle !== '') {
+    $html .= " style=\"" . htmlspecialchars($wrapperStyle, ENT_QUOTES, 'UTF-8') . "\"";
+  }
+  $html .= ">\n";
 
+  if ($hasBackgroundLayer) {
+    $html .= "  <div class=\"" . htmlspecialchars(implode(' ', $bgLayerClasses), ENT_QUOTES, 'UTF-8') . "\"";
+    if ($bgLayerStyle !== '') {
+      $html .= " style=\"" . htmlspecialchars($bgLayerStyle, ENT_QUOTES, 'UTF-8') . "\"";
+    }
+    $html .= "></div>\n";
+  }
+
+  $columnsHtml = '';
   // Render each column using flex-grow ratios (matching JS inline styles).
   for ($columnIndex = 0; $columnIndex < $columns; $columnIndex++) {
     $flex = $flexRatios[$columnIndex] ?? 1;
@@ -1911,14 +2053,29 @@ function pwc_visual_editor_render_layout(array $attributes, array $innerBlocks):
     $safeFlex = max(1, min(10, (int) $flex));
     $columnClass = "pwc-layout-column pwc-layout-column--grow-{$safeFlex}";
 
-    $html .= "  <div class=\"{$columnClass}\" style=\"{$columnStyle}\">\n";
-    $html .= "    <div class=\"pwc-layout-column__content\">\n";
+    $columnsHtml .= "      <div class=\"{$columnClass}\" style=\"{$columnStyle}\">\n";
+    $columnsHtml .= "        <div class=\"pwc-layout-column__content\">\n";
 
     foreach ($blocksByColumn[$columnIndex] as $innerBlock) {
-      $html .= '      ' . pwc_visual_editor_render_block($innerBlock);
+      $columnsHtml .= '          ' . pwc_visual_editor_render_block($innerBlock);
     }
 
+    $columnsHtml .= "        </div>\n";
+    $columnsHtml .= "      </div>\n";
+  }
+
+  if ($mode === 'hero') {
+    $html .= "  <div class=\"pwc-layout-hero-stage\">\n";
+    $html .= "    <div class=\"pwc-layout-hero-positioner d-flex w-100 h-100 " . htmlspecialchars($position['justifyClass'], ENT_QUOTES, 'UTF-8') . ' ' . htmlspecialchars($position['alignClass'], ENT_QUOTES, 'UTF-8') . "\" style=\"justify-content: " . htmlspecialchars($position['justifyValue'], ENT_QUOTES, 'UTF-8') . "; align-items: " . htmlspecialchars($position['alignValue'], ENT_QUOTES, 'UTF-8') . ";\">\n";
+    $html .= "      <div class=\"pwc-layout-hero-content\" style=\"" . htmlspecialchars($contentStyle, ENT_QUOTES, 'UTF-8') . "\">\n";
+    $html .= $columnsHtml;
+    $html .= "      </div>\n";
     $html .= "    </div>\n";
+    $html .= "  </div>\n";
+  }
+  else {
+    $html .= "  <div class=\"pwc-layout-block__content\" style=\"" . htmlspecialchars($contentStyle, ENT_QUOTES, 'UTF-8') . "\">\n";
+    $html .= $columnsHtml;
     $html .= "  </div>\n";
   }
 

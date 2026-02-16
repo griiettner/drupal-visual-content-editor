@@ -700,6 +700,11 @@
           ${isHero ? heroContentHtml : standardContentHtml}
         </div>
         ${isEditing ? `
+          <div class="pwc-layout-indicator">
+            <svg viewBox="0 0 24 24" fill="currentColor">
+              <circle cx="12" cy="12" r="4"/>
+            </svg>
+          </div>
           <div class="pwc-layout-controls">
             <div class="pwc-layout-handle" title="Drag to reorder">
               <svg viewBox="0 0 24 24" fill="currentColor">
@@ -1092,7 +1097,8 @@
     }
 
     setupAddButtons() {
-      this.querySelectorAll('.pwc-layout-column__add-btn').forEach(btn => {
+      // Only select add buttons within columns that belong to THIS layout (not nested layouts)
+      this.querySelectorAll(`.pwc-layout-column[data-layout-id="${this.blockId}"] .pwc-layout-column__add-btn`).forEach(btn => {
         btn.addEventListener('click', (e) => {
           e.stopPropagation();
           const columnIndex = parseInt(btn.dataset.column, 10);
@@ -1105,7 +1111,8 @@
      * Set up drag and drop for columns.
      */
     setupColumnDropZones() {
-      const columns = this.querySelectorAll('.pwc-layout-column');
+      // Only select columns that belong to THIS layout (not nested layouts)
+      const columns = this.querySelectorAll(`.pwc-layout-column[data-layout-id="${this.blockId}"]`);
 
       columns.forEach(column => {
         const columnIndex = parseInt(column.dataset.columnIndex, 10);

@@ -199,7 +199,8 @@
     }
 
     /**
-     * Add hover controls to block (drag handle + delete).
+     * Add hover controls to block (indicator + drag handle + delete).
+     * Non-container blocks: indicator on RIGHT (top: 0, right: 0)
      */
     addHoverControls() {
       // Only add controls in edit mode
@@ -212,6 +213,16 @@
         return;
       }
 
+      // Create small indicator (10x10) - shown on block hover, triggers controls on indicator hover
+      const indicator = document.createElement('div');
+      indicator.className = 'pwc-block__indicator';
+      indicator.innerHTML = `
+        <svg viewBox="0 0 24 24" fill="currentColor">
+          <circle cx="12" cy="12" r="4"/>
+        </svg>
+      `;
+
+      // Create full controls (hidden by default, shown on indicator hover)
       const controls = document.createElement('div');
       controls.className = 'pwc-block__controls';
       controls.innerHTML = `
@@ -227,8 +238,9 @@
         </div>
       `;
 
-      // Insert controls at the beginning of the block
+      // Insert indicator first, then controls (indicator + controls must be adjacent for CSS sibling selector)
       this.insertBefore(controls, this.firstChild);
+      this.insertBefore(indicator, this.firstChild);
 
       // Set up delete handler
       const deleteBtn = controls.querySelector('.pwc-block__delete');

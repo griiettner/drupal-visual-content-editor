@@ -186,31 +186,58 @@ body.pwc-editing button.contextual-trigger {
    7. Blocks - Controls (drag handle, delete)
    ========================================================================== */
 
+/* Small indicator for NON-CONTAINERS - LEFT side */
+.pwc-block__indicator {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 10px;
+  height: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.5);
+  border-radius: 2px;
+  cursor: pointer;
+  z-index: 10;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+  mix-blend-mode: difference;
+}
+
+.pwc-block__indicator svg {
+  width: 6px;
+  height: 6px;
+  fill: currentColor;
+}
+
+.pwc-editing .pwc-block:hover > .pwc-block__indicator,
+.pwc-editing .pwc-block--selected > .pwc-block__indicator {
+  opacity: 1;
+}
+
+/* Full controls for NON-CONTAINERS - appear to RIGHT of indicator */
 .pwc-block__controls {
   position: absolute;
-  top: 8px;
-  left: 8px;
+  top: 0;
+  left: 12px;
   display: flex;
   flex-direction: row;
   gap: 4px;
   opacity: 0;
   visibility: hidden;
-  /* Keep controls visible briefly after hover-out so handles are easier to click. */
-  transition: opacity 0.15s ease 1.2s, visibility 0s linear 1.35s;
-  z-index: 10;
+  pointer-events: none;
+  transition: opacity 0.15s ease, visibility 0s linear 0.15s;
+  z-index: 100;
 }
 
-.pwc-editing .pwc-block:hover .pwc-block__controls,
-.pwc-editing .pwc-block--selected .pwc-block__controls {
+/* Show controls when indicator is hovered */
+.pwc-block__indicator:hover + .pwc-block__controls,
+.pwc-block__controls:hover {
   opacity: 1;
   visibility: visible;
+  pointer-events: auto;
   transition-delay: 0s, 0s;
-}
-
-/* When controls would extend beyond viewport left edge, flip to right side */
-.pwc-block__controls--inside {
-  left: auto;
-  right: 8px;
 }
 
 .pwc-block__drag-handle,
@@ -442,78 +469,99 @@ pwc-layout > .pwc-block__controls {
   display: none !important;
 }
 
-/* Shared controls (accordion, tab, layout) */
+/* Container indicator - small square on RIGHT, always visible on hover */
+.pwc-layout-indicator,
+.pwc-accordion-indicator,
+.pwc-tab-indicator {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 10px;
+  height: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.5);
+  border-radius: 2px;
+  cursor: pointer;
+  z-index: 10;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+  mix-blend-mode: difference;
+}
+
+.pwc-layout-indicator svg,
+.pwc-accordion-indicator svg,
+.pwc-tab-indicator svg {
+  width: 6px;
+  height: 6px;
+  fill: currentColor;
+}
+
+/* Show indicator on container hover */
+.pwc-editing pwc-layout:hover > .pwc-layout-indicator,
+.pwc-editing pwc-layout.pwc-block--selected > .pwc-layout-indicator,
+.pwc-editing pwc-accordion:hover > .pwc-accordion-indicator,
+.pwc-editing pwc-accordion.pwc-block--selected > .pwc-accordion-indicator,
+.pwc-editing pwc-tab:hover > .pwc-tab-indicator,
+.pwc-editing pwc-tab.pwc-block--selected > .pwc-tab-indicator {
+  opacity: 1;
+}
+
+/* Position indicator based on nesting level (12px offset per level) */
+pwc-layout[level="1"] > .pwc-layout-indicator { top: 12px; }
+pwc-layout[level="2"] > .pwc-layout-indicator { top: 24px; }
+pwc-layout[level="3"] > .pwc-layout-indicator { top: 36px; }
+pwc-layout[level="4"] > .pwc-layout-indicator { top: 48px; }
+
+/* Container controls - hidden by default, shown on indicator hover */
+/* Controls appear to LEFT of indicator (right: 12px) */
 .pwc-accordion-controls,
 .pwc-tab-controls,
 .pwc-layout-controls {
   position: absolute;
-  right: 8px;
-  top: 8px;
+  right: 12px;
+  top: 0;
   display: flex;
   flex-direction: row;
   align-items: center;
   gap: 4px;
-  z-index: 10;
+  z-index: 100;
   opacity: 0;
   visibility: hidden;
-  pointer-events: auto;
-  /* Keep controls visible briefly after hover-out so handles are easier to click. */
-  transition: opacity 0.15s ease 1.2s, visibility 0s linear 1.35s;
-  z-index: 100;
+  pointer-events: none;
+  transition: opacity 0.15s ease, visibility 0s linear 0.15s;
 }
 
-/* Position layout controls based on nesting level attribute.
-   Each level stacks controls vertically (40px per level).
-   Level 0 = top-level (top: 8px), Level 1 = nested once (top: 48px), etc. */
-pwc-layout[level="1"] > .pwc-layout-controls { top: 48px; }
-pwc-layout[level="2"] > .pwc-layout-controls { top: 88px; }
-pwc-layout[level="3"] > .pwc-layout-controls { top: 128px; }
-pwc-layout[level="4"] > .pwc-layout-controls { top: 168px; }
+/* Position controls based on nesting level (same offset as indicator) */
+pwc-layout[level="1"] > .pwc-layout-controls { top: 12px; }
+pwc-layout[level="2"] > .pwc-layout-controls { top: 24px; }
+pwc-layout[level="3"] > .pwc-layout-controls { top: 36px; }
+pwc-layout[level="4"] > .pwc-layout-controls { top: 48px; }
 
-pwc-accordion:hover .pwc-accordion-controls,
-pwc-accordion.pwc-block--selected .pwc-accordion-controls,
-pwc-tab:hover .pwc-tab-controls,
-pwc-tab.pwc-block--selected .pwc-tab-controls,
-pwc-layout:hover .pwc-layout-controls,
-pwc-layout.pwc-block--selected .pwc-layout-controls {
+/* Show controls when indicator is hovered */
+.pwc-layout-indicator:hover ~ .pwc-layout-controls,
+.pwc-layout-controls:hover,
+.pwc-accordion-indicator:hover ~ .pwc-accordion-controls,
+.pwc-accordion-controls:hover,
+.pwc-tab-indicator:hover ~ .pwc-tab-controls,
+.pwc-tab-controls:hover {
   opacity: 1;
   visibility: visible;
+  pointer-events: auto;
   transition-delay: 0s, 0s;
 }
 
-/* Nested container z-index:
-   Parent containers get lower z-index so child controls are always clickable.
-   Controls are offset by level so they don't overlap. */
-pwc-layout:hover:has(pwc-layout:hover) > .pwc-layout-controls,
-pwc-layout:hover:has(pwc-layout.pwc-block--selected) > .pwc-layout-controls,
-pwc-layout.pwc-block--selected:has(pwc-layout.pwc-block--selected) > .pwc-layout-controls,
-pwc-layout.pwc-block--selected:has(pwc-layout:hover) > .pwc-layout-controls {
-  z-index: 90;
-}
+/* Nested container z-index - ensure child indicators are above parent */
+pwc-layout[level="1"] > .pwc-layout-indicator { z-index: 11; }
+pwc-layout[level="2"] > .pwc-layout-indicator { z-index: 12; }
+pwc-layout[level="3"] > .pwc-layout-indicator { z-index: 13; }
+pwc-layout[level="4"] > .pwc-layout-indicator { z-index: 14; }
 
-pwc-accordion:hover:has(pwc-accordion:hover) > .pwc-accordion-controls,
-pwc-accordion:hover:has(pwc-accordion.pwc-block--selected) > .pwc-accordion-controls,
-pwc-accordion.pwc-block--selected:has(pwc-accordion.pwc-block--selected) > .pwc-accordion-controls,
-pwc-accordion.pwc-block--selected:has(pwc-accordion:hover) > .pwc-accordion-controls,
-pwc-tab:hover:has(pwc-tab:hover) > .pwc-tab-controls,
-pwc-tab:hover:has(pwc-tab.pwc-block--selected) > .pwc-tab-controls,
-pwc-tab.pwc-block--selected:has(pwc-tab.pwc-block--selected) > .pwc-tab-controls,
-pwc-tab.pwc-block--selected:has(pwc-tab:hover) > .pwc-tab-controls {
-  z-index: 90;
-}
-
-/* Keep currently selected container controls above other hover controls. */
-pwc-layout.pwc-block--selected > .pwc-layout-controls,
-pwc-accordion.pwc-block--selected > .pwc-accordion-controls,
-pwc-tab.pwc-block--selected > .pwc-tab-controls {
-  z-index: 220;
-}
-
-/* When controls would extend beyond viewport, flip to left side.
-   The `left` value is set via inline style by JS based on nesting level. */
-.pwc-layout-controls--inside {
-  right: auto !important;
-}
+pwc-layout[level="1"] > .pwc-layout-controls { z-index: 101; }
+pwc-layout[level="2"] > .pwc-layout-controls { z-index: 102; }
+pwc-layout[level="3"] > .pwc-layout-controls { z-index: 103; }
+pwc-layout[level="4"] > .pwc-layout-controls { z-index: 104; }
 
 .pwc-accordion-handle,
 .pwc-tab-handle,

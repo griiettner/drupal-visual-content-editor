@@ -292,9 +292,13 @@
         this.addEventListener('dragend', () => {
           // Only clean up if drag actually started
           if (this._dragStarted) {
-            this.classList.remove('pwc-block--dragging');
+            try {
+              this.classList.remove('pwc-block--dragging');
+              this.removeReorderDropZones();
+            } catch (err) {
+              // Element may have been removed during drop
+            }
             document.body.classList.remove('pwc-dragging-block');
-            this.removeReorderDropZones();
           }
 
           // Reset flags
@@ -387,6 +391,10 @@
      * Creates drop zones at ALL valid positions: top-level and all layout columns.
      */
     createReorderDropZones() {
+      // Defensive cleanup: remove any existing drop zones first
+      document.querySelectorAll('.pwc-drop-zone--reorder').forEach(zone => zone.remove());
+      document.querySelectorAll('.pwc-drop-active').forEach(el => el.classList.remove('pwc-drop-active'));
+
       const parentInfo = this.getParentLayoutInfo();
 
       // Always create top-level drop zones
@@ -671,16 +679,21 @@
           const targetColumnIndex = dropZone.dataset.columnIndex !== undefined
             ? parseInt(dropZone.dataset.columnIndex, 10) : null;
 
+          // Clean up BEFORE moving (moveBlockCrossContainer triggers re-render which destroys elements)
+          try {
+            self.removeReorderDropZones();
+            self.classList.remove('pwc-block--dragging');
+          } catch (err) {
+            // Element may already be gone
+          }
+          document.body.classList.remove('pwc-dragging-block');
+
+          // Now move the block (this triggers re-render)
           window.pwcEditorState.moveBlockCrossContainer(blockId, {
             layoutId: targetLayoutId,
             columnIndex: targetColumnIndex,
             insertIndex: newIndex,
           });
-
-          // Clean up
-          self.removeReorderDropZones();
-          self.classList.remove('pwc-block--dragging');
-          document.body.classList.remove('pwc-dragging-block');
         }
       };
     }
@@ -748,16 +761,21 @@
           const targetColumnIndex = zone.dataset.columnIndex !== undefined
             ? parseInt(zone.dataset.columnIndex, 10) : null;
 
+          // Clean up BEFORE moving (moveBlockCrossContainer triggers re-render which destroys elements)
+          try {
+            self.removeReorderDropZones();
+            self.classList.remove('pwc-block--dragging');
+          } catch (err) {
+            // Element may already be gone
+          }
+          document.body.classList.remove('pwc-dragging-block');
+
+          // Now move the block (this triggers re-render)
           window.pwcEditorState.moveBlockCrossContainer(blockId, {
             layoutId: targetLayoutId,
             columnIndex: targetColumnIndex,
             insertIndex: newIndex,
           });
-
-          // Clean up
-          self.removeReorderDropZones();
-          self.classList.remove('pwc-block--dragging');
-          document.body.classList.remove('pwc-dragging-block');
         };
 
         // Add listeners with capture = true to intercept events first
@@ -776,39 +794,48 @@
      * Remove reorder drop zones.
      */
     removeReorderDropZones() {
-      const contentRegion = document.querySelector('[data-pwc-content-region]');
-      if (contentRegion) {
-        contentRegion.classList.remove('pwc-drop-active');
+      try {
+        const contentRegion = document.querySelector('[data-pwc-content-region]');
+        if (contentRegion) {
+          contentRegion.classList.remove('pwc-drop-active');
 
-        // Remove content region drag handler if set
-        if (this._contentRegionDragHandler) {
-          contentRegion.removeEventListener('dragover', this._contentRegionDragHandler, true);
-          contentRegion.removeEventListener('drop', this._contentRegionDragHandler, true);
-          this._contentRegionDragHandler = null;
+          // Remove content region drag handler if set
+          if (this._contentRegionDragHandler) {
+            contentRegion.removeEventListener('dragover', this._contentRegionDragHandler, true);
+            contentRegion.removeEventListener('drop', this._contentRegionDragHandler, true);
+            this._contentRegionDragHandler = null;
+          }
         }
-      }
 
-      // Remove all cross-container column drag handlers
-      if (this._allColumnDragHandlers) {
-        this._allColumnDragHandlers.forEach(({ element, handler }) => {
-          element.removeEventListener('dragover', handler, true);
-          element.removeEventListener('drop', handler, true);
+        // Remove all cross-container column drag handlers
+        if (this._allColumnDragHandlers) {
+          this._allColumnDragHandlers.forEach(({ element, handler }) => {
+            try {
+              element.removeEventListener('dragover', handler, true);
+              element.removeEventListener('drop', handler, true);
+            } catch (err) {
+              // Element may have been removed
+            }
+          });
+          this._allColumnDragHandlers = null;
+        }
+
+        // Remove pwc-drop-active from all column content and accordion section elements
+        document.querySelectorAll('.pwc-layout-column__content.pwc-drop-active').forEach(col => {
+          col.classList.remove('pwc-drop-active');
         });
-        this._allColumnDragHandlers = null;
+        document.querySelectorAll('.pwc-accordion-section__content.pwc-drop-active').forEach(col => {
+          col.classList.remove('pwc-drop-active');
+        });
+        document.querySelectorAll('.pwc-tab-section__content.pwc-drop-active').forEach(col => {
+          col.classList.remove('pwc-drop-active');
+        });
+
+        document.querySelectorAll('.pwc-drop-zone--reorder').forEach(zone => zone.remove());
+      } catch (err) {
+        // Cleanup errors should not break the UI
+        console.warn('Error during drop zone cleanup:', err);
       }
-
-      // Remove pwc-drop-active from all column content and accordion section elements
-      document.querySelectorAll('.pwc-layout-column__content.pwc-drop-active').forEach(col => {
-        col.classList.remove('pwc-drop-active');
-      });
-      document.querySelectorAll('.pwc-accordion-section__content.pwc-drop-active').forEach(col => {
-        col.classList.remove('pwc-drop-active');
-      });
-      document.querySelectorAll('.pwc-tab-section__content.pwc-drop-active').forEach(col => {
-        col.classList.remove('pwc-drop-active');
-      });
-
-      document.querySelectorAll('.pwc-drop-zone--reorder').forEach(zone => zone.remove());
     }
 
     /**

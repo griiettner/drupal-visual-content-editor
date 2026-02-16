@@ -384,14 +384,27 @@
       // Drag start - only allow if initiated from handle
       this.addEventListener('dragstart', (e) => {
         // Don't interfere with child block drags - only handle drags on this layout itself
-        if (e.target !== this && !e.target.classList.contains('pwc-layout-handle')) {
-          return; // Let the event continue to propagate, don't prevent it
+        // Check if the drag originated from THIS layout's handle (not a nested layout's handle)
+        const handle = e.target.closest('.pwc-layout-handle');
+        if (handle) {
+          // Find which layout this handle belongs to
+          const handleLayout = handle.closest('pwc-layout');
+          if (handleLayout !== this) {
+            // This handle belongs to a nested layout, let it handle the drag
+            return;
+          }
+        } else if (e.target !== this) {
+          // Not from a handle and not this element directly
+          return;
         }
 
         if (!this._dragFromLayoutHandle) {
           e.preventDefault();
           return;
         }
+
+        // Stop propagation to prevent parent layouts from also handling this drag
+        e.stopPropagation();
 
         e.dataTransfer.setData('text/plain', this.blockId);
         e.dataTransfer.setData('application/x-pwc-block-reorder', this.blockId);
@@ -419,10 +432,16 @@
 
       // Drag end
       this.addEventListener('dragend', (e) => {
+        // Only handle if this layout started the drag
         if (this._dragStarted) {
-          this.classList.remove('pwc-block--dragging');
+          e.stopPropagation();
+          try {
+            this.classList.remove('pwc-block--dragging');
+            this.removeReorderDropZones();
+          } catch (err) {
+            // Element may have been removed during drop
+          }
           document.body.classList.remove('pwc-dragging-block');
-          this.removeReorderDropZones();
         }
         this._dragFromLayoutHandle = false;
         this._dragStarted = false;
@@ -935,12 +954,21 @@
      * Set up the layout controls (drag handle and delete).
      */
     setupLayoutDragHandle() {
-      const handle = this.querySelector('.pwc-layout-handle');
-      const deleteBtn = this.querySelector('.pwc-layout-delete');
+      // Only select the handle that's a DIRECT child of this layout (not nested layouts)
+      // The controls are direct children of the pwc-layout element
+      const controls = Array.from(this.children).find(el => el.classList.contains('pwc-layout-controls'));
+      if (!controls) return;
+
+      const handle = controls.querySelector('.pwc-layout-handle');
+      const deleteBtn = controls.querySelector('.pwc-layout-delete');
 
       if (!handle) {
         return;
       }
+
+      // Skip if already set up (check for marker)
+      if (handle._setupDone) return;
+      handle._setupDone = true;
 
       // Remove draggable from handle - the BLOCK is draggable, not the handle
       handle.removeAttribute('draggable');
@@ -959,8 +987,9 @@
         document.addEventListener('mouseup', resetFlag, { once: true });
       });
 
-      // Delete button
-      if (deleteBtn) {
+      // Delete button (only set up once)
+      if (deleteBtn && !deleteBtn._setupDone) {
+        deleteBtn._setupDone = true;
         deleteBtn.addEventListener('click', (e) => {
           e.stopPropagation();
           e.preventDefault();

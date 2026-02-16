@@ -466,6 +466,21 @@
 
       const { block, parent, index: currentIndex } = result;
 
+      // Prevent moving a block into itself
+      if (layoutId === blockId) {
+        console.warn('Cannot move a block into itself');
+        return;
+      }
+
+      // Prevent moving a container into one of its descendants (would create circular reference)
+      if (layoutId !== null && block.innerBlocks) {
+        const isDescendant = this.isBlockDescendantOf(layoutId, block);
+        if (isDescendant) {
+          console.warn('Cannot move a container into one of its descendants');
+          return;
+        }
+      }
+
       // Determine source container
       const sourceIsTopLevel = !parent;
       const sourceLayoutId = parent ? parent.id : null;
@@ -562,6 +577,24 @@
         }
       }
       return null;
+    }
+
+    /**
+     * Check if a block ID is a descendant of another block.
+     *
+     * @param {string} blockId - Block ID to check.
+     * @param {Object} ancestorBlock - Potential ancestor block.
+     * @returns {boolean} True if blockId is inside ancestorBlock.
+     */
+    isBlockDescendantOf(blockId, ancestorBlock) {
+      if (!ancestorBlock.innerBlocks) return false;
+      for (const inner of ancestorBlock.innerBlocks) {
+        if (inner.id === blockId) return true;
+        if (inner.innerBlocks && this.isBlockDescendantOf(blockId, inner)) {
+          return true;
+        }
+      }
+      return false;
     }
 
     /**

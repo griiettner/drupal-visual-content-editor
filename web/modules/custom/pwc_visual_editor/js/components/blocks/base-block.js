@@ -422,8 +422,9 @@
 
       allLayouts.forEach(layoutEl => {
         const layoutId = layoutEl.getAttribute('block-id');
-        // Only select this layout's own columns, not columns of nested layouts
-        const columns = layoutEl.querySelectorAll(':scope > .pwc-layout-block > .pwc-layout-column');
+        // Only select this layout's own columns using data-layout-id attribute
+        // This works for both standard and hero mode layouts
+        const columns = layoutEl.querySelectorAll(`.pwc-layout-column[data-layout-id="${layoutId}"]`);
 
         columns.forEach(column => {
           const columnIndex = parseInt(column.dataset.columnIndex, 10);

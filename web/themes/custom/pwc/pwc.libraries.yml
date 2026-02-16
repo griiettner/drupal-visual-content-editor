@@ -1,0 +1,6 @@
+global-styling:
+  css:
+    base:
+      css/appkit4.css: {}
+    theme:
+      css/style.css: {}

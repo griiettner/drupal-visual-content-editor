@@ -73,6 +73,17 @@
       if (this._unsubscribeSelection) {
         this._unsubscribeSelection();
       }
+
+      if (this._controlsPositionHandler) {
+        window.removeEventListener('resize', this._controlsPositionHandler);
+        window.removeEventListener('scroll', this._controlsPositionHandler);
+        this._controlsPositionHandler = null;
+      }
+
+      if (this._controlsBodyObserver) {
+        this._controlsBodyObserver.disconnect();
+        this._controlsBodyObserver = null;
+      }
     }
 
     /**
@@ -298,6 +309,48 @@
       dragHandle.addEventListener('mousedown', () => {
         document.addEventListener('mouseup', resetDragFlag, { once: true });
       });
+
+      // Position controls based on viewport edge detection
+      this.positionBlockControls();
+
+      // Set up listener to reposition on resize/scroll if not already done
+      if (!this._controlsPositionHandler) {
+        this._controlsPositionHandler = () => this.positionBlockControls();
+        window.addEventListener('resize', this._controlsPositionHandler);
+        window.addEventListener('scroll', this._controlsPositionHandler, { passive: true });
+
+        // Also observe body class changes for panel open/close
+        this._controlsBodyObserver = new MutationObserver(() => {
+          if (this.isConnected) {
+            this.positionBlockControls();
+            setTimeout(() => this.positionBlockControls(), 350);
+          }
+        });
+        this._controlsBodyObserver.observe(document.body, {
+          attributes: true,
+          attributeFilter: ['class'],
+        });
+      }
+    }
+
+    /**
+     * Position block controls inside if at viewport edge.
+     * Regular blocks have controls on the left, so check left edge.
+     */
+    positionBlockControls() {
+      const controls = this.querySelector('.pwc-block__controls');
+      if (!controls) return;
+
+      const rect = this.getBoundingClientRect();
+      const controlsWidth = 50; // Width of controls + buffer
+
+      // Reset class
+      controls.classList.remove('pwc-block__controls--inside');
+
+      // Check if left edge is at or beyond viewport edge
+      if (rect.left < controlsWidth) {
+        controls.classList.add('pwc-block__controls--inside');
+      }
     }
 
     /**

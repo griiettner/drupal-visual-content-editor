@@ -313,6 +313,15 @@
         }
       }
 
+      // Support showWhenMode for conditionally showing settings based on mode
+      if (Array.isArray(setting.showWhenMode) && setting.showWhenMode.length > 0) {
+        const modeName = setting.modeName || 'mode';
+        const currentMode = this.currentBlock?.getAttribute(this.camelToKebab(modeName)) || 'standard';
+        if (!setting.showWhenMode.includes(currentMode)) {
+          return '';
+        }
+      }
+
       const id = `pwc-setting-${setting.name}`;
 
       switch (setting.type) {
@@ -2155,16 +2164,25 @@
 
     shouldRefreshOnSourceTypeChange(changedName) {
       if (!changedName || !this.currentBlock || !window.pwcBlockRegistry) {
-        return changedName === 'sourceType';
+        return changedName === 'sourceType' || changedName === 'mode';
       }
 
       const blockInfo = window.pwcBlockRegistry.get(this.currentBlock.blockType);
       const settings = Array.isArray(blockInfo?.settings) ? blockInfo.settings : [];
       return settings.some(setting => {
-        if (!Array.isArray(setting.showWhenSourceType) || setting.showWhenSourceType.length === 0) {
-          return false;
+        // Check showWhenSourceType
+        if (Array.isArray(setting.showWhenSourceType) && setting.showWhenSourceType.length > 0) {
+          if ((setting.sourceTypeName || 'sourceType') === changedName) {
+            return true;
+          }
         }
-        return (setting.sourceTypeName || 'sourceType') === changedName;
+        // Check showWhenMode
+        if (Array.isArray(setting.showWhenMode) && setting.showWhenMode.length > 0) {
+          if ((setting.modeName || 'mode') === changedName) {
+            return true;
+          }
+        }
+        return false;
       });
     }
 

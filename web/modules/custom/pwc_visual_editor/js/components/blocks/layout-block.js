@@ -129,6 +129,8 @@
             { value: 'bottom-right', label: 'Bottom Right' },
           ],
           default: 'center',
+          showWhenMode: ['hero'],
+          modeName: 'mode',
         },
         {
           name: 'fullBleed',
@@ -597,11 +599,17 @@
       }
 
       const {
-        justifyClass,
-        alignClass,
         justifyValue: contentJustifyValue,
         alignValue: contentAlignValue,
       } = this.getContentPositionClasses(this.contentPosition);
+
+      // Check if this layout is nested inside another layout's column
+      // Full-bleed doesn't work correctly when nested
+      const isNested = this.closest('.pwc-layout-column') !== null;
+      const canFullBleed = this.fullBleed && !isNested;
+
+      // Store for use in applyFullBleed
+      this._canFullBleed = canFullBleed;
 
       // Build columns HTML
       const columnsHtml = columns.map((col, index) => {
@@ -633,17 +641,23 @@
       }).join('');
 
       // Build class list with spacing and styling
+      // Note: full-bleed is handled via JS for accurate positioning in admin mode
       const layoutClasses = [
         'pwc-layout-block',
         `pwc-layout-block--${this.layout}`,
         isHero ? 'pwc-layout-block--hero' : '',
-        this.fullBleed ? 'pwc-layout-block--full-bleed' : '',
+        canFullBleed ? 'pwc-layout-block--full-bleed' : '',
         this.margin,
         this.padding,
         this.borderWidth,
         this.borderColor,
         this.borderRadius,
       ].filter(Boolean).join(' ');
+
+      // Add overflow:hidden when border-radius is present to clip background/content
+      if (this.borderRadius) {
+        containerStyles.push('overflow:hidden');
+      }
 
       const backgroundLayerHtml = hasBackgroundLayer
         ? `
@@ -660,7 +674,7 @@
 
       const heroContentHtml = `
         <div class="pwc-layout-hero-stage">
-          <div class="pwc-layout-hero-positioner d-flex w-100 h-100 ${justifyClass} ${alignClass}" style="justify-content:${contentJustifyValue};align-items:${contentAlignValue};">
+          <div class="pwc-layout-hero-positioner" style="justify-content:${contentJustifyValue};align-items:${contentAlignValue};">
             <div class="pwc-layout-hero-content" style="${contentStyles.join(';')}">
               ${columnsHtml}
             </div>
@@ -699,19 +713,135 @@
         this.setupColumnDropZones();
         this.setupLayoutDragHandle();
       }
+
+      // Apply full-bleed positioning after DOM is updated
+      if (this._canFullBleed) {
+        // Use requestAnimationFrame to ensure DOM is ready
+        requestAnimationFrame(() => this.applyFullBleed());
+      }
+    }
+
+    /**
+     * Apply full-bleed positioning using JavaScript calculation.
+     * This works correctly regardless of admin sidebars or centered containers.
+     */
+    applyFullBleed() {
+      const layoutBlock = this.querySelector('.pwc-layout-block');
+      if (!layoutBlock) return;
+
+      // Temporarily remove the full-bleed class and reset styles to measure true position
+      const hadClass = layoutBlock.classList.contains('pwc-layout-block--full-bleed');
+      layoutBlock.classList.remove('pwc-layout-block--full-bleed');
+      layoutBlock.style.marginLeft = '';
+      layoutBlock.style.marginRight = '';
+      layoutBlock.style.width = '';
+
+      // Force reflow to ensure styles are applied before measuring
+      layoutBlock.offsetHeight;
+
+      // Now get the bounding rect of the element in its natural position
+      const rect = layoutBlock.getBoundingClientRect();
+      const leftOffset = rect.left;
+
+      // Use documentElement.clientWidth to get viewport width excluding scrollbar
+      const viewportWidth = document.documentElement.clientWidth;
+
+      // Calculate right offset
+      const rightOffset = viewportWidth - rect.right;
+
+      // Re-add the class (for semantics/styling hooks)
+      if (hadClass) {
+        layoutBlock.classList.add('pwc-layout-block--full-bleed');
+      }
+
+      // Apply inline styles to make it span full viewport width
+      // These override the CSS class rules
+      layoutBlock.style.marginLeft = `-${leftOffset}px`;
+      layoutBlock.style.marginRight = `-${rightOffset}px`;
+      layoutBlock.style.width = `${viewportWidth}px`;
+      layoutBlock.style.paddingLeft = '';
+      layoutBlock.style.paddingRight = '';
+
+      // Set up resize handler if not already done
+      if (!this._fullBleedResizeHandler) {
+        this._fullBleedResizeHandler = () => {
+          if (this._canFullBleed && this.isConnected) {
+            this.applyFullBleed();
+          }
+        };
+        window.addEventListener('resize', this._fullBleedResizeHandler);
+
+        // Also observe body class changes (admin panels opening/closing)
+        this._bodyClassObserver = new MutationObserver(() => {
+          if (this._canFullBleed && this.isConnected) {
+            // Recalculate multiple times during transition to stay in sync
+            this.applyFullBleed();
+            setTimeout(() => this.applyFullBleed(), 100);
+            setTimeout(() => this.applyFullBleed(), 200);
+            setTimeout(() => this.applyFullBleed(), 350);
+          }
+          // Also reposition controls when panels open/close
+          if (this.isConnected) {
+            this.positionControls();
+            setTimeout(() => this.positionControls(), 350);
+          }
+        });
+        this._bodyClassObserver.observe(document.body, {
+          attributes: true,
+          attributeFilter: ['class'],
+        });
+
+        // Also listen for transitionend on body for more precise timing
+        this._bodyTransitionHandler = (e) => {
+          if (e.target === document.body && this._canFullBleed && this.isConnected) {
+            this.applyFullBleed();
+          }
+        };
+        document.body.addEventListener('transitionend', this._bodyTransitionHandler);
+      }
+    }
+
+    /**
+     * Clean up handlers when disconnected.
+     */
+    disconnectedCallback() {
+      if (super.disconnectedCallback) {
+        super.disconnectedCallback();
+      }
+      if (this._fullBleedResizeHandler) {
+        window.removeEventListener('resize', this._fullBleedResizeHandler);
+        this._fullBleedResizeHandler = null;
+      }
+      if (this._bodyClassObserver) {
+        this._bodyClassObserver.disconnect();
+        this._bodyClassObserver = null;
+      }
+      if (this._bodyTransitionHandler) {
+        document.body.removeEventListener('transitionend', this._bodyTransitionHandler);
+        this._bodyTransitionHandler = null;
+      }
+      if (this._controlsPositionHandler) {
+        window.removeEventListener('resize', this._controlsPositionHandler);
+        window.removeEventListener('scroll', this._controlsPositionHandler);
+        this._controlsPositionHandler = null;
+      }
+      if (this._controlsBodyObserver) {
+        this._controlsBodyObserver.disconnect();
+        this._controlsBodyObserver = null;
+      }
     }
 
     getContentPositionClasses(position) {
       const map = {
-        'top-left': { justifyClass: 'justify-content-start', alignClass: 'align-items-start', justifyValue: 'flex-start', alignValue: 'flex-start' },
-        'top-center': { justifyClass: 'justify-content-center', alignClass: 'align-items-start', justifyValue: 'center', alignValue: 'flex-start' },
-        'top-right': { justifyClass: 'justify-content-end', alignClass: 'align-items-start', justifyValue: 'flex-end', alignValue: 'flex-start' },
-        'middle-left': { justifyClass: 'justify-content-start', alignClass: 'align-items-center', justifyValue: 'flex-start', alignValue: 'center' },
-        'center': { justifyClass: 'justify-content-center', alignClass: 'align-items-center', justifyValue: 'center', alignValue: 'center' },
-        'middle-right': { justifyClass: 'justify-content-end', alignClass: 'align-items-center', justifyValue: 'flex-end', alignValue: 'center' },
-        'bottom-left': { justifyClass: 'justify-content-start', alignClass: 'align-items-end', justifyValue: 'flex-start', alignValue: 'flex-end' },
-        'bottom-center': { justifyClass: 'justify-content-center', alignClass: 'align-items-end', justifyValue: 'center', alignValue: 'flex-end' },
-        'bottom-right': { justifyClass: 'justify-content-end', alignClass: 'align-items-end', justifyValue: 'flex-end', alignValue: 'flex-end' },
+        'top-left': { justifyValue: 'flex-start', alignValue: 'flex-start' },
+        'top-center': { justifyValue: 'center', alignValue: 'flex-start' },
+        'top-right': { justifyValue: 'flex-end', alignValue: 'flex-start' },
+        'middle-left': { justifyValue: 'flex-start', alignValue: 'center' },
+        'center': { justifyValue: 'center', alignValue: 'center' },
+        'middle-right': { justifyValue: 'flex-end', alignValue: 'center' },
+        'bottom-left': { justifyValue: 'flex-start', alignValue: 'flex-end' },
+        'bottom-center': { justifyValue: 'center', alignValue: 'flex-end' },
+        'bottom-right': { justifyValue: 'flex-end', alignValue: 'flex-end' },
       };
       return map[position] || map.center;
     }
@@ -719,8 +849,33 @@
     getSafeStyleValue(value) {
       const trimmed = String(value || '').trim();
       if (!trimmed) return '';
-      if (/^(none|auto|min-content|max-content|fit-content)$/i.test(trimmed)) return trimmed.toLowerCase();
-      if (/^\d+(\.\d+)?(px|%|vw|vh|rem|em)$/.test(trimmed)) return trimmed;
+      // Allow keywords
+      if (/^(none|auto|min-content|max-content|fit-content)$/i.test(trimmed)) {
+        return trimmed.toLowerCase();
+      }
+      // Allow numeric values with units (including negative and modern viewport units)
+      // Supports: px, %, vw, vh, rem, em, svh, dvh, lvh, svw, dvw, lvw, cqw, cqh
+      if (/^-?\d+(\.\d+)?(px|%|vw|vh|rem|em|svh|dvh|lvh|svw|dvw|lvw|cqw|cqh)$/.test(trimmed)) {
+        return trimmed;
+      }
+      // Allow calc(), min(), max(), clamp() functions
+      // Basic validation: must start with function name and have balanced parentheses
+      if (/^(calc|min|max|clamp)\s*\(/.test(trimmed)) {
+        // Count parentheses to ensure they're balanced
+        let depth = 0;
+        for (const char of trimmed) {
+          if (char === '(') depth++;
+          if (char === ')') depth--;
+          if (depth < 0) return ''; // More closing than opening
+        }
+        if (depth === 0) {
+          // Balanced parentheses - do basic sanitization
+          // Only allow safe characters: digits, units, operators, spaces, parentheses, commas
+          if (/^[a-z0-9\s()+\-*/%,._]+$/i.test(trimmed)) {
+            return trimmed;
+          }
+        }
+      }
       return '';
     }
 
@@ -792,6 +947,54 @@
           e.preventDefault();
           this.showDeleteConfirmation('Are you sure you want to delete this container and all its contents? This action cannot be undone.');
         });
+      }
+
+      // Position controls based on viewport edge detection
+      this.positionControls();
+
+      // Set up listener to reposition on resize/scroll if not already done
+      if (!this._controlsPositionHandler) {
+        this._controlsPositionHandler = () => this.positionControls();
+        window.addEventListener('resize', this._controlsPositionHandler);
+        window.addEventListener('scroll', this._controlsPositionHandler, { passive: true });
+
+        // Also observe body class changes for panel open/close
+        if (!this._controlsBodyObserver) {
+          this._controlsBodyObserver = new MutationObserver(() => {
+            if (this.isConnected) {
+              this.positionControls();
+              setTimeout(() => this.positionControls(), 350);
+            }
+          });
+          this._controlsBodyObserver.observe(document.body, {
+            attributes: true,
+            attributeFilter: ['class'],
+          });
+        }
+      }
+    }
+
+    /**
+     * Position controls inside the container if at viewport edge.
+     * Controls always stay on the right side, just move inside when needed.
+     */
+    positionControls() {
+      const controls = this.querySelector('.pwc-layout-controls');
+      if (!controls) return;
+
+      const layoutBlock = this.querySelector('.pwc-layout-block');
+      if (!layoutBlock) return;
+
+      const rect = layoutBlock.getBoundingClientRect();
+      const viewportWidth = document.documentElement.clientWidth;
+      const controlsWidth = 50; // Width of controls + some buffer
+
+      // Reset classes
+      controls.classList.remove('pwc-layout-controls--inside');
+
+      // Check if right edge is at or beyond viewport edge - move controls inside
+      if (rect.right + controlsWidth > viewportWidth) {
+        controls.classList.add('pwc-layout-controls--inside');
       }
     }
 
@@ -871,7 +1074,6 @@
 
       columns.forEach(column => {
         const columnIndex = parseInt(column.dataset.columnIndex, 10);
-        const content = column.querySelector('.pwc-layout-column__content');
 
         // Dragover - show drop indicator
         column.addEventListener('dragover', (e) => {

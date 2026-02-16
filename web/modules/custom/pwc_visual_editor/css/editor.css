@@ -188,10 +188,10 @@ body.pwc-editing button.contextual-trigger {
 
 .pwc-block__controls {
   position: absolute;
-  top: 0;
-  left: -40px;
+  top: 8px;
+  left: 8px;
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   gap: 4px;
   opacity: 0;
   visibility: hidden;
@@ -200,16 +200,17 @@ body.pwc-editing button.contextual-trigger {
   z-index: 10;
 }
 
-/* Position regular block controls inside when at left viewport edge */
-.pwc-block__controls--inside {
-  left: 8px;
-}
-
 .pwc-editing .pwc-block:hover .pwc-block__controls,
 .pwc-editing .pwc-block--selected .pwc-block__controls {
   opacity: 1;
   visibility: visible;
   transition-delay: 0s, 0s;
+}
+
+/* When controls would extend beyond viewport left edge, flip to right side */
+.pwc-block__controls--inside {
+  left: auto;
+  right: 8px;
 }
 
 .pwc-block__drag-handle,
@@ -261,10 +262,7 @@ body.pwc-editing button.contextual-trigger {
    ========================================================================== */
 
 /* --- Heading --- */
-
-.pwc-heading {
-  /* Base heading styles if needed */
-}
+/* Heading styles defined by Appkit classes */
 
 /* --- Button --- */
 
@@ -449,30 +447,13 @@ pwc-layout > .pwc-block__controls {
 .pwc-tab-controls,
 .pwc-layout-controls {
   position: absolute;
-  right: -40px;
-  top: 0;
-  bottom: 0;
-  width: 36px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-}
-
-/* Position controls inside when at viewport edge */
-.pwc-accordion-controls--inside,
-.pwc-tab-controls--inside,
-.pwc-layout-controls--inside {
   right: 8px;
-  left: auto;
-}
-
-.pwc-accordion-controls--inside-left,
-.pwc-tab-controls--inside-left,
-.pwc-layout-controls--inside-left {
-  left: 8px;
-  right: auto;
+  top: 8px;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 4px;
+  z-index: 10;
   opacity: 0;
   visibility: hidden;
   pointer-events: auto;
@@ -480,6 +461,14 @@ pwc-layout > .pwc-block__controls {
   transition: opacity 0.15s ease 1.2s, visibility 0s linear 1.35s;
   z-index: 100;
 }
+
+/* Position layout controls based on nesting level attribute.
+   Each level stacks controls vertically (40px per level).
+   Level 0 = top-level (top: 8px), Level 1 = nested once (top: 48px), etc. */
+pwc-layout[level="1"] > .pwc-layout-controls { top: 48px; }
+pwc-layout[level="2"] > .pwc-layout-controls { top: 88px; }
+pwc-layout[level="3"] > .pwc-layout-controls { top: 128px; }
+pwc-layout[level="4"] > .pwc-layout-controls { top: 168px; }
 
 pwc-accordion:hover .pwc-accordion-controls,
 pwc-accordion.pwc-block--selected .pwc-accordion-controls,
@@ -492,17 +481,25 @@ pwc-layout.pwc-block--selected .pwc-layout-controls {
   transition-delay: 0s, 0s;
 }
 
-/* Nested container fix:
-   hide parent controls when a nested container is active to keep inner controls clickable. */
+/* Nested container z-index:
+   Parent containers get lower z-index so child controls are always clickable.
+   Controls are offset by level so they don't overlap. */
 pwc-layout:hover:has(pwc-layout:hover) > .pwc-layout-controls,
+pwc-layout:hover:has(pwc-layout.pwc-block--selected) > .pwc-layout-controls,
 pwc-layout.pwc-block--selected:has(pwc-layout.pwc-block--selected) > .pwc-layout-controls,
+pwc-layout.pwc-block--selected:has(pwc-layout:hover) > .pwc-layout-controls {
+  z-index: 90;
+}
+
 pwc-accordion:hover:has(pwc-accordion:hover) > .pwc-accordion-controls,
+pwc-accordion:hover:has(pwc-accordion.pwc-block--selected) > .pwc-accordion-controls,
 pwc-accordion.pwc-block--selected:has(pwc-accordion.pwc-block--selected) > .pwc-accordion-controls,
+pwc-accordion.pwc-block--selected:has(pwc-accordion:hover) > .pwc-accordion-controls,
 pwc-tab:hover:has(pwc-tab:hover) > .pwc-tab-controls,
-pwc-tab.pwc-block--selected:has(pwc-tab.pwc-block--selected) > .pwc-tab-controls {
-  opacity: 0;
-  visibility: hidden;
-  pointer-events: none;
+pwc-tab:hover:has(pwc-tab.pwc-block--selected) > .pwc-tab-controls,
+pwc-tab.pwc-block--selected:has(pwc-tab.pwc-block--selected) > .pwc-tab-controls,
+pwc-tab.pwc-block--selected:has(pwc-tab:hover) > .pwc-tab-controls {
+  z-index: 90;
 }
 
 /* Keep currently selected container controls above other hover controls. */
@@ -510,6 +507,12 @@ pwc-layout.pwc-block--selected > .pwc-layout-controls,
 pwc-accordion.pwc-block--selected > .pwc-accordion-controls,
 pwc-tab.pwc-block--selected > .pwc-tab-controls {
   z-index: 220;
+}
+
+/* When controls would extend beyond viewport, flip to left side.
+   The `left` value is set via inline style by JS based on nesting level. */
+.pwc-layout-controls--inside {
+  right: auto !important;
 }
 
 .pwc-accordion-handle,

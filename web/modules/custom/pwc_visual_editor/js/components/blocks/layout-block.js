@@ -345,6 +345,17 @@
     }
 
     /**
+     * Called when element is added to DOM.
+     * Position controls after parent's connectedCallback completes.
+     */
+    connectedCallback() {
+      super.connectedCallback();
+      this.syncLevelAttribute();
+      // Position controls now that we're connected and can find ancestors
+      requestAnimationFrame(() => this.positionControls());
+    }
+
+    /**
      * Override addHoverControls to use custom layout handle instead.
      * This prevents the base block's visual controls but still sets up drag.
      */
@@ -714,6 +725,9 @@
         this.setupLayoutDragHandle();
       }
 
+      // Keep `level` always present and up to date after re-render.
+      this.syncLevelAttribute();
+
       // Apply full-bleed positioning after DOM is updated
       if (this._canFullBleed) {
         // Use requestAnimationFrame to ensure DOM is ready
@@ -949,8 +963,9 @@
         });
       }
 
-      // Position controls based on viewport edge detection
-      this.positionControls();
+      // Position controls based on nesting level - defer to ensure DOM is ready
+      // Use requestAnimationFrame to ensure element is connected before calculating
+      requestAnimationFrame(() => this.positionControls());
 
       // Set up listener to reposition on resize/scroll if not already done
       if (!this._controlsPositionHandler) {
@@ -975,8 +990,26 @@
     }
 
     /**
-     * Position controls inside the container if at viewport edge.
-     * Controls always stay on the right side, just move inside when needed.
+     * Sync `level` attribute based on number of ancestor pwc-layout blocks.
+     * Level 0 = top-level layout, 1 = nested in one layout, etc.
+     */
+    syncLevelAttribute() {
+      let level = 0;
+      let parent = this.parentElement;
+      while (parent) {
+        if (parent.tagName === 'PWC-LAYOUT') {
+          level++;
+        }
+        parent = parent.parentElement;
+      }
+      this.setAttribute('level', String(level));
+      return level;
+    }
+
+    /**
+     * Position controls based on nesting level.
+     * CSS handles positioning via [level] attribute selectors.
+     * JS only handles viewport edge case (flipping to left side).
      */
     positionControls() {
       const controls = this.querySelector('.pwc-layout-controls');
@@ -985,17 +1018,19 @@
       const layoutBlock = this.querySelector('.pwc-layout-block');
       if (!layoutBlock) return;
 
-      const rect = layoutBlock.getBoundingClientRect();
-      const viewportWidth = document.documentElement.clientWidth;
-      const controlsWidth = 50; // Width of controls + some buffer
-
-      // Reset classes
-      controls.classList.remove('pwc-layout-controls--inside');
-
-      // Check if right edge is at or beyond viewport edge - move controls inside
-      if (rect.right + controlsWidth > viewportWidth) {
-        controls.classList.add('pwc-layout-controls--inside');
+      // If not connected to DOM yet, defer positioning
+      if (!this.isConnected) {
+        setTimeout(() => this.positionControls(), 50);
+        return;
       }
+
+      // Keep level attribute synced - CSS uses this for positioning
+      this.syncLevelAttribute();
+
+      // Clear any inline styles so CSS can control positioning
+      controls.style.right = '';
+      controls.style.left = '';
+      controls.classList.remove('pwc-layout-controls--inside');
     }
 
     getColumnBlocks(columnIndex) {

@@ -227,7 +227,8 @@ body.pwc-editing button.contextual-trigger {
   opacity: 0;
   visibility: hidden;
   pointer-events: none;
-  transition: opacity 0.15s ease, visibility 0s linear 0.15s;
+  /* 1 second delay before hiding when hover-out */
+  transition: opacity 0.15s ease 1s, visibility 0s linear 1.15s;
   z-index: 100;
 }
 
@@ -237,6 +238,7 @@ body.pwc-editing button.contextual-trigger {
   opacity: 1;
   visibility: visible;
   pointer-events: auto;
+  /* No delay when showing */
   transition-delay: 0s, 0s;
 }
 
@@ -523,14 +525,13 @@ pwc-layout[level="4"] > .pwc-layout-indicator { top: 48px; }
   right: 12px;
   top: 0;
   display: flex;
-  flex-direction: row;
+  flex-direction: row-reverse; /* Delete button first (safer for containers) */
   align-items: center;
   gap: 4px;
   z-index: 100;
   opacity: 0;
-  visibility: hidden;
   pointer-events: none;
-  transition: opacity 0.15s ease, visibility 0s linear 0.15s;
+  transition: opacity 0.15s ease 0.5s; /* 0.5s delay before hiding */
 }
 
 /* Position controls based on nesting level (same offset as indicator) */
@@ -538,6 +539,18 @@ pwc-layout[level="1"] > .pwc-layout-controls { top: 12px; }
 pwc-layout[level="2"] > .pwc-layout-controls { top: 24px; }
 pwc-layout[level="3"] > .pwc-layout-controls { top: 36px; }
 pwc-layout[level="4"] > .pwc-layout-controls { top: 48px; }
+
+/* Hover bridge - extends controls hover area to indicator */
+.pwc-layout-controls::after,
+.pwc-accordion-controls::after,
+.pwc-tab-controls::after {
+  content: '';
+  position: absolute;
+  right: -14px; /* Bridge to indicator */
+  top: 0;
+  width: 14px;
+  height: 100%;
+}
 
 /* Show controls when indicator is hovered */
 .pwc-layout-indicator:hover ~ .pwc-layout-controls,
@@ -547,9 +560,8 @@ pwc-layout[level="4"] > .pwc-layout-controls { top: 48px; }
 .pwc-tab-indicator:hover ~ .pwc-tab-controls,
 .pwc-tab-controls:hover {
   opacity: 1;
-  visibility: visible;
   pointer-events: auto;
-  transition-delay: 0s, 0s;
+  transition: opacity 0.15s ease; /* No delay when showing */
 }
 
 /* Nested container z-index - ensure child indicators are above parent */

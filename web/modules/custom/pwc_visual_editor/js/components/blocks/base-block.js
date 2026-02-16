@@ -400,10 +400,9 @@
       // Always create top-level drop zones
       this.createTopLevelReorderDropZones();
 
-      // Create drop zones in all layout columns (unless dragging a layout block)
-      if (this.tagName.toLowerCase() !== 'pwc-layout') {
-        this.createAllColumnDropZones(parentInfo);
-      }
+      // Create drop zones in all layout columns
+      // (circular reference check in moveBlockCrossContainer prevents dropping into self/descendants)
+      this.createAllColumnDropZones(parentInfo);
 
       // Create drop zones in all accordion sections (unless dragging an accordion block)
       if (this.tagName.toLowerCase() !== 'pwc-accordion') {

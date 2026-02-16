@@ -486,7 +486,7 @@ pwc-layout > .pwc-block__controls {
   background: rgba(255, 255, 255, 0.5);
   border-radius: 2px;
   cursor: pointer;
-  z-index: 10;
+  z-index: 10000; /* Above settings panel (9999) */
   opacity: 0;
   transition: opacity 0.15s ease;
   mix-blend-mode: difference;
@@ -528,7 +528,7 @@ pwc-layout[level="4"] > .pwc-layout-indicator { top: 48px; }
   flex-direction: row-reverse; /* Delete button first (safer for containers) */
   align-items: center;
   gap: 4px;
-  z-index: 100;
+  z-index: 10100; /* Above settings panel (9999) */
   opacity: 0;
   pointer-events: none;
   transition: opacity 0.15s ease 0.5s; /* 0.5s delay before hiding */
@@ -564,16 +564,16 @@ pwc-layout[level="4"] > .pwc-layout-controls { top: 48px; }
   transition: opacity 0.15s ease; /* No delay when showing */
 }
 
-/* Nested container z-index - ensure child indicators are above parent */
-pwc-layout[level="1"] > .pwc-layout-indicator { z-index: 11; }
-pwc-layout[level="2"] > .pwc-layout-indicator { z-index: 12; }
-pwc-layout[level="3"] > .pwc-layout-indicator { z-index: 13; }
-pwc-layout[level="4"] > .pwc-layout-indicator { z-index: 14; }
+/* Nested container z-index - ensure indicators/controls are above settings panel (9999) */
+pwc-layout[level="1"] > .pwc-layout-indicator { z-index: 10001; }
+pwc-layout[level="2"] > .pwc-layout-indicator { z-index: 10002; }
+pwc-layout[level="3"] > .pwc-layout-indicator { z-index: 10003; }
+pwc-layout[level="4"] > .pwc-layout-indicator { z-index: 10004; }
 
-pwc-layout[level="1"] > .pwc-layout-controls { z-index: 101; }
-pwc-layout[level="2"] > .pwc-layout-controls { z-index: 102; }
-pwc-layout[level="3"] > .pwc-layout-controls { z-index: 103; }
-pwc-layout[level="4"] > .pwc-layout-controls { z-index: 104; }
+pwc-layout[level="1"] > .pwc-layout-controls { z-index: 10101; }
+pwc-layout[level="2"] > .pwc-layout-controls { z-index: 10102; }
+pwc-layout[level="3"] > .pwc-layout-controls { z-index: 10103; }
+pwc-layout[level="4"] > .pwc-layout-controls { z-index: 10104; }
 
 .pwc-accordion-handle,
 .pwc-tab-handle,

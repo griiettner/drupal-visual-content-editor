@@ -800,6 +800,9 @@
       layoutBlock.style.paddingLeft = '';
       layoutBlock.style.paddingRight = '';
 
+      // Reposition indicator/controls to stay within visible canvas
+      requestAnimationFrame(() => this.positionControls());
+
       // Set up resize handler if not already done
       if (!this._fullBleedResizeHandler) {
         this._fullBleedResizeHandler = () => {
@@ -1043,10 +1046,11 @@
     /**
      * Position controls based on nesting level.
      * CSS handles positioning via [level] attribute selectors.
-     * JS only handles viewport edge case (flipping to left side).
+     * JS handles full-bleed offset to keep indicator/controls within visible canvas.
      */
     positionControls() {
       const controls = this.querySelector('.pwc-layout-controls');
+      const indicator = this.querySelector('.pwc-layout-indicator');
       if (!controls) return;
 
       const layoutBlock = this.querySelector('.pwc-layout-block');
@@ -1061,10 +1065,42 @@
       // Keep level attribute synced - CSS uses this for positioning
       this.syncLevelAttribute();
 
-      // Clear any inline styles so CSS can control positioning
+      // Clear any inline styles first
       controls.style.right = '';
       controls.style.left = '';
       controls.classList.remove('pwc-layout-controls--inside');
+      if (indicator) {
+        indicator.style.right = '';
+      }
+
+      // Check if this layout (or its content) extends beyond the visible canvas
+      // Use the inner canvas as the reference for where content should stay
+      const innerCanvas = document.querySelector('.pwc-editor-canvas__inner');
+
+      if (innerCanvas) {
+        const canvasRect = innerCanvas.getBoundingClientRect();
+        const thisRect = this.getBoundingClientRect();
+
+        // Calculate how far this pwc-layout extends beyond the canvas right edge
+        const rightOverflow = thisRect.right - canvasRect.right;
+
+        console.log('positionControls:', {
+          blockId: this.blockId,
+          level: this.getAttribute('level'),
+          thisRight: thisRect.right,
+          canvasRight: canvasRect.right,
+          rightOverflow,
+        });
+
+        if (rightOverflow > 0) {
+          // Offset the indicator and controls to stay within the canvas
+          const offset = rightOverflow + 8;
+          if (indicator) {
+            indicator.style.right = `${offset}px`;
+          }
+          controls.style.right = `${offset + 12}px`;
+        }
+      }
     }
 
     getColumnBlocks(columnIndex) {

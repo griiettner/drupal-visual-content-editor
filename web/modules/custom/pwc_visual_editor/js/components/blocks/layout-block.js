@@ -782,7 +782,10 @@
       const leftOffset = rect.left;
 
       // Use documentElement.clientWidth to get viewport width excluding scrollbar
-      const viewportWidth = document.documentElement.clientWidth;
+      // In edit mode, deduct settings panel width (320px)
+      const isEditing = document.body.classList.contains('pwc-editing');
+      const panelWidth = isEditing ? 320 : 0;
+      const viewportWidth = document.documentElement.clientWidth - panelWidth;
 
       // Calculate right offset
       const rightOffset = viewportWidth - rect.right;
@@ -1065,41 +1068,12 @@
       // Keep level attribute synced - CSS uses this for positioning
       this.syncLevelAttribute();
 
-      // Clear any inline styles first
+      // Clear any inline styles - let CSS handle positioning
       controls.style.right = '';
       controls.style.left = '';
       controls.classList.remove('pwc-layout-controls--inside');
       if (indicator) {
         indicator.style.right = '';
-      }
-
-      // Check if this layout (or its content) extends beyond the visible canvas
-      // Use the inner canvas as the reference for where content should stay
-      const innerCanvas = document.querySelector('.pwc-editor-canvas__inner');
-
-      if (innerCanvas) {
-        const canvasRect = innerCanvas.getBoundingClientRect();
-        const thisRect = this.getBoundingClientRect();
-
-        // Calculate how far this pwc-layout extends beyond the canvas right edge
-        const rightOverflow = thisRect.right - canvasRect.right;
-
-        console.log('positionControls:', {
-          blockId: this.blockId,
-          level: this.getAttribute('level'),
-          thisRight: thisRect.right,
-          canvasRight: canvasRect.right,
-          rightOverflow,
-        });
-
-        if (rightOverflow > 0) {
-          // Offset the indicator and controls to stay within the canvas
-          const offset = rightOverflow + 8;
-          if (indicator) {
-            indicator.style.right = `${offset}px`;
-          }
-          controls.style.right = `${offset + 12}px`;
-        }
       }
     }
 
